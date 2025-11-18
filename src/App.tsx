@@ -3,9 +3,10 @@ import { AuthProvider } from './contexts/AuthContext';
 import { OrderProvider } from './contexts/OrderContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Login } from './pages/Login';
-import { Ordens } from './pages/Ordens';
+import { Ordens } from './pages/Dashboard';
 import { NovaOrdem } from './pages/NovaOrdem';
 import { EditarOrdem } from './pages/EditarOrdem';
+import { WhatsAppPage } from './components/WhatsApp/WhatsAppPage';
 
 function App() {
   return (
@@ -35,6 +36,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <EditarOrdem />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/whatsapp-chat"
+              element={
+                <ProtectedRoute>
+                  <WhatsAppPage />
                 </ProtectedRoute>
               }
             />

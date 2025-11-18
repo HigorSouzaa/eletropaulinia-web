@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FileText, Users, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, FileText, Users, BarChart3, MessageCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext.tsx';
 
 export function Sidebar() {
@@ -29,6 +29,18 @@ export function Sidebar() {
           <LayoutDashboard size={20} />
           <span>Dashboard</span>
         </Link>
+       
+        <Link
+          to="/whatsapp-chat"
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+            isActive('/whatsapp-chat')
+              ? 'bg-orange-50 text-orange-600 font-medium'
+              : 'text-gray-700 hover:bg-gray-50'
+          }`}
+        >
+          <MessageCircle size={20} />
+          <span>Chat WhatsApp</span>
+        </Link>
 
         <Link
           to="/nova-ordem"
@@ -41,6 +53,7 @@ export function Sidebar() {
           <FileText size={20} />
           <span>Nova Ordem</span>
         </Link>
+
 
         <Link
           to="/clientes"

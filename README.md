@@ -123,9 +123,7 @@ npm install
 npm run dev
 ```
 
-Acesse http://localhost:5173 e faça login com:
-- Usuário: `admin`
-- Senha: `admin123`
+Acesse http://localhost:5173
 
 ## 🎯 Configuração Detalhada
 

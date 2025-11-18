@@ -7,3 +7,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .DS_Store
+
+# WhatsApp Session
+whatsapp-session/
+whatsapp-session_old_*/
+.wwebjs_auth/
+.wwebjs_cache/
