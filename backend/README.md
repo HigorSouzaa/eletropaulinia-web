@@ -1,236 +1,48 @@
-# Backend - Eletro Paulínia API
+# API Eletro Paulínia
 
-API RESTful para o sistema de gerenciamento de ordens de serviço.
+Node.js 24, Express e Mongoose. `app.js` compõe as rotas sem conectar ao banco ou abrir portas; `server.js` carrega configuração e inicia o serviço após conexão. Regra atual e respostas: [contratos](../docs/dev-back/CONTRATOS-CICLO-1.md).
 
-## 🚀 Tecnologias
+## Ambiente
 
-- Node.js
-- Express.js
-- MongoDB & Mongoose
-- JWT para autenticação
-- bcryptjs para criptografia de senhas
+Copie `.env.example` para `.env` dentro de backend. Defina:
 
-## 📦 Instalação
+| Variável | Finalidade |
+|---|---|
+| MONGODB_URI | Banco do ambiente escolhido; usar desenvolvimento local/staging nesta fase |
+| JWT_SECRET | Segredo aleatório de pelo menos 32 caracteres; nunca expor no frontend |
+| JWT_EXPIRE | Duração dos tokens; padrão 1h. Use duração positiva, por exemplo 1h |
+| PORT | Porta da API; padrão 5000 |
+| NODE_ENV | development ou production |
+| ADMIN_USERNAME / ADMIN_NAME / ADMIN_PASSWORD | Somente no provisionamento manual inicial |
 
-```bash
-cd backend
-npm install
-```
+Não há credenciais padrão. Gere o segredo por ferramenta segura local e armazene fora do Git. O startup rejeita falta de URI, segredo curto ou porta inválida. Sem conexão ao banco, não abre a porta HTTP.
 
-## ⚙️ Configuração
+## Primeiro administrador
 
-1. Copie o arquivo de exemplo:
-```bash
-cp .env.example .env
-```
+O endpoint de cadastro não pode criar o primeiro administrador anonimamente. Um operador com acesso autorizado ao banco deve:
 
-2. Configure as variáveis de ambiente no arquivo `.env`:
-```env
-MONGODB_URI=mongodb://localhost:27017/eletropaulinia
-PORT=5000
-NODE_ENV=development
-JWT_SECRET=seu-secret-key-super-seguro-aqui
-JWT_EXPIRE=30d
-```
+1. Conferir explicitamente o ambiente e a URI antes de executar.
+2. Definir ADMIN_USERNAME, ADMIN_NAME e ADMIN_PASSWORD em ambiente local seguro. Senha nova: mínimo 12 caracteres e máximo 72 bytes UTF-8.
+3. Executar `npm run create-admin` **na pasta backend**.
+4. Remover ADMIN_* do ambiente após o sucesso.
 
-## 🗄️ MongoDB
+O script recusa provisionamento quando já existe administrador; não altera senhas existentes e não imprime credenciais. Execute uma única instância do script. Usuários adicionais são provisionados pela API com sessão administrativa. Se o administrador existente perdeu acesso, é necessário um procedimento de recuperação separado; não apague usuários para contornar essa proteção.
 
-### Instalação Local
+Arquivos com credenciais padrão foram removidos/substituídos na árvore atual. Valores históricos continuam no Git. Se tiverem sido usados em algum ambiente real, a rotação permanece pendente de ação autorizada.
 
-**Windows:**
-1. Baixe o MongoDB Community Server em https://www.mongodb.com/try/download/community
-2. Instale e inicie o serviço
-3. MongoDB estará rodando em `mongodb://localhost:27017`
+## Execução e testes
 
-**Ou use MongoDB Atlas (Cloud):**
-1. Crie uma conta em https://www.mongodb.com/cloud/atlas
-2. Crie um cluster gratuito
-3. Obtenha a connection string
-4. Use no `.env`: `MONGODB_URI=mongodb+srv://usuario:senha@cluster.mongodb.net/eletropaulinia`
-
-## ▶️ Executando
-
-### Modo desenvolvimento (com auto-reload):
-```bash
+```powershell
+npm ci --ignore-scripts
 npm run dev
+# Em outra execução, para a suíte isolada:
+npm test
 ```
 
-### Modo produção:
-```bash
-npm start
-```
+Não execute `create-admin` para rodar testes: a suíte cria fixtures sintéticas em MongoDB descartável, sem usar .env. Usa node:test, fetch HTTP real e MongoDB 8.0.17 via mongodb-memory-server-core. O binário é baixado no primeiro teste e os dados temporários são removidos ao encerrar.
 
-A API estará disponível em `http://localhost:5000`
+A suíte cobre cadastro negado a visitantes/outros perfis, provisionamento administrativo, tokens inválidos/expirados/usuários removidos, mudança imediata de perfil, persistência de hash, validação de entrada e um ciclo de ordens por perfil. Não valida Atlas, latência de produção ou navegador.
 
-## 📚 Endpoints da API
+## Limites do primeiro ciclo
 
-### Autenticação
-
-#### POST `/api/auth/register`
-Registrar novo usuário (use para criar o primeiro admin)
-
-**Body:**
-```json
-{
-  "username": "admin",
-  "password": "admin123",
-  "name": "Administrador",
-  "role": "admin"
-}
-```
-
-#### POST `/api/auth/login`
-Fazer login
-
-**Body:**
-```json
-{
-  "username": "admin",
-  "password": "admin123"
-}
-```
-
-**Response:**
-```json
-{
-  "_id": "...",
-  "username": "admin",
-  "name": "Administrador",
-  "role": "admin",
-  "token": "eyJhbGc..."
-}
-```
-
-#### GET `/api/auth/me`
-Obter dados do usuário logado (requer token)
-
-**Headers:**
-```
-Authorization: Bearer {token}
-```
-
-### Ordens de Serviço
-
-Todas as rotas de ordens requerem autenticação (token JWT).
-
-#### GET `/api/orders`
-Listar todas as ordens
-
-#### GET `/api/orders/:id`
-Obter uma ordem específica
-
-#### POST `/api/orders`
-Criar nova ordem
-
-**Body:**
-```json
-{
-  "numero": "OS-0001",
-  "cliente": "João Silva",
-  "equipamento": "TV Samsung 50\"",
-  "marca": "Samsung",
-  "defeito": "Não liga",
-  "dataEntrada": "2025-01-05",
-  "dataPrevista": "2025-01-12",
-  "tecnico": "Carlos",
-  "observacoes": "Cliente relatou que TV apagou de repente",
-  "status": "Aguardando"
-}
-```
-
-#### PUT `/api/orders/:id`
-Atualizar uma ordem completa
-
-#### PATCH `/api/orders/:id/status`
-Atualizar apenas o status
-
-**Body:**
-```json
-{
-  "status": "Em andamento"
-}
-```
-
-#### DELETE `/api/orders/:id`
-Deletar uma ordem (apenas admin)
-
-## 🔐 Autenticação
-
-A API usa JWT (JSON Web Tokens) para autenticação. Após o login, inclua o token no header de todas as requisições:
-
-```
-Authorization: Bearer {seu-token-aqui}
-```
-
-## 👥 Roles de Usuário
-
-- **admin**: Acesso total (pode deletar ordens)
-- **tecnico**: Pode criar e editar ordens
-- **atendente**: Pode criar e visualizar ordens
-
-## 📝 Modelos de Dados
-
-### User
-```javascript
-{
-  username: String (único),
-  password: String (criptografado),
-  name: String,
-  role: String (admin | tecnico | atendente),
-  createdAt: Date
-}
-```
-
-### Order
-```javascript
-{
-  numero: String (único),
-  cliente: String,
-  equipamento: String,
-  marca: String,
-  defeito: String,
-  status: String (Aguardando | Em andamento | Pronto | Entregue),
-  dataEntrada: Date,
-  dataPrevista: Date,
-  tecnico: String,
-  observacoes: String,
-  createdBy: ObjectId (ref: User),
-  timestamps: true (createdAt, updatedAt)
-}
-```
-
-## 🛠️ Scripts Úteis
-
-### Criar usuário admin inicial
-
-Use um cliente HTTP (Postman, Insomnia, ou curl):
-
-```bash
-curl -X POST http://localhost:5000/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "admin",
-    "password": "admin123",
-    "name": "Administrador",
-    "role": "admin"
-  }'
-```
-
-## 🐛 Troubleshooting
-
-### MongoDB não conecta
-- Verifique se o MongoDB está rodando
-- Confirme a connection string no `.env`
-- Para MongoDB local, use: `mongodb://localhost:27017/eletropaulinia`
-
-### Erro "JWT_SECRET is not defined"
-- Certifique-se de ter criado o arquivo `.env` a partir do `.env.example`
-- Defina um valor para `JWT_SECRET`
-
-### Porta 5000 já em uso
-- Altere a porta no `.env`: `PORT=3001`
-- Atualize também no frontend (`.env` do React)
-
-## 📄 Licença
-
-Uso interno.
+JWT Bearer permanece compatível com o frontend atual. Logout no navegador ainda não revoga um token emitido; cookies HttpOnly, revogação e sincronização de sessão serão tratados no ciclo correspondente. CORS aberto, rate limit, validação completa das ordens e atualização de dependências permanecem pendências do diagnóstico. Não expor como sistema pronto para produção.

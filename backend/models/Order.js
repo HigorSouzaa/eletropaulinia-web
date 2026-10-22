@@ -75,7 +75,6 @@ const orderSchema = new mongoose.Schema({
 });
 
 // Índices para melhorar performance de busca
-orderSchema.index({ numero: 1 });
 orderSchema.index({ cliente: 1 });
 orderSchema.index({ status: 1 });
 orderSchema.index({ dataEntrada: -1 });

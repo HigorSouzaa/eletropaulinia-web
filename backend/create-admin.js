@@ -1,43 +1,30 @@
+import 'dotenv/config';
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
+import connectDB from './config/database.js';
 import User from './models/User.js';
+import { registrationErrors } from './middleware/validateAuth.js';
 
-// Carregar variáveis de ambiente
-dotenv.config();
-
-const createAdmin = async () => {
-  try {
-    // Conectar ao MongoDB
-    await mongoose.connect(process.env.MONGODB_URI);
-    console.log('MongoDB conectado!');
-
-    // Verificar se admin já existe
-    const adminExists = await User.findOne({ username: 'admin' });
-    
-    if (adminExists) {
-      console.log('❌ Usuário admin já existe!');
-      process.exit(0);
-    }
-
-    // Criar usuário admin
-    const admin = await User.create({
-      username: 'admin',
-      password: 'admin123',
-      name: 'Administrador',
-      role: 'admin'
-    });
-
-    console.log('✅ Usuário admin criado com sucesso!');
-    console.log('📧 Username:', admin.username);
-    console.log('🔑 Password: admin123');
-    console.log('👤 Nome:', admin.name);
-    console.log('🎯 Role:', admin.role);
-
-    process.exit(0);
-  } catch (error) {
-    console.error('❌ Erro ao criar admin:', error.message);
-    process.exit(1);
-  }
+// Execução manual: nunca chamado no startup ou na suíte de testes.
+const input = {
+  username: process.env.ADMIN_USERNAME,
+  password: process.env.ADMIN_PASSWORD,
+  name: process.env.ADMIN_NAME,
+  role: 'admin',
 };
-
-createAdmin();
+try {
+  if (registrationErrors(input).length || !process.env.MONGODB_URI) throw new Error('Configuração inválida');
+  await connectDB();
+  await User.init();
+  if (await User.exists({ role: 'admin' })) {
+    console.error('Já existe administrador. Use o cadastro autenticado para provisionar usuários.');
+    process.exitCode = 1;
+  } else {
+    await User.create(input);
+    console.log('Administrador inicial criado. Remova as variáveis ADMIN_* do ambiente.');
+  }
+} catch {
+  console.error('Provisionamento não concluído. Confira configuração, conexão e unicidade do usuário.');
+  process.exitCode = 1;
+} finally {
+  await mongoose.disconnect();
+}

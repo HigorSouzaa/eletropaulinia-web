@@ -1,39 +1,33 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
+import 'dotenv/config';
+import mongoose from 'mongoose';
 import connectDB from './config/database.js';
-import authRoutes from './routes/auth.js';
-import orderRoutes from './routes/orders.js';
+import app from './app.js';
 
-// Carregar variáveis de ambiente
-dotenv.config();
-
-// Conectar ao banco de dados
-connectDB();
-
-const app = express();
-
-// Middlewares
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Rotas
-app.use('/api/auth', authRoutes);
-app.use('/api/orders', orderRoutes);
-
-// Rota de teste
-app.get('/', (req, res) => {
-  res.json({ message: 'API Eletro Paulínia está funcionando!' });
-});
-
-// Tratamento de erros 404
-app.use((req, res) => {
-  res.status(404).json({ message: 'Rota não encontrada' });
-});
-
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT} em modo ${process.env.NODE_ENV}`);
-});
+const port = Number(process.env.PORT || 5000);
+try {
+  if (!process.env.MONGODB_URI || (process.env.JWT_SECRET || '').length < 32) throw new Error('Configuração incompleta');
+  if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('Porta inválida');
+  await connectDB();
+  const server = app.listen(port, () => console.log('API disponível na porta ' + port));
+  server.on('error', async () => {
+    console.error('Não foi possível abrir a porta da API');
+    await mongoose.disconnect();
+    process.exitCode = 1;
+  });
+  let stopping = false;
+  const shutdown = () => {
+    if (stopping) return;
+    stopping = true;
+    const deadline = setTimeout(() => process.exit(1), 10000).unref();
+    server.close(async () => {
+      await mongoose.disconnect();
+      clearTimeout(deadline);
+    });
+  };
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
+} catch {
+  console.error('Falha ao iniciar API: confira MONGODB_URI, JWT_SECRET (mínimo 32 caracteres), PORT e acesso ao banco');
+  await mongoose.disconnect();
+  process.exitCode = 1;
+}
