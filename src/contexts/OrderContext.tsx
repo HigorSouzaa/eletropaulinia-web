@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import api from '../services/api';
+import { isAxiosError } from 'axios';
 
 export type OrderStatus = 'Aguardando' | 'Em andamento' | 'Pronto' | 'Entregue';
 
@@ -47,10 +48,10 @@ export function OrderProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       const response = await api.get('/orders');
       setOrders(response.data);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erro ao carregar ordens:', error);
       // Se der erro 401, limpa as ordens
-      if (error.response?.status === 401) {
+      if (isAxiosError(error) && error.response?.status === 401) {
         setOrders([]);
       }
     } finally {

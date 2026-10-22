@@ -1,6 +1,6 @@
 import { Sidebar } from './Sidebar';
 import { useAuth } from '../contexts/AuthContext';
-import { Bell, LogOut } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;

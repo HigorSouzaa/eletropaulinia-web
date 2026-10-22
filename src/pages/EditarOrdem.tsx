@@ -9,6 +9,8 @@ export function EditarOrdem() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { getOrder, updateOrder } = useOrders();
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
   const order = getOrder(id || '');
 
@@ -54,11 +56,19 @@ export function EditarOrdem() {
     setFormData(prev => ({ ...prev, telefone: formatted }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    updateOrder(order.id, formData);
-    navigate('/ordens');
+    if (submitting) return;
+    setSubmitting(true);
+    setError('');
+    try {
+      await updateOrder(order._id, formData);
+      navigate('/ordens');
+    } catch {
+      setError('Não foi possível salvar as alterações. Tente novamente.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -68,6 +78,7 @@ export function EditarOrdem() {
         <p className="text-gray-600 mb-8">OS: {order.numero}</p>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-md p-8 space-y-6">
+          {error && <p role="alert" className="text-red-700">{error}</p>}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormInput
               label="Nome do Cliente"
@@ -119,10 +130,11 @@ export function EditarOrdem() {
           <div className="flex gap-4 pt-4">
             <button
               type="submit"
+              disabled={submitting}
               className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors shadow-lg hover:shadow-xl"
             >
               <Check size={20} />
-              Salvar Alterações
+              {submitting ? 'Salvando...' : 'Salvar Alterações'}
             </button>
 
             <button

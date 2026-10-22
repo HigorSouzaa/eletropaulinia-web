@@ -38,7 +38,7 @@ export function Login() {
       } else {
         setError('Usuário ou senha inválidos');
       }
-    } catch (err) {
+    } catch {
       setError('Erro ao fazer login. Tente novamente.');
     } finally {
       setSubmitting(false);

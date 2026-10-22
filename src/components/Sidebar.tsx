@@ -1,10 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, FileText, Users, BarChart3 } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext.tsx';
 
 export function Sidebar() {
   const location = useLocation();
-  const { logout } = useAuth();
 
   const isActive = (path: string) => location.pathname === path;
 
