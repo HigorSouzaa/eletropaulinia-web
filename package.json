@@ -6,12 +6,17 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "start-all": "concurrently \"cd backend && npm run dev \" \"npm run dev \" ",
-    "new": "npm install && cd backend && npm i && concurrently \"npm run dev\" \"cd backend && npm run dev\"",
+    "start-all": "concurrently \"npm --prefix backend run dev\" \"npm run dev\"",
+    "setup": "npm ci --ignore-scripts --no-audit && npm --prefix backend ci --ignore-scripts --no-audit",
+    "new": "npm run setup && npm run start-all",
+    "test": "npm --prefix backend test",
+    "check": "npm run typecheck && npm run lint && npm test && npm run build",
     "lint": "eslint .",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.app.json"
   },
+  "engines": { "node": ">=24 <25" },
+  "packageManager": "npm@11.19.0",
   "dependencies": {
     "axios": "^1.6.2",
     "concurrently": "^9.2.1",

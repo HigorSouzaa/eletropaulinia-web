@@ -1,296 +1,45 @@
-# Eletro Paulínia - Sistema de Gerenciamento de Ordens
+# Eletro Paulínia
 
-Sistema web para gerenciamento de ordens de serviço desenvolvido com React, TypeScript, Vite e Tailwind CSS.
+Sistema de ordens de serviço em retomada. Hoje: React/Vite/TypeScript e API Node.js/Express/Mongoose. Destino aprovado: Next.js/TypeScript, Express separado e MongoDB Atlas. A migração do frontend ainda não foi iniciada.
 
-## 🚀 Tecnologias
+## Preparação
 
-- **React 18** - Biblioteca para construção de interfaces
-- **TypeScript** - Superset JavaScript com tipagem estática
-- **Vite** - Build tool e dev server rápido
-- **Tailwind CSS** - Framework CSS utility-first
-- **React Router DOM** - Roteamento de páginas
-- **Supabase** - Backend as a Service (banco de dados e autenticação)
-- **Lucide React** - Biblioteca de ícones
+Use Node 24 (versão validada em `.node-version`) e npm 11.19.0.
 
-## 📋 Pré-requisitos
-
-- Node.js (versão 18 ou superior)
-- npm ou yarn
-- Conta no Supabase (para configuração do backend)
-
-## 🔧 Instalação
-
-1. Clone o repositório:
-```bash
-git clone <seu-repositorio>
-cd eletropaulinia-web
-```
-
-2. Instale as dependências:
-```bash
-npm install
-```
-
-3. Configure as variáveis de ambiente:
-```bash
-# Copie o arquivo de exemplo
-cp .env.example .env
-
-# Edite o arquivo .env e adicione suas credenciais do Supabase
-# VITE_SUPABASE_URL=sua-url-do-supabase
-# VITE_SUPABASE_ANON_KEY=sua-chave-anonima
-```
-
-# Eletro Paulínia - Sistema de Gerenciamento de Ordens
-
-Sistema web completo para gerenciamento de ordens de serviço desenvolvido com:
-- **Frontend**: React, TypeScript, Vite e Tailwind CSS
-- **Backend**: Node.js, Express.js e MongoDB
-
-## 🚀 Tecnologias
-
-### Frontend
-- **React 18** - Biblioteca para construção de interfaces
-- **TypeScript** - Superset JavaScript com tipagem estática
-- **Vite** - Build tool e dev server rápido
-- **Tailwind CSS** - Framework CSS utility-first
-- **React Router DOM** - Roteamento de páginas
-- **Axios** - Cliente HTTP
-- **Lucide React** - Biblioteca de ícones
-
-### Backend
-- **Node.js** - Runtime JavaScript
-- **Express.js** - Framework web
-- **MongoDB** - Banco de dados NoSQL
-- **Mongoose** - ODM para MongoDB
-- **JWT** - Autenticação via tokens
-- **bcryptjs** - Criptografia de senhas
-
-## 📋 Pré-requisitos
-
-- Node.js (versão 18 ou superior)
-- npm ou yarn
-- MongoDB instalado localmente OU conta no MongoDB Atlas (cloud gratuito)
-
-## 🔧 Instalação Rápida
-
-### 1. Clone o repositório
-```bash
-git clone <seu-repositorio>
-cd eletropaulinia-web
-```
-
-### 2. Instale o MongoDB
-
-**Opção A: Local (Windows)**
-- Baixe em https://www.mongodb.com/try/download/community
-- Instale e o serviço iniciará automaticamente
-
-**Opção B: MongoDB Atlas (Cloud)**
-- Crie conta gratuita em https://www.mongodb.com/cloud/atlas
-- Crie um cluster e obtenha a connection string
-
-### 3. Configure o Backend
-
-```bash
-cd backend
-npm install
-cp .env.example .env
-# Edite o .env se necessário
-npm run dev
-```
-
-### 4. Crie o usuário admin
-
-Com o backend rodando, execute (PowerShell):
 ```powershell
-$body = @{
-    username = "admin"
-    password = "admin123"
-    name = "Administrador"
-    role = "admin"
-} | ConvertTo-Json
-
-Invoke-RestMethod -Uri "http://localhost:5000/api/auth/register" -Method POST -Body $body -ContentType "application/json"
+npm run setup
+Copy-Item .env.example .env
+Copy-Item backend/.env.example backend/.env
 ```
 
-### 5. Configure e execute o Frontend
+Preencha `backend/.env` com uma conexão de **desenvolvimento** e um `JWT_SECRET` aleatório de pelo menos 32 caracteres. Nenhuma senha padrão é fornecida. Não versione arquivos de ambiente. A conexão pode ser MongoDB local ou Atlas; não há provisionamento automático de infraestrutura.
 
-Em outro terminal:
-```bash
-cd ..
-npm install
-npm run dev
+```powershell
+npm run start-all
 ```
 
-Acesse http://localhost:5173 e faça login com:
-- Usuário: `admin`
-- Senha: `admin123`
+Frontend: porta padrão do Vite (5173). API: porta 5000 ou PORT. A API só abre a porta após conectar ao banco. Variáveis e bootstrap manual: [backend/README.md](backend/README.md).
 
-## 🎯 Configuração Detalhada
+## Qualidade
 
-### Backend (.env)
-
-```env
-MONGODB_URI=mongodb://localhost:27017/eletropaulinia
-PORT=5000
-NODE_ENV=development
-JWT_SECRET=seu-secret-super-seguro
-JWT_EXPIRE=30d
+```powershell
+npm run check
 ```
 
-### Frontend (.env)
+Executa tipagem, lint (inclui backend), testes HTTP com MongoDB descartável e build. Os testes nunca usam MONGODB_URI do ambiente da pessoa; criam um banco isolado em loopback e o removem ao terminar. A primeira execução baixa MongoDB 8.0.17 do distribuidor oficial; no Windows, o arquivo de download tem aproximadamente 756 MB. Execuções seguintes reaproveitam o cache. É necessário acesso à rede no primeiro uso.
 
-```env
-VITE_API_URL=http://localhost:5000/api
-```
+Scripts individuais: `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`. A configuração de GitHub Actions repete os checks em Linux; só rodará remotamente após publicação autorizada da branch.
 
-## 🎮 Scripts Disponíveis
+## Autenticação e permissões iniciais
 
-### Frontend
-```bash
-npm run dev        # Desenvolvimento
-npm run build      # Build para produção
-npm run preview    # Preview do build
-npm run lint       # Executar linter
-npm run typecheck  # Verificar tipos TypeScript
-```
+Login usa **username**, não e-mail. Cadastro de usuários exige sessão de administrador. O cadastro não devolve senha nem token do novo usuário. Para primeiro administrador, use o procedimento manual do backend.
 
-### Backend
-```bash
-npm run dev        # Desenvolvimento (com nodemon)
-npm start          # Produção
-```
+Os perfis admin, tecnico e atendente mantêm acesso compartilhado às ordens; exclusão é somente admin. Essa é a regra inicial compatível com a base existente, sujeita à definição operacional da empresa. Consulte [contratos](docs/dev-back/CONTRATOS-CICLO-1.md).
 
-## 📂 Estrutura do Projeto
+## Estado e próximos passos
 
-```
-eletropaulinia-web/
-├── backend/                      # API Node.js + Express
-│   ├── config/
-│   │   └── database.js           # Configuração MongoDB
-│   ├── controllers/
-│   │   ├── authController.js     # Lógica de autenticação
-│   │   └── orderController.js    # Lógica de ordens
-│   ├── middleware/
-│   │   └── auth.js               # JWT middleware
-│   ├── models/
-│   │   ├── User.js               # Schema de usuário
-│   │   └── Order.js              # Schema de ordem
-│   ├── routes/
-│   │   ├── auth.js               # Rotas de autenticação
-│   │   └── orders.js             # Rotas de ordens
-│   ├── .env.example
-│   ├── package.json
-│   ├── README.md
-│   └── server.js                 # Servidor Express
-│
-├── src/
-│   ├── components/               # Componentes reutilizáveis
-│   │   ├── FormInput.tsx
-│   │   ├── Layout.tsx
-│   │   ├── OrderDetailsModal.tsx
-│   │   ├── ProtectedRoute.tsx
-│   │   ├── Sidebar.tsx
-│   │   ├── StatusBadge.tsx
-│   │   └── StatusModal.tsx
-│   ├── contexts/                 # Contextos React
-│   │   ├── AuthContext.tsx       # Estado de autenticação
-│   │   └── OrderContext.tsx      # Estado de ordens
-│   ├── pages/                    # Páginas da aplicação
-│   │   ├── EditarOrdem.tsx
-│   │   ├── Login.tsx
-│   │   ├── NovaOrdem.tsx
-│   │   └── Ordens.tsx
-│   ├── services/
-│   │   └── api.ts                # Cliente Axios configurado
-│   ├── App.tsx
-│   ├── main.tsx
-│   └── index.css
-│
-├── .env
-├── .env.example
-├── package.json
-├── tailwind.config.js
-├── vite.config.ts
-└── README.md
-```
+- [Diagnóstico original](docs/diagnostico/RETOMADA.md)
+- [Entrega do primeiro ciclo](docs/dev-back/CICLO-1.md)
+- [Decisões de continuidade](docs/dev-front/DECISIONS.md)
 
-## 🎨 Funcionalidades
-
-- ✅ Autenticação JWT com roles de usuário
-- ✅ API RESTful completa
-- ✅ Listagem de ordens de serviço
-- ✅ Criação de novas ordens
-- ✅ Edição de ordens existentes
-- ✅ Filtros de busca (cliente, número, status)
-- ✅ Atualização de status das ordens
-- ✅ Visualização detalhada de ordens
-- ✅ Interface responsiva com Tailwind CSS
-- ✅ Banco de dados MongoDB
-
-## 📡 API Endpoints
-
-### Autenticação
-- `POST /api/auth/register` - Registrar usuário
-- `POST /api/auth/login` - Login
-- `GET /api/auth/me` - Dados do usuário logado
-
-### Ordens (requer autenticação)
-- `GET /api/orders` - Listar todas as ordens
-- `GET /api/orders/:id` - Obter ordem específica
-- `POST /api/orders` - Criar nova ordem
-- `PUT /api/orders/:id` - Atualizar ordem
-- `PATCH /api/orders/:id/status` - Atualizar apenas status
-- `DELETE /api/orders/:id` - Deletar ordem (apenas admin)
-
-📖 **Documentação completa:** Veja `backend/README.md`
-
-## 🐛 Resolução de Problemas
-
-### Backend não conecta no MongoDB
-```bash
-# Verifique se o MongoDB está rodando
-# Windows: Verifique no Serviços (services.msc)
-# Ou use MongoDB Atlas (cloud)
-```
-
-### Frontend não conecta no backend
-```bash
-# Verifique se o backend está rodando na porta 5000
-# Confirme VITE_API_URL no arquivo .env
-```
-
-### Erro 401 Unauthorized
-```bash
-# Token expirado ou inválido - faça login novamente
-```
-
-### Limpar cache e reinstalar
-```bash
-# Frontend
-rm -rf node_modules package-lock.json
-npm install
-
-# Backend
-cd backend
-rm -rf node_modules package-lock.json
-npm install
-```
-
-## 📝 Licença
-
-Este projeto é privado e de uso interno.
-
-## 👥 Contribuição
-
-Para contribuir com o projeto:
-1. Crie uma branch para sua feature (`git checkout -b feature/MinhaFeature`)
-2. Commit suas mudanças (`git commit -m 'Adiciona MinhaFeature'`)
-3. Push para a branch (`git push origin feature/MinhaFeature`)
-4. Abra um Pull Request
-
-## 📧 Contato
-
-Para dúvidas ou suporte, entre em contato com a equipe de desenvolvimento.
-
+Ainda há bloqueios antes do uso real: perda de campos na criação, concorrência de numeração, sincronização de sessão/lista no frontend, paginação, triagem de dependências e homologação/backup do Atlas. A branch WhatsApp não faz parte deste ciclo. Build e testes aprovados não significam prontidão de produção.
