@@ -69,3 +69,19 @@ As atualizações abaixo substituem o estado inicial dos IDs, preservado acima c
 | P18 | Aberta, bloqueia publicação | Raiz produção: 0 alertas; dev: 10. Backend produção: 8, incluindo proxy-addr crítico; alcance não demonstrado | Triar/corrigir antes de uso real, além de CORS/rate limit já registrados |
 
 Nenhuma pendência de produto foi silenciosamente aprovada. P01/P02/P03/P11 aguardam decisões na etapa correspondente. Sem Atlas, dados reais, push, merge ou deploy. Evidências e limites: [entrega da etapa 02](dev-front/ETAPA-02-ENTREGA.md).
+
+## Preparação da etapa 03 — 23/10/2026
+
+Base 37c0ab0, branch feat/backend-ordens-v2. [Plano concreto para revisão](dev-back/ETAPA-03-PLANO.md). Checkpoints A/B aguardam aprovação; nenhuma funcionalidade v2 implementada nesta preparação. Nenhum ID encerrado por documentação.
+
+| IDs | Estado e evidência | Dependência/próxima ação | Critério mantido |
+| --- | --- | --- | --- |
+| P01/P02 | Abertas; nenhuma resposta posterior localizada | Exceções de retirada antecipada/correção permanecem indisponíveis até decisão | Regra explícita, histórico e testes negativos |
+| P06/P07 | Em planejamento; modelo Order ainda singular e sem retirada | Revisão do plano, implementação e testes HTTP/Mongo isolado | Todos os itens/campos preservados; retirada individual persistida |
+| P08 | Em planejamento; hook ainda consulta última OS; controller sem versão | Contador inicializado após reconciliação, índice único, If-Match e idempotência | Concorrência e falhas comprovadas sem duplicata/perda |
+| P09 | Em planejamento; fallback OR e erro bruto ainda existem | Validação estrita e handler v2 | Limpar opcionais, rejeitar campos indevidos, erros sem detalhes internos |
+| P10 | Em planejamento; lista atual integral | Consulta paginada v2 e adaptação mínima Next | Página/filtros/contagens corretos e regressão real |
+| P11 | Aberta; agregado/composição são propostas | Revisar exemplo misto no plano; bloquear alteração de composição após primeira retirada enquanto indefinida | Decisões registradas e cenários testados |
+| P24 | Em planejamento; Next ainda consome array v1 | DTO v2, leitura legada explícita, interrupção de escritores v1 e fixtures idempotentes | Legado visível, sem achatamento/perda; rollback compatível documentado |
+
+Prioridades e impactos continuam os do registro inicial. P15/P16 dependem de inventário/backup autorizado; não há acesso ao banco real. P18 continua aberta e bloqueia publicação; alertas não foram corrigidos nem reavaliados nesta preparação. P04/P05 permanecem resolvidas somente no escopo anterior, revalidado localmente; isso não valida mutações v2 futuras.
