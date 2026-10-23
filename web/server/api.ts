@@ -1,0 +1,64 @@
+import 'server-only';
+import { cookies } from 'next/headers';
+import { NextResponse } from 'next/server';
+export const COOKIE = 'ep_session';
+export const noStore = { 'Cache-Control': 'private, no-store, max-age=0' };
+export async function expressRequest(path: '/auth/login' | '/auth/logout' | '/auth/me' | '/orders', token?: string, body?: unknown) {
+    const base = process.env.API_INTERNAL_URL || 'http://127.0.0.1:5000/api';
+    try {
+        return await fetch(base.replace(/\/$/, '') + path, {
+            method: body === undefined ? 'GET' : 'POST',
+            headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) },
+            ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+            cache: 'no-store', signal: AbortSignal.timeout(8000), redirect: 'error',
+        });
+    }
+    catch {
+        return new Response(JSON.stringify({ message: 'Serviço temporariamente indisponível' }), { status: 503 });
+    }
+}
+export async function sessionToken() { return (await cookies()).get(COOKIE)?.value; }
+export function json(data: unknown, status = 200) { return NextResponse.json(data, { status, headers: noStore }); }
+export function clearSession(response: NextResponse) { response.cookies.set(COOKIE, '', { httpOnly: true, path: '/', sameSite: 'lax', maxAge: 0 }); return response; }
+export function validOrigin(request: Request) {
+    const configured = process.env.APP_ORIGIN;
+    if (!configured)
+        return false;
+    try {
+        return request.headers.get('origin') === new URL(configured).origin
+            && request.headers.get('content-type')?.split(';')[0].trim() === 'application/json';
+    }
+    catch {
+        return false;
+    }
+}
+export async function readLoginBody(request: Request) {
+    const reader = request.body?.getReader();
+    if (!reader)
+        throw new Error('EMPTY');
+    const chunks: Uint8Array[] = [];
+    let size = 0;
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done)
+            break;
+        size += value.byteLength;
+        if (size > 4096) {
+            await reader.cancel();
+            throw new Error('LIMIT');
+        }
+        chunks.push(value);
+    }
+    return JSON.parse(Buffer.concat(chunks).toString('utf8'));
+}
+export async function authenticated(path: '/auth/me' | '/orders') {
+    const token = await sessionToken();
+    if (!token)
+        return clearSession(json({ message: 'Autenticação necessária' }, 401));
+    const response = await expressRequest(path, token);
+    if (response.status === 401)
+        return clearSession(json({ message: 'Sessão expirada' }, 401));
+    if (!response.ok)
+        return json({ message: 'Não foi possível carregar os dados' }, response.status === 403 ? 403 : 503);
+    return json(await response.json());
+}

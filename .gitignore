@@ -29,3 +29,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+.next/
+*.tsbuildinfo
+playwright-report/
+test-results/
+.playwright-cli/

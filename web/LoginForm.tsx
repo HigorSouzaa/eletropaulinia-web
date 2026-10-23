@@ -1,0 +1,46 @@
+'use client';
+import { useEffect, useState } from 'react';
+export function LoginForm() {
+    const [error, setError] = useState('');
+    const [busy, setBusy] = useState(false);
+    useEffect(() => {
+        // Remover apenas as chaves de sessão do frontend legado, sem migrar tokens.
+        try { localStorage.removeItem('token'); localStorage.removeItem('user'); } catch { /* armazenamento desabilitado */ }
+    }, []);
+    async function submit(event: React.FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        setBusy(true);
+        setError('');
+        const form = new FormData(event.currentTarget);
+        try {
+            const response = await fetch('/api/session/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: form.get('username'), password: form.get('password') }) });
+            const data = await response.json();
+            if (!response.ok) {
+                setError(data.message);
+                return;
+            }
+            const channel = new BroadcastChannel('ep-session');
+            channel.postMessage('changed');
+            channel.close();
+            window.location.replace('/ordens');
+        }
+        catch {
+            setError('Não foi possível conectar. Tente novamente.');
+        }
+        finally {
+            setBusy(false);
+        }
+    }
+    return <main className="flex min-h-screen bg-white">
+ <section className="flex flex-1 items-center justify-center px-6 py-12"><div className="w-full max-w-md">
+ <h1 className="text-3xl font-bold">Eletro <span className="text-orange-500">Paulínia</span></h1><p className="mt-1 text-gray-600">Assistência Técnica</p>
+ <h2 className="mt-10 text-2xl font-bold">Acesse sua conta</h2><p className="mt-2 text-gray-600">Informe seu usuário e senha.</p>
+ <form onSubmit={submit} className="mt-8 space-y-5">
+ <div><label htmlFor="username" className="mb-2 block font-medium">Usuário</label><input id="username" name="username" autoComplete="username" required maxLength={100} className="w-full rounded-lg border px-4 py-3"/></div>
+ <div><label htmlFor="password" className="mb-2 block font-medium">Senha</label><input id="password" name="password" type="password" autoComplete="current-password" required className="w-full rounded-lg border px-4 py-3"/></div>
+ {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-red-800">{error}</p>}
+ <button disabled={busy} className="w-full rounded-lg bg-gray-900 py-3 font-semibold text-white disabled:opacity-50">{busy ? 'Entrando...' : 'Entrar'}</button>
+ </form></div></section>
+ <aside className="hidden flex-1 items-center justify-center bg-gray-600 p-12 lg:flex"><img src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=800&auto=format&fit=crop&q=80" alt="Técnico consertando equipamento eletrônico" className="h-[600px] w-full max-w-lg rounded-2xl object-cover shadow-xl"/></aside>
+ </main>;
+}
