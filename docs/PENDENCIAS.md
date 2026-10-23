@@ -101,3 +101,25 @@ Usuário respondeu “Pode aprovar” ao checkpoint A/B após 6f949fa. [Entrega 
 | P24 | Em andamento: escritores v1 bloqueados; leitura v1 recusa conjunto com v2 sem achatamento | Prioridade P0 para liberar: Next ainda só lista legado; v2 causa erro explícito. Implementar lista v2/adaptador antes de uso real. Transformação/rollback continuam pendentes |
 
 P01/P02 permanecem sem aprovação operacional. Nenhum ID encerrado nesta fatia; nenhum ID novo necessário. P18 ainda bloqueia publicação. Documentação e testes não equivalem a inventário ou migração do banco real.
+
+## Conclusão técnica do Prompt 03 — 23/10/2026
+
+O usuário aprovou o checkpoint C (“Pode aprovar então”). [Entrega, testes e limitações](dev-back/ETAPA-03-ENTREGA.md). Este bloco substitui os estados anteriores sem apagar o histórico. Evidências: backend/tests/orders-v2.test.js (20 testes), backend/tests/auth.test.js (16), tests/session.spec.ts (7 E2E), script de fixtures e diffs revisados.
+
+Commit de implementação/evidência para os estados deste bloco: `f063d7e`. Build, tipagem, lint e testes locais passaram; resolução técnica não equivale a produção autorizada.
+
+| ID | Estado atual e evidência | Dependência/próxima ação | Critério restante |
+| --- | --- | --- | --- |
+| P06 | API concluída; pendência em andamento até UI. Criação/edição/GET preservam todos os itens e opcionais | Etapa 04: formulários | Validar criação/edição pelo navegador sem perda |
+| P07 | Fluxo normal da API concluído; em andamento para UI/exceções. Retirada parcial/completa e repetição testadas | Etapa 04 e P01/P02 | Jornada visual e decisões excepcionais validadas |
+| P08 | Resolvida no escopo técnico da API. Contador/índices/idempotência e conflitos de edição/retirada testados | Preparação real permanece P15/P16/P24, sem promessa sobre números anteriormente excluídos | Revalidar após inventário e corte autorizado; não é liberação operacional |
+| P09 | Resolvida na API. Campos null/vazio limpos, desconhecidos rejeitados, erros v2 genéricos e escritores v1 removidos | Etapa 04 deve apresentar conflitos/validações ao usuário | Regressões existentes devem permanecer |
+| P10 | Resolvida. Paginação/filtros/summary no servidor e Next adaptado, 27 OS no E2E | Volume real e otimizações continuam P21 | Revalidar representatividade após inventário, sem confundir busca substring com índice |
+| P11 | Parcialmente resolvida: agregado aprovado e testado; limites técnicos documentados | Decidir composição após primeira retirada; atualmente bloqueada | Decisão explícita e teste correspondente para liberar exceção |
+| P24 | Compatibilidade técnica concluída; em andamento para corte. Next lista v2 e legado; v1 não escreve/achata; transformação idempotente testada | Etapa 05: aplicar somente após inventário, backup e janela autorizada | Reconciliação real e reversão comprovada, sem perda pós-corte |
+| P14 | Em andamento. Lista mobile ajustada e capturas desktop/mobile inspecionadas | Etapas 04/07 | Auditoria de acessibilidade completa e novas telas |
+| P21 | Em andamento. 36 HTTP/Mongo e 7 E2E; medição local limitada com 50 OS | CI remoto, volume representativo e restante dos fluxos | Homologação e medições operacionais adequadas |
+
+P01/P02 continuam abertas: retirada antecipada e correção indisponíveis. P15/P16 continuam bloqueios para o corte, incluindo índice parcial atualizado e inicialização de contador a partir de máximo reconciliado. P18 continua bloqueio de publicação; alertas não corrigidos nesta etapa. P20 continua aberto para Browserslist. Prioridades/impactos originais mantidos; sem IDs duplicados ou novos necessários.
+
+Nenhum banco real foi acessado ou migrado, sem push/merge/deploy. Próxima etapa recomendada: Prompt 04, sem execução automática. Regra de desligamento/recuperação de funcionários (P03) ainda depende da empresa.

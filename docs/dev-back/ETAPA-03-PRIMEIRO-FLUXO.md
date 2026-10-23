@@ -1,5 +1,7 @@
 # Etapa 03 — primeiro fluxo para revisão
 
+Histórico da primeira fatia. O usuário aprovou o checkpoint C posteriormente (“Pode aprovar então”); limitações de edição/retirada/listagem desta fatia foram tratadas na [entrega da etapa 03](ETAPA-03-ENTREGA.md). Consultar esse relatório para o estado atual; restrições de publicação e dados reais permanecem.
+
 Branch feat/backend-ordens-v2, base 6f949fa. Aprovação explícita “Pode aprovar” para arquitetura/contrato A/B, incluindo agregado proposto. Implementação delimitada ao checkpoint C da Dev Back Master, sem expandir para toda a etapa.
 
 ## Implementado

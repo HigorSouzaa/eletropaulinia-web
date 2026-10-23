@@ -1,5 +1,7 @@
 # Etapa 01 — Regras, evidências e contratos
 
+Este documento preserva a consolidação histórica. Estado atual de implementação de ordens e compatibilidade Next: [entrega da etapa 03](../dev-back/ETAPA-03-ENTREGA.md). Não usar as descrições do código legado abaixo como diagnóstico atualizado.
+
 23/10/2026. Análise/documentação; nenhuma migração implementada. Base inspecionada: `557f3b5`, branch de origem `docs/prompts-conclusao`; trabalho em `docs/contratos-etapa-01`. Primeiro ciclo de código: `1f71959`. Árvore inicialmente limpa; nenhum AGENTS.md encontrado no repositório ou nos diretórios ancestrais consultados.
 
 Skills utilizadas: Dev Back Master (referência CONTRACTS) e Dev Front Master (LOCAL_SETUP). Este documento consolida decisões de negócio confirmadas e **propõe contratos técnicos ainda não implementados**. Não registra aprovação de arquitetura, design ou implantação.

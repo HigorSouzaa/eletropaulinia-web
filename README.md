@@ -1,8 +1,8 @@
 # Eletro Paulínia
 
-Sistema de ordens de serviço em retomada. Base Next.js/App Router/TypeScript com login e listagem integrados à API Node.js/Express/Mongoose. Atlas e os fluxos de múltiplos equipamentos permanecem para as próximas etapas. [Entrega da etapa 02](docs/dev-front/ETAPA-02-ENTREGA.md).
+Sistema de ordens de serviço em retomada. Next.js/App Router/TypeScript com login e listagem integrados à API Node.js/Express/Mongoose. API v2 de múltiplos equipamentos, retiradas parciais, concorrência e consultas entregue na [etapa 03](docs/dev-back/ETAPA-03-ENTREGA.md). Formulários completos e preparação operacional do Atlas continuam pendentes.
 
-Etapa 03 em andamento: criação/consulta v2 com múltiplos equipamentos entregues como primeira fatia de revisão. **Versão intermediária, sem liberação operacional**: escritores v1 bloqueados; Next ainda lista somente o conjunto legado e não representa OS v2. Contador/índices preparados apenas em testes descartáveis, sem migrador real. [Escopo e limitações](docs/dev-back/ETAPA-03-PRIMEIRO-FLUXO.md).
+**Sem liberação operacional**: Next lista registros legados e v2, com busca/filtros/paginação no servidor. Escritores v1 bloqueados; registros antigos permanecem somente para leitura até reconciliação. Contador/índices preparados apenas em testes descartáveis, sem migrador real. POST v2 falha fechado sem preparação explícita. [Pendências](docs/PENDENCIAS.md).
 
 ## Preparação
 
@@ -41,7 +41,7 @@ O frontend Vite foi preservado em [legacy](legacy/README.md), sem integrar o bui
 
 Login usa **username**, não e-mail. Cadastro de usuários exige sessão de administrador. O cadastro não devolve senha nem token do novo usuário. Para primeiro administrador, use o procedimento manual do backend.
 
-Os perfis admin, tecnico e atendente mantêm acesso compartilhado às ordens; exclusão é somente admin. O acesso compartilhado foi confirmado pela empresa. Consulte os [contratos consolidados e propostas da etapa 01](docs/contratos/README.md) e o [contrato histórico implementado](docs/dev-back/CONTRATOS-CICLO-1.md). Os contratos v2 são propostas, ainda não implementadas.
+Os perfis admin, tecnico e atendente mantêm acesso compartilhado às ordens; exclusão é somente admin. O acesso compartilhado foi confirmado pela empresa. Consulte o [contrato v2 e limites de implementação](docs/contratos/API-V2.md); contratos de funcionários e exceções permanecem propostas.
 
 ## Estado e próximos passos
 
@@ -49,4 +49,4 @@ Os perfis admin, tecnico e atendente mantêm acesso compartilhado às ordens; ex
 - [Entrega do primeiro ciclo](docs/dev-back/CICLO-1.md)
 - [Decisões de continuidade](docs/dev-front/DECISIONS.md)
 
-Ainda há bloqueios antes do uso real: múltiplos equipamentos e retiradas na API, concorrência de numeração, conclusão dos formulários, paginação, triagem de dependências e homologação/backup do Atlas. Sessão/listagem do primeiro fluxo Next foram validadas; veja docs/PENDENCIAS.md para os estados atuais. A branch WhatsApp não faz parte deste ciclo. Build e testes aprovados não significam prontidão de produção.
+Ainda há bloqueios antes do uso real: conclusão dos formulários, decisões excepcionais, preparação/reconciliação dos dados e índices, triagem de dependências e homologação/backup do Atlas. Veja docs/PENDENCIAS.md para os estados atuais. A branch WhatsApp não faz parte deste ciclo. Build e testes aprovados não significam prontidão de produção.

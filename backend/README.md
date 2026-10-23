@@ -1,6 +1,6 @@
 # API Eletro Paulínia
 
-Node.js 24, Express e Mongoose. `app.js` compõe as rotas sem conectar ao banco ou abrir portas; `server.js` carrega configuração e inicia o serviço após conexão. Regra atual e respostas: [contratos](../docs/dev-back/CONTRATOS-CICLO-1.md).
+Node.js 24, Express e Mongoose. `app.js` compõe as rotas sem conectar ao banco ou abrir portas; `server.js` carrega configuração e inicia o serviço após conexão. Contrato atual de ordens: [etapa 03](../docs/dev-back/ETAPA-03-ENTREGA.md); o [ciclo 1](../docs/dev-back/CONTRATOS-CICLO-1.md) é histórico.
 
 ## Ambiente
 
@@ -41,8 +41,8 @@ npm test
 
 Não execute `create-admin` para rodar testes: a suíte cria fixtures sintéticas em MongoDB descartável, sem usar .env. Usa node:test, fetch HTTP real e MongoDB 8.0.17 via mongodb-memory-server-core. O binário é baixado no primeiro teste e os dados temporários são removidos ao encerrar.
 
-A suíte cobre cadastro negado a visitantes/outros perfis, provisionamento administrativo, tokens inválidos/expirados/usuários removidos, mudança imediata de perfil, persistência de hash, validação de entrada e um ciclo de ordens por perfil. Não valida Atlas, latência de produção ou navegador.
+A suíte cobre autenticação/revogação/perfis e OS v2: múltiplos equipamentos, validação, numeração/idempotência, edição concorrente, retirada parcial/completa, exclusão, consultas e legado. Não valida Atlas ou latência de produção. Navegador é validado por `npm run test:e2e` na raiz após build.
 
-## Limites do primeiro ciclo
+## Limites operacionais atuais
 
-JWT Bearer permanece compatível com o frontend atual. Logout no navegador ainda não revoga um token emitido; cookies HttpOnly, revogação e sincronização de sessão serão tratados no ciclo correspondente. CORS aberto, rate limit, validação completa das ordens e atualização de dependências permanecem pendências do diagnóstico. Não expor como sistema pronto para produção.
+Express revalida JWT e revogação; Next mantém credencial em cookie HttpOnly. CORS, rate limit e dependências continuam P18, bloqueando publicação. Escritores v1 foram desativados; use /api/v2/orders. Não há inicialização automática de contador/índices ou migração de dados reais: preparar ambiente com inventário e backup na etapa 05, mediante autorização. Scripts/testes de fixtures não devem ser apontados para a empresa. Na raiz, `node backend/scripts/transform-order-fixtures.js --fixtures-only` demonstra transformação puramente sintética, sem conexão ou escrita.

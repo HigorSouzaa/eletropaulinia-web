@@ -39,3 +39,7 @@ Revalidação atual: npm run check exit 0; 13 testes HTTP/MongoDB isolado passar
 O usuário respondeu explicitamente “Sim está aprovado” à arquitetura/sessão e depois “Pode continuar”. Implementado somente o fluxo do Prompt 02, preservando a identidade visual existente. Branch feat/base-nextjs. Express mantém JWT com jti e revogação por hash; Next usa cookie HttpOnly e transportes fixos. Arquivo legacy preserva integralmente o frontend anterior. Não há aprovação inferida de redesign nem expansão para todos os fluxos.
 
 Instalação limpa, check (16 HTTP, tipos, lint, build) e seis E2E locais passaram. A proposta de arquitetura foi ajustada de src/features para web/ para separar claramente os módulos ativos do frontend arquivado. Revisão funcional do usuário ainda não registrada; primeira jornada está entregue para revisão. Não houve implantação ou migração real. [Relatório](ETAPA-02-ENTREGA.md); [pendências atualizadas](../PENDENCIAS.md).
+
+## Etapa 03 — continuidade aprovada
+
+Após aprovar o contrato e agregado (“Pode aprovar”), o usuário aprovou a demonstração do primeiro fluxo (“Pode aprovar então”). Checkpoints A/B/C da etapa 03 registrados; continuação restrita ao Prompt 03. Next passou à listagem v2 com busca/paginação/filtros no servidor e todos os equipamentos visíveis. Nenhum formulário da etapa 04, redesign, deploy ou dado real. [Entrega e limites](../dev-back/ETAPA-03-ENTREGA.md). Exceções de retirada/composição permanecem indisponíveis, sem aprovação inferida.
