@@ -1,4 +1,6 @@
 import jwt from 'jsonwebtoken';
+import { randomUUID } from 'node:crypto';
+import RevokedToken, { tokenHash } from '../models/RevokedToken.js';
 import User from '../models/User.js';
 
 const publicUser = user => ({
@@ -30,6 +32,7 @@ export const login = async (req, res) => {
     }
     const token = jwt.sign({ id: user._id.toString() }, process.env.JWT_SECRET, {
       algorithm: 'HS256',
+      jwtid: randomUUID(),
       expiresIn: process.env.JWT_EXPIRE || '1h',
     });
     return res.json({ ...publicUser(user), token });
@@ -39,3 +42,16 @@ export const login = async (req, res) => {
 };
 
 export const getMe = (req, res) => res.json(publicUser(req.user));
+
+export const logout = async (req, res) => {
+  try {
+    await RevokedToken.updateOne(
+      { hash: tokenHash(req.authToken) },
+      { $setOnInsert: { expiresAt: new Date(req.authExpires * 1000) } },
+      { upsert: true },
+    ).catch(error => { if (error.code !== 11000) throw error; });
+    return res.status(204).end();
+  } catch {
+    return res.status(503).json({ message: 'Não foi possível encerrar a sessão' });
+  }
+};

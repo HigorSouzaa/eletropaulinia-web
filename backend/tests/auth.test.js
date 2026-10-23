@@ -10,6 +10,7 @@ import { MongoMemoryServer } from 'mongodb-memory-server-core';
 import app from '../app.js';
 import User from '../models/User.js';
 import Order from '../models/Order.js';
+import RevokedToken from '../models/RevokedToken.js';
 
 let mongo;
 let server;
@@ -27,7 +28,7 @@ before(async () => {
     instance: { ip: '127.0.0.1' },
   });
   await mongoose.connect(mongo.getUri(), { dbName: 'eletropaulinia_test' });
-  await Promise.all([User.init(), Order.init()]);
+  await Promise.all([User.init(), Order.init(), RevokedToken.init()]);
   server = app.listen(0, '127.0.0.1');
   await once(server, 'listening');
   origin = `http://127.0.0.1:${server.address().port}`;
@@ -40,7 +41,7 @@ after(async () => {
 });
 
 beforeEach(async () => {
-  await Promise.all([User.deleteMany({}), Order.deleteMany({})]);
+  await Promise.all([User.deleteMany({}), Order.deleteMany({}), RevokedToken.deleteMany({})]);
   admin = await User.create({ username: 'admin-test', name: 'Admin sintético', password, role: 'admin' });
 });
 
@@ -54,7 +55,7 @@ async function request(path, { method = 'GET', body, token } = {}) {
     headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
     ...(body ? { body: JSON.stringify(body) } : {}),
   });
-  return { status: response.status, body: await response.json() };
+  return { status: response.status, body: response.status === 204 ? null : await response.json() };
 }
 
 test('cadastro anônimo não cria usuário nem administrador', async () => {
@@ -198,4 +199,30 @@ test('startup incompleto falha antes de conectar ao banco', async () => {
     assert.match(error.stderr, /Falha ao iniciar API/);
     return true;
   });
+});
+test('logout revoga somente o token atual e novo login recebe outra identidade', async () => {
+  const login = () => request('/auth/login', { method:'POST', body:{username:admin.username,password} });
+  const a = await login(), b = await login();
+  assert.notEqual(a.body.token, b.body.token);
+  assert.equal((await request('/auth/logout', {method:'POST',token:a.body.token,body:{}})).status,204);
+  assert.equal((await request('/orders', {token:a.body.token})).status,401);
+  assert.equal((await request('/orders', {token:b.body.token})).status,200);
+  assert.equal((await request('/auth/logout', {method:'POST',token:a.body.token,body:{}})).status,401);
+  const stored = await RevokedToken.findOne().lean();
+  assert.equal(stored.hash.length,64);
+  assert.equal(JSON.stringify(stored).includes(a.body.token),false);
+  assert.equal(await RevokedToken.countDocuments(),1);
+});
+
+test('logout concorrente não perde revogação nem invalida login posterior', async () => {
+  const token = tokenFor(admin);
+  const results = await Promise.all([1,2].map(()=>request('/auth/logout',{method:'POST',token,body:{}})));
+  assert.ok(results.every(r=>[204,401].includes(r.status)));
+  assert.equal((await request('/auth/me',{token})).status,401);
+  assert.equal(await RevokedToken.countDocuments(),1);
+});
+
+test('token sem expiração é rejeitado', async () => {
+  const token = jwt.sign({id:admin._id.toString()},process.env.JWT_SECRET);
+  assert.equal((await request('/orders',{token})).status,401);
 });
