@@ -142,23 +142,24 @@ test('alterar nome não recalcula hash da senha', async () => {
   assert.equal(await stored.matchPassword(password), true);
 });
 
-test('perfis internos criam e consultam ordens; somente admin exclui', async () => {
+test('perfis internos leem legado; escritores v1 ficam bloqueados na transição v2', async () => {
   for (const role of ['tecnico', 'atendente', 'admin']) {
     const user = await User.create({ username: `os-${role}`, name: 'Teste', password, role });
     const token = tokenFor(user);
-    const created = await request('/orders', { method: 'POST', token, body: { cliente: 'Cliente sintético', telefone: '00000000000', equipamento: 'Teste', marca: 'Teste', defeito: 'Teste', dataEntrada: '2026-10-22' } });
-    assert.equal(created.status, 201);
-    const id = created.body._id;
+    const body = { cliente: 'Cliente sintético', telefone: '00000000000', equipamento: 'Teste', marca: 'Teste', defeito: 'Teste', dataEntrada: '2026-10-22' };
+    const fixture = await Order.create(body);
+    assert.equal((await request('/orders', { method: 'POST', token, body })).status, 409);
+    const id = fixture.id;
     assert.equal((await request(`/orders/${id}`, { token })).status, 200);
     const updated = await request(`/orders/${id}`, { method: 'PUT', token, body: { cliente: 'Cliente atualizado' } });
-    assert.equal(updated.status, 200);
-    assert.equal(updated.body.cliente, 'Cliente atualizado');
+    assert.equal(updated.status, 409);
+    assert.equal((await Order.findById(id)).cliente, 'Cliente sintético');
     const status = await request(`/orders/${id}/status`, { method: 'PATCH', token, body: { status: 'Pronto' } });
-    assert.equal(status.status, 200);
-    assert.equal((await Order.findById(id)).status, 'Pronto');
+    assert.equal(status.status, 409);
+    assert.equal((await Order.findById(id)).status, 'Aguardando');
     const deleted = await request(`/orders/${id}`, { method: 'DELETE', token });
-    assert.equal(deleted.status, role === 'admin' ? 200 : 403);
-    assert.equal(Boolean(await Order.exists({ _id: id })), role !== 'admin');
+    assert.equal(deleted.status, role === 'admin' ? 409 : 403);
+    assert.equal(Boolean(await Order.exists({ _id: id })), true);
   }
 });
 

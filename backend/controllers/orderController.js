@@ -6,6 +6,9 @@ import Order from '../models/Order.js';
 export const getOrders = async (req, res) => {
   try {
     const orders = await Order.find().sort({ dataEntrada: -1 });
+    if (orders.some(order => order.get('schemaVersion') === 2)) {
+      return res.status(409).json({ message: 'Atualize o cliente para a API v2', code: 'CLIENT_UPGRADE_REQUIRED' });
+    }
     res.json(orders);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -18,6 +21,8 @@ export const getOrders = async (req, res) => {
 export const getOrderById = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
+
+    if (order?.get('schemaVersion') === 2) return res.status(409).json({ message: 'Atualize o cliente para a API v2', code: 'CLIENT_UPGRADE_REQUIRED' });
 
     if (order) {
       res.json(order);
