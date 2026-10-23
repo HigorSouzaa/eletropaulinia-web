@@ -91,6 +91,10 @@ Distinguir hora técnica armazenada e apresentação local; propor armazenamento
 - Critérios da futura migração de dados preservam OS existentes e suas referências.
 - Existe plano de arquitetura concreto para revisão antes de construção estrutural.
 
+# Registro contínuo de pendências
+
+Leia e mantenha docs/PENDENCIAS.md como registro central para revisão após os oito prompts. Registre toda descoberta não resolvida com ID, etapa de origem, evidência, impacto/prioridade, dependências, próxima ação e critério de conclusão. Atualize itens existentes sem duplicar; preserve histórico. Só marque resolvido com evidência de implementação/validação, incluindo commit e teste quando aplicáveis. Separe decisões pendentes, limitações de acesso e melhorias adiadas. Não adie bloqueios do fluxo atual ou de produção para a revisão final. Ao encerrar, informe os IDs abertos, alterados e resolvidos. Nunca registre segredos ou dados pessoais.
+
 # Entrega esperada
 
 Salvar contratos e decisões no projeto, com mapa de compatibilidade e checklist das próximas etapas. Apresentar as pendências que realmente precisam de resposta; nenhuma implementação neste prompt.
@@ -136,7 +140,7 @@ Leia AGENTS.md, se existir, README.md, docs/dev-back/CICLO-1.md, docs/dev-back/C
 
 Use Dev Front Master; use Dev Back Master para alinhar sessão, contratos e integração.
 
-Pré-requisitos: Etapa 01 consolidada; decisões necessárias à arquitetura e sessão resolvidas.
+Pré-requisitos: etapa 01 documentada no commit 8be92b1. Leia docs/contratos/README.md, API-V2.md, ARQUITETURA-E-TRANSICAO.md e VALIDACAO.md, além de docs/PENDENCIAS.md. Esses contratos são propostas, não implementação. A última revalidação passou com 13 testes, tipagem/build e dois avisos. Rever apenas decisões arquiteturais necessárias à sessão/base Next; exceções de retirada e gestão de funcionários permanecem registradas para etapas posteriores e não bloqueiam login/listagem.
 
 # Escopo e requisitos
 
@@ -173,6 +177,10 @@ Login válido → listagem real; login inválido; rede indisponível; sessão ex
 - Build, tipagem, lint e testes pertinentes passam; avisos remanescentes são documentados.
 - Navegação e layout funcionam em desktop e largura móvel representativa.
 - Rotas ainda não migradas têm situação explícita e plano de conclusão.
+
+# Registro contínuo de pendências
+
+Leia e mantenha docs/PENDENCIAS.md como registro central para revisão após os oito prompts. Registre toda descoberta não resolvida com ID, etapa de origem, evidência, impacto/prioridade, dependências, próxima ação e critério de conclusão. Atualize itens existentes sem duplicar; preserve histórico. Só marque resolvido com evidência de implementação/validação, incluindo commit e teste quando aplicáveis. Separe decisões pendentes, limitações de acesso e melhorias adiadas. Não adie bloqueios do fluxo atual ou de produção para a revisão final. Ao encerrar, informe os IDs abertos, alterados e resolvidos. Nunca registre segredos ou dados pessoais.
 
 # Entrega esperada
 
@@ -260,6 +268,10 @@ Criar OS com dois equipamentos, um sem marca e outro para Testar; consultar/edit
 - Testes usam HTTP e MongoDB descartável; 13 regressões originais continuam cobertas, adaptadas aos contratos aprovados.
 - Contratos alterados têm estratégia explícita de atualização do cliente.
 
+# Registro contínuo de pendências
+
+Leia e mantenha docs/PENDENCIAS.md como registro central para revisão após os oito prompts. Registre toda descoberta não resolvida com ID, etapa de origem, evidência, impacto/prioridade, dependências, próxima ação e critério de conclusão. Atualize itens existentes sem duplicar; preserve histórico. Só marque resolvido com evidência de implementação/validação, incluindo commit e teste quando aplicáveis. Separe decisões pendentes, limitações de acesso e melhorias adiadas. Não adie bloqueios do fluxo atual ou de produção para a revisão final. Ao encerrar, informe os IDs abertos, alterados e resolvidos. Nunca registre segredos ou dados pessoais.
+
 # Entrega esperada
 
 Entregar código, contratos atualizados, testes, scripts de transformação para revisão e documentação dos índices. Informar medições reais e limitações. Não executar migração remota.
@@ -346,6 +358,10 @@ OS com três equipamentos; retirar um e recarregar; os outros permanecem pendent
 - Exclusão tem confirmação clara com identificação da OS, chama autorização real no servidor e não afeta outras ordens.
 - Testes negativos de gestão de funcionários passam.
 
+# Registro contínuo de pendências
+
+Leia e mantenha docs/PENDENCIAS.md como registro central para revisão após os oito prompts. Registre toda descoberta não resolvida com ID, etapa de origem, evidência, impacto/prioridade, dependências, próxima ação e critério de conclusão. Atualize itens existentes sem duplicar; preserve histórico. Só marque resolvido com evidência de implementação/validação, incluindo commit e teste quando aplicáveis. Separe decisões pendentes, limitações de acesso e melhorias adiadas. Não adie bloqueios do fluxo atual ou de produção para a revisão final. Ao encerrar, informe os IDs abertos, alterados e resolvidos. Nunca registre segredos ou dados pessoais.
+
 # Entrega esperada
 
 Entregar telas e APIs necessárias, testes de jornada e evidências visuais/funcionais. Registrar pendências reais e manter garantia/envios e módulos opcionais fora do escopo.
@@ -428,6 +444,10 @@ Inventário → backup → ensaio em destino isolado → transformação → com
 - Evidências de backup/restauração só são declaradas se realmente executadas em ambiente autorizado.
 - Rollback contempla gravações após o corte; restaurar snapshot antigo sem reconciliação não é considerado seguro.
 - Nenhum dado/segredo real aparece em relatório ou Git.
+
+# Registro contínuo de pendências
+
+Leia e mantenha docs/PENDENCIAS.md como registro central para revisão após os oito prompts. Registre toda descoberta não resolvida com ID, etapa de origem, evidência, impacto/prioridade, dependências, próxima ação e critério de conclusão. Atualize itens existentes sem duplicar; preserve histórico. Só marque resolvido com evidência de implementação/validação, incluindo commit e teste quando aplicáveis. Separe decisões pendentes, limitações de acesso e melhorias adiadas. Não adie bloqueios do fluxo atual ou de produção para a revisão final. Ao encerrar, informe os IDs abertos, alterados e resolvidos. Nunca registre segredos ou dados pessoais.
 
 # Entrega esperada
 
@@ -513,6 +533,10 @@ Tentativas sem sessão, perfil indevido, sessão expirada, conta desativada, log
 - Há plano de incidentes/rotação e riscos remanescentes explicitados.
 - Não houve pentest, carga ou ações destrutivas em produção.
 
+# Registro contínuo de pendências
+
+Leia e mantenha docs/PENDENCIAS.md como registro central para revisão após os oito prompts. Registre toda descoberta não resolvida com ID, etapa de origem, evidência, impacto/prioridade, dependências, próxima ação e critério de conclusão. Atualize itens existentes sem duplicar; preserve histórico. Só marque resolvido com evidência de implementação/validação, incluindo commit e teste quando aplicáveis. Separe decisões pendentes, limitações de acesso e melhorias adiadas. Não adie bloqueios do fluxo atual ou de produção para a revisão final. Ao encerrar, informe os IDs abertos, alterados e resolvidos. Nunca registre segredos ou dados pessoais.
+
 # Entrega esperada
 
 Entregar correções, testes, relatório priorizado e instruções operacionais. Separar confirmado, hipótese e não verificado; indicar bloqueios de publicação.
@@ -596,6 +620,10 @@ Funcionário faz login, cria OS com três equipamentos, outro consulta/edita, cl
 - Aprovação operacional da empresa é registrada somente quando fornecida.
 - Relatório distingue validação local, CI remoto, staging e produção.
 
+# Registro contínuo de pendências
+
+Leia e mantenha docs/PENDENCIAS.md como registro central para revisão após os oito prompts. Registre toda descoberta não resolvida com ID, etapa de origem, evidência, impacto/prioridade, dependências, próxima ação e critério de conclusão. Atualize itens existentes sem duplicar; preserve histórico. Só marque resolvido com evidência de implementação/validação, incluindo commit e teste quando aplicáveis. Separe decisões pendentes, limitações de acesso e melhorias adiadas. Não adie bloqueios do fluxo atual ou de produção para a revisão final. Ao encerrar, informe os IDs abertos, alterados e resolvidos. Nunca registre segredos ou dados pessoais.
+
 # Entrega esperada
 
 Entregar suíte, matriz de resultados, evidências de navegador, medições e relatório de prontidão com bloqueios. Não avançar automaticamente para publicação.
@@ -678,6 +706,10 @@ Comparação → escolha do provedor → configuração revisável → staging a
 - Segredos não aparecem no Git, prompt, relatório ou bundle.
 - Publicação só é declarada após confirmação real; se não executada, indicar precisamente o que está pronto e o que depende de decisão.
 - Nenhuma contratação, push, merge, deploy ou alteração remota foi inferida como autorizada pela geração deste prompt.
+
+# Registro contínuo de pendências
+
+Leia e mantenha docs/PENDENCIAS.md como registro central para revisão após os oito prompts. Registre toda descoberta não resolvida com ID, etapa de origem, evidência, impacto/prioridade, dependências, próxima ação e critério de conclusão. Atualize itens existentes sem duplicar; preserve histórico. Só marque resolvido com evidência de implementação/validação, incluindo commit e teste quando aplicáveis. Separe decisões pendentes, limitações de acesso e melhorias adiadas. Não adie bloqueios do fluxo atual ou de produção para a revisão final. Ao encerrar, informe os IDs abertos, alterados e resolvidos. Nunca registre segredos ou dados pessoais.
 
 # Entrega esperada
 

@@ -68,6 +68,10 @@ Distinguir hora técnica armazenada e apresentação local; propor armazenamento
 - Critérios da futura migração de dados preservam OS existentes e suas referências.
 - Existe plano de arquitetura concreto para revisão antes de construção estrutural.
 
+# Registro contínuo de pendências
+
+Leia e mantenha docs/PENDENCIAS.md como registro central para revisão após os oito prompts. Registre toda descoberta não resolvida com ID, etapa de origem, evidência, impacto/prioridade, dependências, próxima ação e critério de conclusão. Atualize itens existentes sem duplicar; preserve histórico. Só marque resolvido com evidência de implementação/validação, incluindo commit e teste quando aplicáveis. Separe decisões pendentes, limitações de acesso e melhorias adiadas. Não adie bloqueios do fluxo atual ou de produção para a revisão final. Ao encerrar, informe os IDs abertos, alterados e resolvidos. Nunca registre segredos ou dados pessoais.
+
 # Entrega esperada
 
 Salvar contratos e decisões no projeto, com mapa de compatibilidade e checklist das próximas etapas. Apresentar as pendências que realmente precisam de resposta; nenhuma implementação neste prompt.

@@ -68,6 +68,10 @@ Comparação → escolha do provedor → configuração revisável → staging a
 - Publicação só é declarada após confirmação real; se não executada, indicar precisamente o que está pronto e o que depende de decisão.
 - Nenhuma contratação, push, merge, deploy ou alteração remota foi inferida como autorizada pela geração deste prompt.
 
+# Registro contínuo de pendências
+
+Leia e mantenha docs/PENDENCIAS.md como registro central para revisão após os oito prompts. Registre toda descoberta não resolvida com ID, etapa de origem, evidência, impacto/prioridade, dependências, próxima ação e critério de conclusão. Atualize itens existentes sem duplicar; preserve histórico. Só marque resolvido com evidência de implementação/validação, incluindo commit e teste quando aplicáveis. Separe decisões pendentes, limitações de acesso e melhorias adiadas. Não adie bloqueios do fluxo atual ou de produção para a revisão final. Ao encerrar, informe os IDs abertos, alterados e resolvidos. Nunca registre segredos ou dados pessoais.
+
 # Entrega esperada
 
 Entregar proposta comparativa, configuração versionada, runbook, checklist e pedido final de autorização com ações concretas. Se autorizado e executado, registrar URLs, versões, validações e resultado do corte.

@@ -69,6 +69,10 @@ Tentativas sem sessão, perfil indevido, sessão expirada, conta desativada, log
 - Há plano de incidentes/rotação e riscos remanescentes explicitados.
 - Não houve pentest, carga ou ações destrutivas em produção.
 
+# Registro contínuo de pendências
+
+Leia e mantenha docs/PENDENCIAS.md como registro central para revisão após os oito prompts. Registre toda descoberta não resolvida com ID, etapa de origem, evidência, impacto/prioridade, dependências, próxima ação e critério de conclusão. Atualize itens existentes sem duplicar; preserve histórico. Só marque resolvido com evidência de implementação/validação, incluindo commit e teste quando aplicáveis. Separe decisões pendentes, limitações de acesso e melhorias adiadas. Não adie bloqueios do fluxo atual ou de produção para a revisão final. Ao encerrar, informe os IDs abertos, alterados e resolvidos. Nunca registre segredos ou dados pessoais.
+
 # Entrega esperada
 
 Entregar correções, testes, relatório priorizado e instruções operacionais. Separar confirmado, hipótese e não verificado; indicar bloqueios de publicação.

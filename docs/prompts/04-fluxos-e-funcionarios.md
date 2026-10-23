@@ -71,6 +71,10 @@ OS com três equipamentos; retirar um e recarregar; os outros permanecem pendent
 - Exclusão tem confirmação clara com identificação da OS, chama autorização real no servidor e não afeta outras ordens.
 - Testes negativos de gestão de funcionários passam.
 
+# Registro contínuo de pendências
+
+Leia e mantenha docs/PENDENCIAS.md como registro central para revisão após os oito prompts. Registre toda descoberta não resolvida com ID, etapa de origem, evidência, impacto/prioridade, dependências, próxima ação e critério de conclusão. Atualize itens existentes sem duplicar; preserve histórico. Só marque resolvido com evidência de implementação/validação, incluindo commit e teste quando aplicáveis. Separe decisões pendentes, limitações de acesso e melhorias adiadas. Não adie bloqueios do fluxo atual ou de produção para a revisão final. Ao encerrar, informe os IDs abertos, alterados e resolvidos. Nunca registre segredos ou dados pessoais.
+
 # Entrega esperada
 
 Entregar telas e APIs necessárias, testes de jornada e evidências visuais/funcionais. Registrar pendências reais e manter garantia/envios e módulos opcionais fora do escopo.

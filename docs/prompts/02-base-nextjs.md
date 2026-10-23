@@ -30,7 +30,7 @@ Leia AGENTS.md, se existir, README.md, docs/dev-back/CICLO-1.md, docs/dev-back/C
 
 Use Dev Front Master; use Dev Back Master para alinhar sessão, contratos e integração.
 
-Pré-requisitos: Etapa 01 consolidada; decisões necessárias à arquitetura e sessão resolvidas.
+Pré-requisitos: etapa 01 documentada no commit 8be92b1. Leia docs/contratos/README.md, API-V2.md, ARQUITETURA-E-TRANSICAO.md e VALIDACAO.md, além de docs/PENDENCIAS.md. Esses contratos são propostas, não implementação. A última revalidação passou com 13 testes, tipagem/build e dois avisos. Rever apenas decisões arquiteturais necessárias à sessão/base Next; exceções de retirada e gestão de funcionários permanecem registradas para etapas posteriores e não bloqueiam login/listagem.
 
 # Escopo e requisitos
 
@@ -67,6 +67,10 @@ Login válido → listagem real; login inválido; rede indisponível; sessão ex
 - Build, tipagem, lint e testes pertinentes passam; avisos remanescentes são documentados.
 - Navegação e layout funcionam em desktop e largura móvel representativa.
 - Rotas ainda não migradas têm situação explícita e plano de conclusão.
+
+# Registro contínuo de pendências
+
+Leia e mantenha docs/PENDENCIAS.md como registro central para revisão após os oito prompts. Registre toda descoberta não resolvida com ID, etapa de origem, evidência, impacto/prioridade, dependências, próxima ação e critério de conclusão. Atualize itens existentes sem duplicar; preserve histórico. Só marque resolvido com evidência de implementação/validação, incluindo commit e teste quando aplicáveis. Separe decisões pendentes, limitações de acesso e melhorias adiadas. Não adie bloqueios do fluxo atual ou de produção para a revisão final. Ao encerrar, informe os IDs abertos, alterados e resolvidos. Nunca registre segredos ou dados pessoais.
 
 # Entrega esperada
 

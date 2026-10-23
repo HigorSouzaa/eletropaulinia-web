@@ -4,6 +4,8 @@ Pacote preparado em 23/10/2026 com Prompt Dev, Dev Front Master e Dev Back Maste
 
 ## Como usar
 
+Registro central: [PENDENCIAS.md](../PENDENCIAS.md). Atualizar durante cada prompt e revisar ao final dos oito, preservando evidências e histórico. Bloqueios do fluxo atual não devem ser adiados para a revisão final.
+
 Abra o arquivo da etapa e copie seu bloco completo para a tarefa deste repositório. Execute uma etapa por vez, confira sua entrega e avance quando os pré-requisitos estiverem atendidos. Cada prompt inclui contexto, escopo, protocolo Git, critérios de aceite e entrega.
 
 A etapa 01 consolida os contratos. A etapa 02 é a primeira implementação: base Next.js com autenticação e listagem. A criação e edição completas com vários equipamentos dependem do backend da etapa 03 e são concluídas na etapa 04. Segurança e testes acompanham cada etapa; 06 e 07 fazem a revisão final, não inauguram esses cuidados.

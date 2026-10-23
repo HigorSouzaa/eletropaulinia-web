@@ -68,6 +68,10 @@ Inventário → backup → ensaio em destino isolado → transformação → com
 - Rollback contempla gravações após o corte; restaurar snapshot antigo sem reconciliação não é considerado seguro.
 - Nenhum dado/segredo real aparece em relatório ou Git.
 
+# Registro contínuo de pendências
+
+Leia e mantenha docs/PENDENCIAS.md como registro central para revisão após os oito prompts. Registre toda descoberta não resolvida com ID, etapa de origem, evidência, impacto/prioridade, dependências, próxima ação e critério de conclusão. Atualize itens existentes sem duplicar; preserve histórico. Só marque resolvido com evidência de implementação/validação, incluindo commit e teste quando aplicáveis. Separe decisões pendentes, limitações de acesso e melhorias adiadas. Não adie bloqueios do fluxo atual ou de produção para a revisão final. Ao encerrar, informe os IDs abertos, alterados e resolvidos. Nunca registre segredos ou dados pessoais.
+
 # Entrega esperada
 
 Entregar configuração proposta, scripts, runbook de migração/restauração, resultados do ensaio autorizado e pendências. Antes de qualquer execução remota, apresentar destino e operações concretas e obter autorização específica.
