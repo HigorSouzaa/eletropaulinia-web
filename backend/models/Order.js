@@ -79,24 +79,7 @@ orderSchema.index({ cliente: 1 });
 orderSchema.index({ status: 1 });
 orderSchema.index({ dataEntrada: -1 });
 
-// Middleware para gerar número automático antes de salvar
-orderSchema.pre('save', async function(next) {
-  if (!this.numero) {
-    // Buscar a última ordem criada
-    const lastOrder = await this.constructor.findOne().sort({ createdAt: -1 });
-    
-    if (lastOrder && lastOrder.numero) {
-      // Extrair o número da última ordem (ex: "OS-0001" -> 1)
-      const lastNumber = parseInt(lastOrder.numero.split('-')[1]);
-      this.numero = `OS-${String(lastNumber + 1).padStart(4, '0')}`;
-    } else {
-      // Primeira ordem
-      this.numero = 'OS-0001';
-    }
-  }
-  next();
-});
-
+// Modelo legado somente para leitura; numeração pertence ao serviço v2.
 const Order = mongoose.model('Order', orderSchema);
 
 export default Order;

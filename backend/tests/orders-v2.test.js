@@ -11,6 +11,7 @@ import Order from '../models/OrderV2.js';
 import Counter from '../models/Counter.js';
 import RevokedToken from '../models/RevokedToken.js';
 import { prepareNumberingFixture } from './numbering-fixture.js';
+import { transformLegacy } from '../services/legacyOrders.js';
 
 let mongo, server, origin, token, otherToken;
 before(async () => {
@@ -42,11 +43,11 @@ function payload() {
       { nome: 'Ferro', solicitacao: { tipo: 'relato', descricao: 'Não aquece' } },
     ] };
 }
-async function request(path = '', { method = 'GET', body, key, auth = token, raw } = {}) {
+async function request(path = '', { method = 'GET', body, key, auth = token, raw, match } = {}) {
   const res = await fetch(`${origin}/api/v2/orders${path}`, { method,
-    headers: { 'Content-Type': 'application/json', ...(auth ? { Authorization: `Bearer ${auth}` } : {}), ...(key ? { 'Idempotency-Key': key } : {}) },
+    headers: { 'Content-Type': 'application/json', ...(auth ? { Authorization: `Bearer ${auth}` } : {}), ...(key ? { 'Idempotency-Key': key } : {}), ...(match ? { 'If-Match': match } : {}) },
     ...(raw !== undefined ? { body: raw } : body !== undefined ? { body: JSON.stringify(body) } : {}) });
-  return { status: res.status, body: await res.json(), etag: res.headers.get('etag'), cache: res.headers.get('cache-control') };
+  return { status: res.status, body: res.status === 204 ? null : await res.json(), etag: res.headers.get('etag'), cache: res.headers.get('cache-control') };
 }
 const create = (body = payload(), key = randomUUID(), auth = token) => request('', { method: 'POST', body, key, auth });
 
@@ -89,8 +90,129 @@ test('IDs inválidos, ausentes e legados têm respostas distintas', async () => 
   assert.equal((await request(`/${new mongoose.Types.ObjectId()}`)).status, 404);
   const old = await Order.collection.insertOne({ numero: 'OS-0200', equipamento: 'Legado' });
   const result = await request(`/${old.insertedId}`);
-  assert.equal(result.status, 409); assert.equal(result.body.error.code, 'LEGACY_MIGRATION_REQUIRED');
+  assert.equal(result.status, 200); assert.equal(result.body.data.compatibility.legacy, true);
+  assert.equal(result.body.data.equipamentos[0].solicitacao, null);
+  assert.equal((await request(`/${old.insertedId}`, { method: 'PATCH', body: {}, match: 'invalid' })).status, 409);
   assert.equal((await Order.collection.findOne({ _id: old.insertedId })).schemaVersion, undefined);
+});
+
+function change(order, body, suffix = '') {
+  return request(`/${order.body.data._id}${suffix}`, { method: 'PATCH', body, match: order.etag });
+}
+function pickup(order, eid) {
+  return request(`/${order.body.data._id}/equipamentos/${eid}/retirada`, { method: 'PUT', body: {}, match: order.etag });
+}
+test('edição parcial preserva itens, limpa opcionais e exige precondição', async () => {
+  let order = await create(); const ids = order.body.data.equipamentos.map(item => item._id);
+  assert.equal((await request(`/${order.body.data._id}`, { method: 'PATCH', body: {} })).status, 428);
+  order = await change(order, { cliente: { email: 'fixture@example.invalid' }, observacoes: 'Observação sintética' });
+  assert.equal(order.status, 200); assert.equal(order.body.data.cliente.nome, 'Cliente sintético');
+  order = await change(order, { cliente: { email: '' }, observacoes: null });
+  assert.equal(order.body.data.cliente.email, null); assert.equal(order.body.data.observacoes, null);
+  order = await change(order, { marca: '', numeroSerie: null }, `/equipamentos/${ids[0]}`);
+  assert.equal(order.status, 200); assert.equal(order.body.data.equipamentos[0].marca, null);
+  assert.equal(order.body.data.equipamentos[0].numeroSerie, null);
+  assert.deepEqual(order.body.data.equipamentos.map(item => item._id), ids);
+  assert.equal((await change(order, { numero: 'OS-9999' })).status, 400);
+  assert.equal((await change(order, { status: 'Entregue' })).status, 400);
+  assert.equal((await change(order, { cliente: null })).status, 400);
+});
+test('retirada parcial, repetição e conclusão preservam horários e autoria', async () => {
+  let order = await create(); const id = order.body.data._id;
+  const items = order.body.data.equipamentos.map(item => item._id);
+  assert.equal((await pickup(order, items[0])).status, 409);
+  for (const item of items) { order = await change(order, { andamento: 'Pronto' }, `/equipamentos/${item}`); assert.equal(order.status, 200); }
+  assert.equal(order.body.data.status, 'Pronto');
+  const previous = order;
+  const before = Date.now(); order = await pickup(order, items[0]); const after = Date.now();
+  assert.equal(order.status, 200); assert.deepEqual(order.body.data.entrega, { total: 3, retirados: 1, situacao: 'parcial' });
+  const event = order.body.data.equipamentos[0].retirada;
+  assert.ok(Date.parse(event.retiradoEm) >= before && Date.parse(event.retiradoEm) <= after);
+  assert.equal(event.registradoPor, jwt.decode(token).id);
+  assert.equal(order.body.data.equipamentos[1].retirada, null);
+  const repeated = await pickup(order, items[0]); assert.deepEqual(repeated.body, order.body); assert.equal(repeated.etag, order.etag);
+  assert.equal((await pickup(previous, items[0])).status, 412);
+  assert.equal((await change(order, { andamento: 'Pronto' }, `/equipamentos/${items[0]}`)).status, 409);
+  assert.equal((await request(`/${id}/equipamentos`, { method: 'POST', match: order.etag, body: payload().equipamentos[0] })).status, 409);
+  assert.equal((await request(`/${id}/equipamentos/${items[1]}`, { method: 'DELETE', match: order.etag })).status, 409);
+  order = await pickup(order, items[1]); order = await pickup(order, items[2]);
+  assert.equal(order.body.data.status, 'Entregue'); assert.equal(order.body.data.entrega.situacao, 'completa');
+  const read = await request(`/${id}`); assert.deepEqual(read.body.data, order.body.data);
+  assert.deepEqual(read.body.data.equipamentos[0].retirada, event);
+});
+test('edições e retiradas concorrentes retornam conflito sem perder efeito vencedor', async () => {
+  let order = await create();
+  const edits = await Promise.all([change(order, { observacoes: 'A' }), change(order, { observacoes: 'B' })]);
+  assert.deepEqual(edits.map(item => item.status).sort(), [200, 412]);
+  order = edits.find(item => item.status === 200);
+  for (const item of order.body.data.equipamentos) order = await change(order, { andamento: 'Pronto' }, `/equipamentos/${item._id}`);
+  const ids = order.body.data.equipamentos.map(item => item._id);
+  const results = await Promise.all([pickup(order, ids[0]), pickup(order, ids[1])]);
+  assert.deepEqual(results.map(item => item.status).sort(), [200, 412]);
+  order = await request(`/${order.body.data._id}`);
+  assert.equal(order.body.data.entrega.retirados, 1);
+  const remaining = order.body.data.equipamentos.find(item => !item.retirada);
+  order = await pickup(order, remaining._id); assert.equal(order.body.data.entrega.retirados, 2);
+});
+test('composição antes de retirada e agregado misto; nunca remove último', async () => {
+  let order = await create();
+  order = await change(order, { andamento: 'Pronto' }, `/equipamentos/${order.body.data.equipamentos[0]._id}`);
+  assert.equal(order.body.data.status, 'Em andamento');
+  order = await request(`/${order.body.data._id}/equipamentos`, { method: 'POST', match: order.etag, body: { nome: 'Novo', solicitacao: { tipo: 'testar' } } });
+  assert.equal(order.status, 201); assert.equal(order.body.data.equipamentos.length, 4);
+  while (order.body.data.equipamentos.length > 1) order = await request(`/${order.body.data._id}/equipamentos/${order.body.data.equipamentos.at(-1)._id}`, { method: 'DELETE', match: order.etag });
+  assert.equal((await request(`/${order.body.data._id}/equipamentos/${order.body.data.equipamentos[0]._id}`, { method: 'DELETE', match: order.etag })).status, 409);
+});
+test('exclusão admin exige versão, remove somente alvo e não reduz contador', async () => {
+  const first = await create(), second = await create();
+  const admin = await User.create({ username: 'admin-v2', name: 'Admin', password: 'Synthetic-test-password-42', role: 'admin' });
+  const auth = jwt.sign({ id: admin.id }, process.env.JWT_SECRET, { expiresIn: '15m' });
+  assert.equal((await request(`/${first.body.data._id}`, { method: 'DELETE', match: first.etag })).status, 403);
+  assert.equal((await request(`/${first.body.data._id}`, { method: 'DELETE', auth })).status, 428);
+  assert.equal((await request(`/${first.body.data._id}`, { method: 'DELETE', auth, match: first.etag })).status, 204);
+  assert.equal((await request(`/${first.body.data._id}`)).status, 404);
+  assert.equal((await request(`/${second.body.data._id}`)).status, 200);
+  assert.equal((await Counter.findById('orders')).value, 2);
+});
+test('paginação, filtros literais, ordenação numérica e summary contam conjunto inteiro', async () => {
+  for (let i = 0; i < 6; i++) await create();
+  const first = await request('?pageSize=2&sort=numero&direction=asc');
+  assert.equal(first.body.data.length, 2); assert.equal(first.body.data[0].numero, 'OS-0001');
+  assert.deepEqual(first.body.meta, { page: 1, pageSize: 2, total: 6, totalPages: 3 });
+  const next = await request('?pageSize=2&page=2&sort=numero&direction=asc'); assert.equal(next.body.data[0].numero, 'OS-0003');
+  assert.equal((await request('?page=99')).body.data.length, 0);
+  assert.equal((await request('/summary?q=Rádio')).body.data.total, 6);
+  assert.equal((await request('/summary?q=Rádio')).body.data.equipamentos, 18);
+  assert.equal((await request('?q=.*')).body.meta.total, 0);
+  for (const query of ['?pageSize=101', '?q[$ne]=x', '?page=0', '?sort=password', '?q=a&q=b', '?status=invalid']) assert.equal((await request(query)).status, 400);
+  const partial = await request(`/${first.body.data[0]._id}`);
+  const ready = await change(partial, { andamento: 'Pronto' }, `/equipamentos/${partial.body.data.equipamentos[0]._id}`);
+  await pickup(ready, ready.body.data.equipamentos[0]._id);
+  assert.equal((await request('?entrega=parcial')).body.meta.total, 1);
+  assert.equal((await request('/summary?entrega=parcial')).body.data.retirados, 1);
+});
+test('legado misto permanece visível e transformação preserva origem sem inventar dados', async () => {
+  const raw = { _id: new mongoose.Types.ObjectId(), numero: 'OS-0321', cliente: 'Histórico sintético', telefone: '0000', equipamento: 'Rádio antigo', marca: '', defeito: 'Não liga', status: 'Entregue', dataEntrada: new Date('2020-02-02T13:00:00Z'), createdAt: new Date('2020-02-02T13:00:00Z'), referenciaExtra: 'Sintética' };
+  await Order.collection.insertOne(raw);
+  const list = await request('?q=Histórico'); assert.equal(list.body.meta.total, 1);
+  assert.equal(list.body.data[0].entrega.situacao, 'completa');
+  assert.equal(list.body.data[0].equipamentos[0].retirada.retiradoEm, null);
+  const transformed = transformLegacy(raw); assert.deepEqual(transformed.issues, []);
+  assert.equal(String(transformed.document._id), String(raw._id)); assert.equal(transformed.document.numero, raw.numero);
+  assert.equal(transformed.document.migration.original.referenciaExtra, 'Sintética');
+  assert.equal(transformed.document.equipamentos[0].andamento, null);
+  assert.deepEqual(transformLegacy(transformed.document).document, transformed.document);
+  assert.equal(transformLegacy({ ...raw, defeito: '' }).document, null);
+  await Order.collection.replaceOne({ _id: raw._id }, transformed.document);
+  const read = await request(`/${raw._id}`); assert.equal(read.body.data.entrega.situacao, 'completa');
+  assert.equal(read.body.data.migration, undefined);
+  await new Order(transformed.document).validate();
+  const malformed = { ...raw, _id: new mongoose.Types.ObjectId(), numero: { invalid: true }, cliente: { invalid: true } };
+  await Order.collection.insertOne(malformed);
+  assert.equal(transformLegacy(malformed).document, null);
+  const invalidView = await request(`/${malformed._id}`);
+  assert.equal(invalidView.status, 200); assert.equal(invalidView.body.data.cliente.nome, null);
+  assert.equal((await request('?sort=numero')).body.meta.total, 2);
 });
 test('criações simultâneas recebem números únicos e equipamentos completos', async () => {
   const results = await Promise.all(Array.from({ length: 16 }, () => create()));
@@ -150,4 +272,21 @@ test('cliente v1 não modifica nem achata uma OS v2', async () => {
     assert.equal(response.status, method === 'DELETE' ? 403 : 409);
   }
   assert.deepEqual((await request(`/${id}`)).body.data, created.body.data);
+});
+
+test('medição local limitada e plano de índice da listagem v2', async context => {
+  await Promise.all(Array.from({ length: 50 }, () => create()));
+  const durations = [];
+  for (let i = 0; i < 10; i++) {
+    const start = performance.now();
+    const result = await request('?pageSize=25');
+    durations.push(performance.now() - start);
+    assert.equal(result.status, 200); assert.equal(result.body.meta.total, 50);
+  }
+  const plan = await Order.collection.find({}).sort({ dataEntrada: -1, _id: -1 }).limit(25).explain('executionStats');
+  const sorted = durations.toSorted((a, b) => a - b);
+  context.diagnostic(JSON.stringify({ fixtureOrders: 50, requests: 10, latencyMedianMs: Number(sorted[5].toFixed(2)), latencyMaxMs: Number(sorted.at(-1).toFixed(2)),
+    returned: plan.executionStats.nReturned, documentsExamined: plan.executionStats.totalDocsExamined,
+    dateIndexUsed: JSON.stringify(plan.queryPlanner.winningPlan).includes('dataEntrada_-1__id_-1'),
+    limitation: 'loopback, Mongo descartável, sem carga representativa de produção' }));
 });

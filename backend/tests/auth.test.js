@@ -147,7 +147,7 @@ test('perfis internos leem legado; escritores v1 ficam bloqueados na transição
     const user = await User.create({ username: `os-${role}`, name: 'Teste', password, role });
     const token = tokenFor(user);
     const body = { cliente: 'Cliente sintético', telefone: '00000000000', equipamento: 'Teste', marca: 'Teste', defeito: 'Teste', dataEntrada: '2026-10-22' };
-    const fixture = await Order.create(body);
+    const fixture = await Order.create({ ...body, numero: `OS-000${['tecnico', 'atendente', 'admin'].indexOf(role) + 1}` });
     assert.equal((await request('/orders', { method: 'POST', token, body })).status, 409);
     const id = fixture.id;
     assert.equal((await request(`/orders/${id}`, { token })).status, 200);

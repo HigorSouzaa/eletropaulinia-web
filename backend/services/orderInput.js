@@ -4,7 +4,7 @@ export class OrderError extends Error {
   }
 }
 function invalid(path, code = 'INVALID') { throw new OrderError(400, 'VALIDATION_ERROR', [{ path, code }]); }
-function object(value, keys, path) {
+export function object(value, keys, path) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) invalid(path);
   if (Object.keys(value).some(key => !keys.includes(key))) invalid(path, 'UNKNOWN_FIELD');
 }

@@ -3,7 +3,8 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 export const COOKIE = 'ep_session';
 export const noStore = { 'Cache-Control': 'private, no-store, max-age=0' };
-export async function expressRequest(path: '/auth/login' | '/auth/logout' | '/auth/me' | '/orders', token?: string, body?: unknown) {
+type ApiPath = '/auth/login' | '/auth/logout' | '/auth/me' | '/orders' | '/v2/orders' | `/v2/orders?${string}`;
+export async function expressRequest(path: ApiPath, token?: string, body?: unknown) {
     const base = process.env.API_INTERNAL_URL || 'http://127.0.0.1:5000/api';
     try {
         return await fetch(base.replace(/\/$/, '') + path, {
@@ -51,7 +52,7 @@ export async function readLoginBody(request: Request) {
     }
     return JSON.parse(Buffer.concat(chunks).toString('utf8'));
 }
-export async function authenticated(path: '/auth/me' | '/orders') {
+export async function authenticated(path: '/auth/me' | '/orders' | '/v2/orders' | `/v2/orders?${string}`) {
     const token = await sessionToken();
     if (!token)
         return clearSession(json({ message: 'Autenticação necessária' }, 401));
@@ -59,6 +60,6 @@ export async function authenticated(path: '/auth/me' | '/orders') {
     if (response.status === 401)
         return clearSession(json({ message: 'Sessão expirada' }, 401));
     if (!response.ok)
-        return json({ message: 'Não foi possível carregar os dados' }, response.status === 403 ? 403 : 503);
+        return json({ message: 'Não foi possível carregar os dados' }, [400, 403].includes(response.status) ? response.status : 503);
     return json(await response.json());
 }

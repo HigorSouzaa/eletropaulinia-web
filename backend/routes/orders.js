@@ -1,13 +1,9 @@
 import express from 'express';
 import {
   getOrders,
-  getOrderById,
-  createOrder,
-  updateOrder,
-  deleteOrder,
-  updateOrderStatus
+  getOrderById
 } from '../controllers/orderController.js';
-import { protect, authorize } from '../middleware/auth.js';
+import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -20,15 +16,7 @@ router.use((req, res, next) => {
   return res.status(409).json({ message: 'Atualize o cliente para a API v2', code: 'CLIENT_UPGRADE_REQUIRED' });
 });
 
-router.route('/')
-  .get(getOrders)
-  .post(createOrder);
-
-router.route('/:id')
-  .get(getOrderById)
-  .put(updateOrder)
-  .delete(authorize('admin'), deleteOrder);
-
-router.patch('/:id/status', updateOrderStatus);
+router.get('/', getOrders);
+router.get('/:id', getOrderById);
 
 export default router;

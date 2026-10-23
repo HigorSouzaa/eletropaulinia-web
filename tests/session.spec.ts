@@ -39,18 +39,18 @@ test('CSRF negado e dados sem cache público', async ({ page, request }) => {
     await login(page);
     const response = await page.request.get('/api/orders');
     expect(response.headers()['cache-control']).toContain('no-store');
-    expect((await response.json()).length).toBeGreaterThan(0);
+    expect((await response.json()).data.length).toBeGreaterThan(0);
 });
 test('erro de consulta e nova tentativa; vazio sem confundir erro', async ({ page }) => {
     await login(page);
     // Falhas/vazio simulados no transporte; login e cenário principal usam banco real.
-    await page.route('**/api/orders', r => r.fulfill({ status: 503, contentType: 'application/json', body: '{}' }));
+    await page.route('**/api/orders*', r => r.fulfill({ status: 503, contentType: 'application/json', body: '{}' }));
     await page.getByRole('button', { name: 'Atualizar', exact: true }).click();
     await expect(page.getByRole('main').getByRole('alert')).toContainText('Não foi possível carregar');
-    await page.unroute('**/api/orders');
+    await page.unroute('**/api/orders*');
     await page.getByRole('button', { name: 'Tentar novamente' }).click();
     await expect(page.getByText('Ventilador de teste', { exact: true })).toBeVisible();
-    await page.route('**/api/orders', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+    await page.route('**/api/orders*', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: [], meta: { total: 0, totalPages: 0, page: 1, pageSize: 25 } }) }));
     await page.getByRole('button', { name: 'Atualizar', exact: true }).click();
     await expect(page.getByText('Nenhuma ordem cadastrada.')).toBeVisible();
 });
@@ -73,13 +73,30 @@ test('mobile, navegação, busca e páginas pendentes', async ({ page }) => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.getByRole('button', { name: 'Abrir menu' }).click();
     await expect(page.getByRole('navigation', { name: 'Menu principal' })).toBeVisible();
-    await page.getByLabel('Buscar nas ordens carregadas').fill('inexistente');
+    await page.getByLabel('Buscar ordens').fill('inexistente');
     await expect(page.getByText('Nenhuma ordem corresponde à busca.')).toBeVisible();
     await page.screenshot({ path: 'test-results/mobile.png', fullPage: true });
     await page.goto('/nova-ordem');
     await expect(page.getByRole('heading', { name: 'Cadastro temporariamente indisponível' })).toBeVisible();
     await page.goto('/nao-existe');
     await expect(page.getByRole('heading', { name: 'Página não encontrada' })).toBeVisible();
+});
+
+test('listagem v2 pagina no servidor e exibe todos os equipamentos sem perder legado', async ({ page }) => {
+    await login(page);
+    await expect(page.getByText('25 de 27 ordem(ns)')).toBeVisible();
+    await page.getByRole('button', { name: 'Próxima', exact: true }).click();
+    await expect(page.getByText('Página 2 de 2')).toBeVisible();
+    await expect(page.getByText('2 de 27 ordem(ns)')).toBeVisible();
+    await page.getByLabel('Buscar ordens').fill('Rádio para teste');
+    await expect(page.getByText('1 de 1 ordem(ns)')).toBeVisible();
+    await expect(page.getByText('Equipamento v2', { exact: true })).toBeVisible();
+    await expect(page.getByText('Ferro para teste', { exact: true })).toBeVisible();
+    await page.getByLabel('Filtrar status').selectOption('Entregue');
+    await expect(page.getByText('Nenhuma ordem corresponde à busca.')).toBeVisible();
+    await page.getByLabel('Filtrar status').selectOption('');
+    await page.getByLabel('Buscar ordens').fill('Ventilador de teste');
+    await expect(page.getByText('Registro antigo')).toBeVisible();
 });
 test('API realmente indisponível não vira erro de credencial; sessão preservada no retry', async ({ page, request }) => {
     await login(page);
