@@ -23,3 +23,9 @@ Registrar data e hora por equipamento retirado. O agregado da OS só fica Entreg
 Garantia e envio automático ficam para uma etapa futura. Melhorias opcionais ficam fora do pacote atual. Vercel é candidata para o frontend; backend ainda sem provedor definido. Não há autorização de publicação ou de alteração de banco real.
 
 Foram solicitados prompts para as oito etapas restantes, preparados em [docs/prompts](../prompts/README.md). Contratos vêm primeiro; a base Next.js é a primeira implementação recomendada, seguida do backend de múltiplos equipamentos e da conclusão dos fluxos. A preparação desses prompts não executa as etapas nem registra uma aprovação estrutural nova. Decisões já respondidas não devem ser perguntadas novamente.
+
+## Etapa 01 — contratos consolidados, 23/10/2026
+
+Modo análise/documentação, sem implementação. Base 557f3b5; branch docs/contratos-etapa-01. [Pacote de contratos](../contratos/README.md) separa regras confirmadas, evidência atual e propostas v2. Inclui retirada por equipamento, contrato de erros/concorrência, funcionários, sessão e transição Next/Express. Nenhum checkpoint de implementação é marcado como aprovado.
+
+Revalidação atual: npm run check exit 0; 13 testes HTTP/MongoDB isolado passaram, tipagem/build passaram e dois avisos antigos de Fast Refresh permanecem. Não houve acesso a dados reais, Atlas, navegador, CI remoto ou restore. Perguntas sobre retirada antecipada, correção de retirada e desligamento/recuperação foram enviadas; sem resposta registrada até a consolidação, permanecem pendentes. A próxima etapa é a base Next login/lista, após revisão das propostas arquiteturais pertinentes; múltiplos equipamentos dependem das etapas 03–04.

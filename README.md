@@ -34,7 +34,7 @@ Scripts individuais: `npm run typecheck`, `npm run lint`, `npm test`, `npm run b
 
 Login usa **username**, não e-mail. Cadastro de usuários exige sessão de administrador. O cadastro não devolve senha nem token do novo usuário. Para primeiro administrador, use o procedimento manual do backend.
 
-Os perfis admin, tecnico e atendente mantêm acesso compartilhado às ordens; exclusão é somente admin. Essa é a regra inicial compatível com a base existente, sujeita à definição operacional da empresa. Consulte [contratos](docs/dev-back/CONTRATOS-CICLO-1.md).
+Os perfis admin, tecnico e atendente mantêm acesso compartilhado às ordens; exclusão é somente admin. O acesso compartilhado foi confirmado pela empresa. Consulte os [contratos consolidados e propostas da etapa 01](docs/contratos/README.md) e o [contrato histórico implementado](docs/dev-back/CONTRATOS-CICLO-1.md). Os contratos v2 são propostas, ainda não implementadas.
 
 ## Estado e próximos passos
 
