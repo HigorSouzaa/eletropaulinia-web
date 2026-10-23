@@ -1,0 +1,696 @@
+ELETRO PAULÍNIA — OITO PROMPTS PARA CONCLUSÃO
+
+Copie um prompt completo por vez. Este arquivo reúne os textos para dispensar a abertura de links individuais. Gerar este pacote não executa as etapas.
+
+ACESSO: os caminhos abaixo são locais ao PC; podem não abrir no Codex remoto pelo celular. Os documentos não foram publicados no GitHub. O conteúdo completo está após o índice.
+
+Repositório: https://github.com/HigorSouzaa/eletropaulinia-web
+
+ÍNDICE E LINKS LOCAIS
+
+[01 — Consolidar regras e contratos](C:/Users/higor/Documents/ChatGPT/eletropaulinia-web/docs/prompts/01-contratos-e-regras.md)
+
+[02 — Migrar a base para Next.js](C:/Users/higor/Documents/ChatGPT/eletropaulinia-web/docs/prompts/02-base-nextjs.md)
+
+[03 — Concluir o backend de ordens](C:/Users/higor/Documents/ChatGPT/eletropaulinia-web/docs/prompts/03-backend-ordens.md)
+
+[04 — Concluir telas, retiradas e Funcionários](C:/Users/higor/Documents/ChatGPT/eletropaulinia-web/docs/prompts/04-fluxos-e-funcionarios.md)
+
+[05 — Preparar Atlas e preservação dos dados](C:/Users/higor/Documents/ChatGPT/eletropaulinia-web/docs/prompts/05-atlas-e-dados.md)
+
+[06 — Fechar segurança e prontidão operacional](C:/Users/higor/Documents/ChatGPT/eletropaulinia-web/docs/prompts/06-seguranca-e-operacao.md)
+
+[07 — Validar o sistema de ponta a ponta](C:/Users/higor/Documents/ChatGPT/eletropaulinia-web/docs/prompts/07-testes-e-homologacao.md)
+
+[08 — Preparar publicação e entrada em operação](C:/Users/higor/Documents/ChatGPT/eletropaulinia-web/docs/prompts/08-publicacao-e-entrada-em-operacao.md)
+
+==================== INÍCIO: 01 — Consolidar regras e contratos ====================
+
+# Objetivo
+
+Consolidar as decisões já tomadas em contratos verificáveis para o frontend, a API e os dados. Preparar as demais etapas; não implementar a migração nem alterar dados.
+
+# Contexto
+
+Repositório exclusivo: https://github.com/HigorSouzaa/eletropaulinia-web
+Cópia local: C:/Users/higor/Documents/ChatGPT/eletropaulinia-web
+
+A base do primeiro ciclo é 1f71959, na branch fix/primeiro-ciclo-api. Esse SHA é referência histórica, não instrução para reset ou checkout. Confirme o estado atual e as entregas anteriores antes de atuar. A última validação registrada tinha 13 testes HTTP/MongoDB aprovados, build e tipagem passando e dois avisos de Fast Refresh. Não declare que esses resultados continuam válidos sem verificar.
+
+Destino definido: Next.js com TypeScript, API Node.js/Express separada e MongoDB Atlas. Vercel é candidata para frontend, não decisão irrevogável; hospedagem do backend será pesquisada, preferencialmente gratuita.
+
+Regras confirmadas em 23/10/2026:
+- Todos os funcionários acessam todas as ordens. Preservar a restrição administrativa existente para cadastro de funcionários e exclusão de ordens.
+- Uma ordem pode ter vários equipamentos e retiradas parciais, frequentes na operação.
+- Cliente: nome e telefone obrigatórios; e-mail opcional.
+- Equipamento: identificação/nome obrigatório; marca/modelo e número de série opcionais. Registrar defeito relatado; quando não houver relato, usar a indicação explícita "Testar", sem inventar um defeito.
+- Registrar data e hora da retirada de cada equipamento. A ordem inteira só fica Entregue quando todos forem retirados.
+- Ordens permanecem guardadas independentemente da data. Exclusão explícita é definitiva na base ativa, incluindo seus equipamentos; não é arquivamento automático.
+- Tela de gestão chamada "Funcionários". Isso não exige renomear o model User, coleções ou perfis técnicos.
+- Garantia e envio automático são futuros. WhatsApp, módulo completo de clientes, relatórios avançados e redesign amplo ficam fora deste pacote.
+
+Leia AGENTS.md, se existir, README.md, docs/dev-back/CICLO-1.md, docs/dev-back/CONTRATOS-CICLO-1.md e docs/dev-front/DECISIONS.md. Use os caminhos equivalentes se etapas anteriores reorganizaram a árvore. Decisões mais recentes do usuário prevalecem sobre os documentos históricos.
+
+Use Dev Back Master e Dev Front Master para análise e alinhamento de contratos.
+
+Pré-requisitos: Sem etapa anterior deste pacote. Revalidar a entrega do primeiro ciclo.
+
+# Escopo e requisitos
+
+- Mapear as regras confirmadas contra schemas, endpoints, telas e testes atuais.
+- Documentar a matriz de permissões existente sem introduzir isolamento por técnico.
+- Definir o contrato de uma OS com equipamentos identificados individualmente, cliente, relato/"Testar", marca opcional e retiradas individuais.
+- Definir uma representação coerente da entrega parcial e do status agregado. Preservar os estados existentes quando atendam ao fluxo; não inventar estágios comerciais.
+- Especificar endpoints, payloads de sucesso/erro, limites, campos editáveis, ausência/null, conflitos e política de cache por sessão.
+- Definir o mínimo da gestão de funcionários: cadastrar, listar, ajustar dados/perfil e tratar desligamento/recuperação de acesso conforme decisão operacional. Propor alternativas quando faltar regra, sem transformar proposta em aprovação.
+- Levantar dados existentes e campos ausentes. Não supor banco vazio.
+- Descrever a transição Vite → Next com Express mantido e a sequência de compatibilidade entre clientes/API.
+- Perguntar apenas exceções ainda relevantes: retirada antes de Pronto, correção de retirada lançada por engano e recuperação de acesso, se forem necessárias ao fluxo. Não perguntar novamente sobre retiradas parciais, marca ou acesso compartilhado.
+
+# Fluxos e estados
+
+Exemplificar uma OS com três equipamentos: cadastro; atualização; retirada de um; permanência de dois; retirada dos demais; status final Entregue. Incluir cliente sem e-mail, equipamento sem marca, equipamento para Testar e tentativa de exclusão por não administrador.
+Distinguir hora técnica armazenada e apresentação local; propor armazenamento de instantes em UTC e apresentação America/Sao_Paulo, sem inventar horário para dados antigos.
+
+# Restrições técnicas e protocolo Git
+
+- Inspecione git status, branch e histórico; preserve trabalho existente.
+- Crie branch descritiva a partir da base que contém os pré-requisitos desta etapa; não parta automaticamente de main, que pode não conter as correções. Para leitura pura, não crie commits vazios.
+- Faça commits pequenos em Conventional Commits. Revise os diffs, rode verificações pertinentes e inclua somente arquivos da tarefa.
+- Nunca versione segredos, dados de clientes ou artefatos gerados. Não imprima tokens, senhas, URIs autenticadas ou corpos com dados pessoais.
+- Não faça push, merge, deploy, contratação, migração remota, exclusão de dados reais ou envio de mensagens sem autorização específica. Preparar configurações/scripts não autoriza executá-los em produção.
+- Não reinstale ou atualize indiscriminadamente dependências; justifique alterações pelo escopo.
+- Aplique as skills indicadas e respeite checkpoints aplicáveis. Não reabra decisões já respondidas; pergunte somente ambiguidades que impeçam a etapa e avance no trabalho independente.
+- Ao encontrar uma dependência não concluída, explique a evidência e o bloqueio; não simule conclusão nem expanda automaticamente para todas as etapas.
+
+# Critérios de aceite e validação
+
+- Todas as regras confirmadas estão representadas sem contradição.
+- Há exemplos sintéticos dos contratos e matriz regra → cenário de teste.
+- Pendências, propostas e decisões confirmadas aparecem separadamente.
+- Critérios da futura migração de dados preservam OS existentes e suas referências.
+- Existe plano de arquitetura concreto para revisão antes de construção estrutural.
+
+# Entrega esperada
+
+Salvar contratos e decisões no projeto, com mapa de compatibilidade e checklist das próximas etapas. Apresentar as pendências que realmente precisam de resposta; nenhuma implementação neste prompt.
+
+Informe branch, commits, arquivos afetados, comandos/resultados, limitações e pendências. Registre continuidade para a próxima etapa sem afirmar aprovações não dadas.
+
+# Referências e pendências
+
+- Histórico do projeto: docs/diagnostico/RETOMADA.md e docs/dev-back/CICLO-1.md.
+- Regras confirmadas e ordem do pacote: docs/prompts/README.md.
+- Consulte documentação oficial compatível com as versões encontradas. Separe fatos, hipóteses e propostas.
+
+Referências: https://www.mongodb.com/docs/manual/core/write-operations-atomicity/ e https://nextjs.org/docs/app/guides/authentication .
+
+==================== FIM: 01 — Consolidar regras e contratos ====================
+
+==================== INÍCIO: 02 — Migrar a base para Next.js ====================
+
+# Objetivo
+
+Iniciar a primeira etapa de implementação pela base Next.js/TypeScript, mantendo a API Express e preparando o frontend para concluir os fluxos.
+
+# Contexto
+
+Repositório exclusivo: https://github.com/HigorSouzaa/eletropaulinia-web
+Cópia local: C:/Users/higor/Documents/ChatGPT/eletropaulinia-web
+
+A base do primeiro ciclo é 1f71959, na branch fix/primeiro-ciclo-api. Esse SHA é referência histórica, não instrução para reset ou checkout. Confirme o estado atual e as entregas anteriores antes de atuar. A última validação registrada tinha 13 testes HTTP/MongoDB aprovados, build e tipagem passando e dois avisos de Fast Refresh. Não declare que esses resultados continuam válidos sem verificar.
+
+Destino definido: Next.js com TypeScript, API Node.js/Express separada e MongoDB Atlas. Vercel é candidata para frontend, não decisão irrevogável; hospedagem do backend será pesquisada, preferencialmente gratuita.
+
+Regras confirmadas em 23/10/2026:
+- Todos os funcionários acessam todas as ordens. Preservar a restrição administrativa existente para cadastro de funcionários e exclusão de ordens.
+- Uma ordem pode ter vários equipamentos e retiradas parciais, frequentes na operação.
+- Cliente: nome e telefone obrigatórios; e-mail opcional.
+- Equipamento: identificação/nome obrigatório; marca/modelo e número de série opcionais. Registrar defeito relatado; quando não houver relato, usar a indicação explícita "Testar", sem inventar um defeito.
+- Registrar data e hora da retirada de cada equipamento. A ordem inteira só fica Entregue quando todos forem retirados.
+- Ordens permanecem guardadas independentemente da data. Exclusão explícita é definitiva na base ativa, incluindo seus equipamentos; não é arquivamento automático.
+- Tela de gestão chamada "Funcionários". Isso não exige renomear o model User, coleções ou perfis técnicos.
+- Garantia e envio automático são futuros. WhatsApp, módulo completo de clientes, relatórios avançados e redesign amplo ficam fora deste pacote.
+
+Leia AGENTS.md, se existir, README.md, docs/dev-back/CICLO-1.md, docs/dev-back/CONTRATOS-CICLO-1.md e docs/dev-front/DECISIONS.md. Use os caminhos equivalentes se etapas anteriores reorganizaram a árvore. Decisões mais recentes do usuário prevalecem sobre os documentos históricos.
+
+Use Dev Front Master; use Dev Back Master para alinhar sessão, contratos e integração.
+
+Pré-requisitos: Etapa 01 consolidada; decisões necessárias à arquitetura e sessão resolvidas.
+
+# Escopo e requisitos
+
+- Conferir versões suportadas de Next.js/React/Node na documentação oficial e compatibilidade com o projeto. Registrar a escolha e fixar lockfiles.
+- Apresentar arquitetura concreta de pastas, rotas, componentes cliente/servidor, sessão e deploy antes de construir as telas principais, conforme os checkpoints aplicáveis.
+- Criar App Router, layouts, navegação e tratamento de página inexistente, preservando a identidade visual atual.
+- Migrar login, layout e listagem como primeiro fluxo real; manter a API Express responsável por autenticação, autorização e negócio.
+- Definir e implementar uma sessão coerente entre Next e Express, com expiração, logout, troca de usuário e validação no servidor. Se usar cookies, tratar HttpOnly/Secure/SameSite, CSRF e origens desde esta etapa. Não exigir cookie Secure em desenvolvimento HTTP.
+- Evitar leitura de localStorage durante renderização no servidor e cache público de dados autenticados.
+- Manter as rotas restantes acessíveis por uma transição explícita ou identificá-las como pendentes; não fingir paridade completa.
+- Migrar scripts, tipos, lint e configuração de CI à medida que a estrutura mudar. Remover Vite/React Router apenas após verificar os consumidores e a transição.
+- Não apresentar formulário de vários equipamentos como funcional enquanto o contrato correspondente não estiver implementado na etapa 03.
+
+# Fluxos e estados
+
+Login válido → listagem real; login inválido; rede indisponível; sessão expirada; logout; entrada com outra conta; recarga e acesso direto à URL. Invalidar dados da sessão anterior e atualizar a UI após 401.
+
+# Restrições técnicas e protocolo Git
+
+- Inspecione git status, branch e histórico; preserve trabalho existente.
+- Crie branch descritiva a partir da base que contém os pré-requisitos desta etapa; não parta automaticamente de main, que pode não conter as correções. Para leitura pura, não crie commits vazios.
+- Faça commits pequenos em Conventional Commits. Revise os diffs, rode verificações pertinentes e inclua somente arquivos da tarefa.
+- Nunca versione segredos, dados de clientes ou artefatos gerados. Não imprima tokens, senhas, URIs autenticadas ou corpos com dados pessoais.
+- Não faça push, merge, deploy, contratação, migração remota, exclusão de dados reais ou envio de mensagens sem autorização específica. Preparar configurações/scripts não autoriza executá-los em produção.
+- Não reinstale ou atualize indiscriminadamente dependências; justifique alterações pelo escopo.
+- Aplique as skills indicadas e respeite checkpoints aplicáveis. Não reabra decisões já respondidas; pergunte somente ambiguidades que impeçam a etapa e avance no trabalho independente.
+- Ao encontrar uma dependência não concluída, explique a evidência e o bloqueio; não simule conclusão nem expanda automaticamente para todas as etapas.
+
+# Critérios de aceite e validação
+
+- Login/listagem funcionam no Next com a API real e dados sintéticos.
+- Usuário sem sessão não acessa dados protegidos pela API.
+- Troca de sessão não reapresenta dados/cache da conta anterior.
+- Build, tipagem, lint e testes pertinentes passam; avisos remanescentes são documentados.
+- Navegação e layout funcionam em desktop e largura móvel representativa.
+- Rotas ainda não migradas têm situação explícita e plano de conclusão.
+
+# Entrega esperada
+
+Entregar a base Next, testes da primeira jornada, instruções locais e registro de compatibilidade. Demonstrar esse fluxo antes de ampliar para todas as telas. Não migrar dados reais nem publicar.
+
+Informe branch, commits, arquivos afetados, comandos/resultados, limitações e pendências. Registre continuidade para a próxima etapa sem afirmar aprovações não dadas.
+
+# Referências e pendências
+
+- Histórico do projeto: docs/diagnostico/RETOMADA.md e docs/dev-back/CICLO-1.md.
+- Regras confirmadas e ordem do pacote: docs/prompts/README.md.
+- Consulte documentação oficial compatível com as versões encontradas. Separe fatos, hipóteses e propostas.
+
+Referências: https://nextjs.org/docs/app/getting-started/server-and-client-components , https://nextjs.org/docs/app/guides/authentication e https://nextjs.org/docs/app/getting-started/fetching-data .
+
+==================== FIM: 02 — Migrar a base para Next.js ====================
+
+==================== INÍCIO: 03 — Concluir o backend de ordens ====================
+
+# Objetivo
+
+Implementar o contrato de ordens com múltiplos equipamentos, retiradas parciais e integridade sob concorrência, preparando a conclusão das telas Next.
+
+# Contexto
+
+Repositório exclusivo: https://github.com/HigorSouzaa/eletropaulinia-web
+Cópia local: C:/Users/higor/Documents/ChatGPT/eletropaulinia-web
+
+A base do primeiro ciclo é 1f71959, na branch fix/primeiro-ciclo-api. Esse SHA é referência histórica, não instrução para reset ou checkout. Confirme o estado atual e as entregas anteriores antes de atuar. A última validação registrada tinha 13 testes HTTP/MongoDB aprovados, build e tipagem passando e dois avisos de Fast Refresh. Não declare que esses resultados continuam válidos sem verificar.
+
+Destino definido: Next.js com TypeScript, API Node.js/Express separada e MongoDB Atlas. Vercel é candidata para frontend, não decisão irrevogável; hospedagem do backend será pesquisada, preferencialmente gratuita.
+
+Regras confirmadas em 23/10/2026:
+- Todos os funcionários acessam todas as ordens. Preservar a restrição administrativa existente para cadastro de funcionários e exclusão de ordens.
+- Uma ordem pode ter vários equipamentos e retiradas parciais, frequentes na operação.
+- Cliente: nome e telefone obrigatórios; e-mail opcional.
+- Equipamento: identificação/nome obrigatório; marca/modelo e número de série opcionais. Registrar defeito relatado; quando não houver relato, usar a indicação explícita "Testar", sem inventar um defeito.
+- Registrar data e hora da retirada de cada equipamento. A ordem inteira só fica Entregue quando todos forem retirados.
+- Ordens permanecem guardadas independentemente da data. Exclusão explícita é definitiva na base ativa, incluindo seus equipamentos; não é arquivamento automático.
+- Tela de gestão chamada "Funcionários". Isso não exige renomear o model User, coleções ou perfis técnicos.
+- Garantia e envio automático são futuros. WhatsApp, módulo completo de clientes, relatórios avançados e redesign amplo ficam fora deste pacote.
+
+Leia AGENTS.md, se existir, README.md, docs/dev-back/CICLO-1.md, docs/dev-back/CONTRATOS-CICLO-1.md e docs/dev-front/DECISIONS.md. Use os caminhos equivalentes se etapas anteriores reorganizaram a árvore. Decisões mais recentes do usuário prevalecem sobre os documentos históricos.
+
+Use Dev Back Master, com QA e segurança pertinentes; alinhe as mudanças de contrato à Dev Front Master.
+
+Pré-requisitos: Contrato da etapa 01 consolidado e compatibilidade com o frontend da etapa 02 identificada. Não depende de Atlas real para testes.
+
+# Escopo e requisitos
+
+- Adaptar modelos e validações para equipamentos individualmente identificados dentro da OS; preservar IDs das ordens e referências legadas.
+- Exigir nome/identificação do equipamento; permitir marca/modelo e série ausentes. Aceitar defeito relatado ou indicação "Testar". Nome/telefone do cliente obrigatórios; e-mail opcional.
+- Implementar geração atômica de números únicos; inicializar o contador com base nos números existentes válidos, não na última ordem criada nem na quantidade de documentos. Não prometer sequência sem lacunas.
+- Impedir alteração indevida do número da OS e tratar índices, duplicidades e dados legados inconsistentes.
+- Registrar retiradas com horário definido no servidor, identificar o equipamento e atualizar o agregado sem marcar outros equipamentos como entregues. Repetição da mesma retirada não deve alterar o primeiro horário nem duplicar efeito.
+- Evitar perda de atualização entre dois funcionários; usar mecanismo de conflito/versão ou outra estratégia justificada pelo modelo.
+- Implementar paginação, filtros, ordenação estável e estatísticas coerentes. Limitar consultas e escolher índices com evidência.
+- Validar entradas, distinguir campos omitidos/null/vazios e permitir limpeza dos opcionais conforme contrato.
+- Padronizar erros de ID inválido, ausência, validação, conflito e acesso negado.
+- Excluir definitivamente OS e equipamentos relacionados apenas por admin, sem apagar registros independentes de outras ordens. Não criar TTL ou expiração por idade.
+- Preparar transformação legada testável e idempotente; executar somente em fixtures/banco descartável nesta etapa.
+
+# Fluxos e estados
+
+Criar OS com dois equipamentos, um sem marca e outro para Testar; consultar/editar; retirar somente um; listar como parcialmente entregue; repetir a mesma retirada; retirar o último; excluir com admin. Testar acessos negados, edições concorrentes e número único em criações simultâneas.
+
+# Restrições técnicas e protocolo Git
+
+- Inspecione git status, branch e histórico; preserve trabalho existente.
+- Crie branch descritiva a partir da base que contém os pré-requisitos desta etapa; não parta automaticamente de main, que pode não conter as correções. Para leitura pura, não crie commits vazios.
+- Faça commits pequenos em Conventional Commits. Revise os diffs, rode verificações pertinentes e inclua somente arquivos da tarefa.
+- Nunca versione segredos, dados de clientes ou artefatos gerados. Não imprima tokens, senhas, URIs autenticadas ou corpos com dados pessoais.
+- Não faça push, merge, deploy, contratação, migração remota, exclusão de dados reais ou envio de mensagens sem autorização específica. Preparar configurações/scripts não autoriza executá-los em produção.
+- Não reinstale ou atualize indiscriminadamente dependências; justifique alterações pelo escopo.
+- Aplique as skills indicadas e respeite checkpoints aplicáveis. Não reabra decisões já respondidas; pergunte somente ambiguidades que impeçam a etapa e avance no trabalho independente.
+- Ao encontrar uma dependência não concluída, explique a evidência e o bloqueio; não simule conclusão nem expanda automaticamente para todas as etapas.
+
+# Critérios de aceite e validação
+
+- Nenhum equipamento/campo aceito é descartado silenciosamente.
+- Datas e horas de retirada persistem após nova leitura.
+- Ordem só é Entregue quando todos os equipamentos foram retirados.
+- Testes concorrentes demonstram ausência de números duplicados e conflitos tratados.
+- Itens antigos sem horário conhecido não recebem data fictícia.
+- Testes usam HTTP e MongoDB descartável; 13 regressões originais continuam cobertas, adaptadas aos contratos aprovados.
+- Contratos alterados têm estratégia explícita de atualização do cliente.
+
+# Entrega esperada
+
+Entregar código, contratos atualizados, testes, scripts de transformação para revisão e documentação dos índices. Informar medições reais e limitações. Não executar migração remota.
+
+Informe branch, commits, arquivos afetados, comandos/resultados, limitações e pendências. Registre continuidade para a próxima etapa sem afirmar aprovações não dadas.
+
+# Referências e pendências
+
+- Histórico do projeto: docs/diagnostico/RETOMADA.md e docs/dev-back/CICLO-1.md.
+- Regras confirmadas e ordem do pacote: docs/prompts/README.md.
+- Consulte documentação oficial compatível com as versões encontradas. Separe fatos, hipóteses e propostas.
+
+Referência: https://www.mongodb.com/docs/manual/core/write-operations-atomicity/ . Incremento atômico de contador não torna automaticamente atômicas alterações em vários documentos; justificar transações quando necessárias.
+
+==================== FIM: 03 — Concluir o backend de ordens ====================
+
+==================== INÍCIO: 04 — Concluir telas, retiradas e Funcionários ====================
+
+# Objetivo
+
+Concluir os fluxos operacionais no Next.js, incluindo múltiplos equipamentos, entregas parciais e gestão de funcionários, com integração real à API.
+
+# Contexto
+
+Repositório exclusivo: https://github.com/HigorSouzaa/eletropaulinia-web
+Cópia local: C:/Users/higor/Documents/ChatGPT/eletropaulinia-web
+
+A base do primeiro ciclo é 1f71959, na branch fix/primeiro-ciclo-api. Esse SHA é referência histórica, não instrução para reset ou checkout. Confirme o estado atual e as entregas anteriores antes de atuar. A última validação registrada tinha 13 testes HTTP/MongoDB aprovados, build e tipagem passando e dois avisos de Fast Refresh. Não declare que esses resultados continuam válidos sem verificar.
+
+Destino definido: Next.js com TypeScript, API Node.js/Express separada e MongoDB Atlas. Vercel é candidata para frontend, não decisão irrevogável; hospedagem do backend será pesquisada, preferencialmente gratuita.
+
+Regras confirmadas em 23/10/2026:
+- Todos os funcionários acessam todas as ordens. Preservar a restrição administrativa existente para cadastro de funcionários e exclusão de ordens.
+- Uma ordem pode ter vários equipamentos e retiradas parciais, frequentes na operação.
+- Cliente: nome e telefone obrigatórios; e-mail opcional.
+- Equipamento: identificação/nome obrigatório; marca/modelo e número de série opcionais. Registrar defeito relatado; quando não houver relato, usar a indicação explícita "Testar", sem inventar um defeito.
+- Registrar data e hora da retirada de cada equipamento. A ordem inteira só fica Entregue quando todos forem retirados.
+- Ordens permanecem guardadas independentemente da data. Exclusão explícita é definitiva na base ativa, incluindo seus equipamentos; não é arquivamento automático.
+- Tela de gestão chamada "Funcionários". Isso não exige renomear o model User, coleções ou perfis técnicos.
+- Garantia e envio automático são futuros. WhatsApp, módulo completo de clientes, relatórios avançados e redesign amplo ficam fora deste pacote.
+
+Leia AGENTS.md, se existir, README.md, docs/dev-back/CICLO-1.md, docs/dev-back/CONTRATOS-CICLO-1.md e docs/dev-front/DECISIONS.md. Use os caminhos equivalentes se etapas anteriores reorganizaram a árvore. Decisões mais recentes do usuário prevalecem sobre os documentos históricos.
+
+Use Dev Front Master; Dev Back Master para endpoints da gestão de funcionários e ajustes de contrato necessários.
+
+Pré-requisitos: Etapas 01–03 disponíveis. Não trabalhar sobre contratos apenas imaginados ou mocks sem identificá-los.
+
+# Escopo e requisitos
+
+- Concluir criação, listagem, filtros, detalhamento, edição, status e exclusão conforme permissões.
+- Permitir adicionar/remover equipamentos no formulário sem descartar itens; apresentar requisitos reais de cada campo.
+- Oferecer relato de defeito ou opção "Testar"; não obrigar marca/modelo. E-mail opcional.
+- Mostrar retirada por equipamento, data/hora e itens ainda na empresa. Atualizar a OS inteira somente após retirada de todos.
+- Aguardar confirmação da API; impedir envio duplicado; preservar o formulário em erro e tratar conflitos de edição.
+- Buscar detalhe/edição por ID para funcionar em acesso direto e recarga, sem depender da listagem em memória.
+- Mostrar estados de carregamento, vazio, erro, sucesso e nova tentativa.
+- Criar tela "Funcionários" e endpoints mínimos acordados para cadastro/listagem/edição de perfil e ciclo de acesso. Restringir gestão à administração e impedir exposição de senhas/tokens.
+- Tratar perda do último acesso administrativo conforme contrato; não inventar recuperação por e-mail ou envio automático.
+- Resolver links sem função. Remover/ocultar Clientes/Relatórios enquanto os módulos opcionais estiverem fora do escopo.
+- Corrigir responsividade, labels, nomes acessíveis, foco/Escape dos modais e retorno de foco. Preservar identidade visual, sem redesign amplo.
+
+# Fluxos e estados
+
+OS com três equipamentos; retirar um e recarregar; os outros permanecem pendentes. Retirar o restante e confirmar status final. Cadastrar funcionário como admin, entrar com ele e verificar acesso compartilhado às ordens; negar gestão/exclusão ao perfil não autorizado. Simular erro de API e sessão expirada.
+
+# Restrições técnicas e protocolo Git
+
+- Inspecione git status, branch e histórico; preserve trabalho existente.
+- Crie branch descritiva a partir da base que contém os pré-requisitos desta etapa; não parta automaticamente de main, que pode não conter as correções. Para leitura pura, não crie commits vazios.
+- Faça commits pequenos em Conventional Commits. Revise os diffs, rode verificações pertinentes e inclua somente arquivos da tarefa.
+- Nunca versione segredos, dados de clientes ou artefatos gerados. Não imprima tokens, senhas, URIs autenticadas ou corpos com dados pessoais.
+- Não faça push, merge, deploy, contratação, migração remota, exclusão de dados reais ou envio de mensagens sem autorização específica. Preparar configurações/scripts não autoriza executá-los em produção.
+- Não reinstale ou atualize indiscriminadamente dependências; justifique alterações pelo escopo.
+- Aplique as skills indicadas e respeite checkpoints aplicáveis. Não reabra decisões já respondidas; pergunte somente ambiguidades que impeçam a etapa e avance no trabalho independente.
+- Ao encontrar uma dependência não concluída, explique a evidência e o bloqueio; não simule conclusão nem expanda automaticamente para todas as etapas.
+
+# Critérios de aceite e validação
+
+- Jornada completa funciona no navegador com API e banco de teste reais.
+- Nenhum campo ou equipamento aceito se perde após salvar/recarregar.
+- As telas não anunciam sucesso antes da resposta da API.
+- Deep links, recarga e troca de usuário funcionam.
+- Formulários e modais são operáveis por teclado; verificar larguras 360, 768 e 1280 px.
+- Exclusão tem confirmação clara com identificação da OS, chama autorização real no servidor e não afeta outras ordens.
+- Testes negativos de gestão de funcionários passam.
+
+# Entrega esperada
+
+Entregar telas e APIs necessárias, testes de jornada e evidências visuais/funcionais. Registrar pendências reais e manter garantia/envios e módulos opcionais fora do escopo.
+
+Informe branch, commits, arquivos afetados, comandos/resultados, limitações e pendências. Registre continuidade para a próxima etapa sem afirmar aprovações não dadas.
+
+# Referências e pendências
+
+- Histórico do projeto: docs/diagnostico/RETOMADA.md e docs/dev-back/CICLO-1.md.
+- Regras confirmadas e ordem do pacote: docs/prompts/README.md.
+- Consulte documentação oficial compatível com as versões encontradas. Separe fatos, hipóteses e propostas.
+
+Garantia e envio futuro não são autorização para criar notificações, documentos ou integrações agora. A alteração do rótulo para Funcionários não exige migração de nomes internos.
+
+==================== FIM: 04 — Concluir telas, retiradas e Funcionários ====================
+
+==================== INÍCIO: 05 — Preparar Atlas e preservação dos dados ====================
+
+# Objetivo
+
+Preparar a configuração e o plano de migração para MongoDB Atlas, com ensaio seguro, preservação de dados e reversão verificável.
+
+# Contexto
+
+Repositório exclusivo: https://github.com/HigorSouzaa/eletropaulinia-web
+Cópia local: C:/Users/higor/Documents/ChatGPT/eletropaulinia-web
+
+A base do primeiro ciclo é 1f71959, na branch fix/primeiro-ciclo-api. Esse SHA é referência histórica, não instrução para reset ou checkout. Confirme o estado atual e as entregas anteriores antes de atuar. A última validação registrada tinha 13 testes HTTP/MongoDB aprovados, build e tipagem passando e dois avisos de Fast Refresh. Não declare que esses resultados continuam válidos sem verificar.
+
+Destino definido: Next.js com TypeScript, API Node.js/Express separada e MongoDB Atlas. Vercel é candidata para frontend, não decisão irrevogável; hospedagem do backend será pesquisada, preferencialmente gratuita.
+
+Regras confirmadas em 23/10/2026:
+- Todos os funcionários acessam todas as ordens. Preservar a restrição administrativa existente para cadastro de funcionários e exclusão de ordens.
+- Uma ordem pode ter vários equipamentos e retiradas parciais, frequentes na operação.
+- Cliente: nome e telefone obrigatórios; e-mail opcional.
+- Equipamento: identificação/nome obrigatório; marca/modelo e número de série opcionais. Registrar defeito relatado; quando não houver relato, usar a indicação explícita "Testar", sem inventar um defeito.
+- Registrar data e hora da retirada de cada equipamento. A ordem inteira só fica Entregue quando todos forem retirados.
+- Ordens permanecem guardadas independentemente da data. Exclusão explícita é definitiva na base ativa, incluindo seus equipamentos; não é arquivamento automático.
+- Tela de gestão chamada "Funcionários". Isso não exige renomear o model User, coleções ou perfis técnicos.
+- Garantia e envio automático são futuros. WhatsApp, módulo completo de clientes, relatórios avançados e redesign amplo ficam fora deste pacote.
+
+Leia AGENTS.md, se existir, README.md, docs/dev-back/CICLO-1.md, docs/dev-back/CONTRATOS-CICLO-1.md e docs/dev-front/DECISIONS.md. Use os caminhos equivalentes se etapas anteriores reorganizaram a árvore. Decisões mais recentes do usuário prevalecem sobre os documentos históricos.
+
+Use Dev Back Master; envolva Dev Front Master apenas para configurações de integração afetadas.
+
+Pré-requisitos: Contrato e transformação da etapa 03 estabilizados. Identificar ambiente de origem, responsável e acessos autorizados; nunca pressupor banco vazio.
+
+# Escopo e requisitos
+
+- Inventariar origem, volume, coleções, referências, índices, números duplicados/malformados e ordens já entregues.
+- Propor separação de desenvolvimento, homologação e produção, usuários de banco, menor privilégio, TLS e regras de rede restritas.
+- Avaliar plano do Atlas e disponibilidade/custo dos recursos de backup/restauração; apresentar opções sem contratar ou provisionar serviço pago.
+- Preparar exemplos de ambiente sem segredos e documentação de conexão/pool/limites por instância.
+- Planejar transformação de ordens antigas em múltiplos equipamentos, preservando _id da OS e referências. Não inventar marca, defeito ou horário histórico de retirada.
+- Distinguir ausência de informação antiga de requisitos para novos cadastros; documentar exceções e reconciliação.
+- Preparar scripts idempotentes, validação de contagens/campos, backup, ensaio de restauração em destino separado e rollback.
+- Avaliar janela de corte, congelamento de escrita ou captura/reconciliação das alterações feitas durante a transição.
+- Não remover ordens por idade. A política de backups deve distinguir exclusão da base ativa de cópias históricas; não prometer apagamento instantâneo dos backups.
+
+# Fluxos e estados
+
+Inventário → backup → ensaio em destino isolado → transformação → comparação → restore ensaiado → proposta concreta de corte. Se faltar acesso, entregar scripts/plano e apontar exatamente o que não foi executado.
+
+# Restrições técnicas e protocolo Git
+
+- Inspecione git status, branch e histórico; preserve trabalho existente.
+- Crie branch descritiva a partir da base que contém os pré-requisitos desta etapa; não parta automaticamente de main, que pode não conter as correções. Para leitura pura, não crie commits vazios.
+- Faça commits pequenos em Conventional Commits. Revise os diffs, rode verificações pertinentes e inclua somente arquivos da tarefa.
+- Nunca versione segredos, dados de clientes ou artefatos gerados. Não imprima tokens, senhas, URIs autenticadas ou corpos com dados pessoais.
+- Não faça push, merge, deploy, contratação, migração remota, exclusão de dados reais ou envio de mensagens sem autorização específica. Preparar configurações/scripts não autoriza executá-los em produção.
+- Não reinstale ou atualize indiscriminadamente dependências; justifique alterações pelo escopo.
+- Aplique as skills indicadas e respeite checkpoints aplicáveis. Não reabra decisões já respondidas; pergunte somente ambiguidades que impeçam a etapa e avance no trabalho independente.
+- Ao encontrar uma dependência não concluída, explique a evidência e o bloqueio; não simule conclusão nem expanda automaticamente para todas as etapas.
+
+# Critérios de aceite e validação
+
+- Plano identifica origem/destino, permissões, responsáveis e impactos.
+- Scripts são verificados com fixtures e preservam relações/IDs relevantes.
+- Há estratégia para ordens entregues sem horário conhecido e números legados inconsistentes.
+- Evidências de backup/restauração só são declaradas se realmente executadas em ambiente autorizado.
+- Rollback contempla gravações após o corte; restaurar snapshot antigo sem reconciliação não é considerado seguro.
+- Nenhum dado/segredo real aparece em relatório ou Git.
+
+# Entrega esperada
+
+Entregar configuração proposta, scripts, runbook de migração/restauração, resultados do ensaio autorizado e pendências. Antes de qualquer execução remota, apresentar destino e operações concretas e obter autorização específica.
+
+Informe branch, commits, arquivos afetados, comandos/resultados, limitações e pendências. Registre continuidade para a próxima etapa sem afirmar aprovações não dadas.
+
+# Referências e pendências
+
+- Histórico do projeto: docs/diagnostico/RETOMADA.md e docs/dev-back/CICLO-1.md.
+- Regras confirmadas e ordem do pacote: docs/prompts/README.md.
+- Consulte documentação oficial compatível com as versões encontradas. Separe fatos, hipóteses e propostas.
+
+Referências: https://www.mongodb.com/docs/atlas/backup-restore-cluster/ e https://www.mongodb.com/docs/atlas/security/ .
+
+==================== FIM: 05 — Preparar Atlas e preservação dos dados ====================
+
+==================== INÍCIO: 06 — Fechar segurança e prontidão operacional ====================
+
+# Objetivo
+
+Revisar e corrigir os riscos remanescentes de aplicação, sessão, dependências e operação, sem refazer controles já concluídos.
+
+# Contexto
+
+Repositório exclusivo: https://github.com/HigorSouzaa/eletropaulinia-web
+Cópia local: C:/Users/higor/Documents/ChatGPT/eletropaulinia-web
+
+A base do primeiro ciclo é 1f71959, na branch fix/primeiro-ciclo-api. Esse SHA é referência histórica, não instrução para reset ou checkout. Confirme o estado atual e as entregas anteriores antes de atuar. A última validação registrada tinha 13 testes HTTP/MongoDB aprovados, build e tipagem passando e dois avisos de Fast Refresh. Não declare que esses resultados continuam válidos sem verificar.
+
+Destino definido: Next.js com TypeScript, API Node.js/Express separada e MongoDB Atlas. Vercel é candidata para frontend, não decisão irrevogável; hospedagem do backend será pesquisada, preferencialmente gratuita.
+
+Regras confirmadas em 23/10/2026:
+- Todos os funcionários acessam todas as ordens. Preservar a restrição administrativa existente para cadastro de funcionários e exclusão de ordens.
+- Uma ordem pode ter vários equipamentos e retiradas parciais, frequentes na operação.
+- Cliente: nome e telefone obrigatórios; e-mail opcional.
+- Equipamento: identificação/nome obrigatório; marca/modelo e número de série opcionais. Registrar defeito relatado; quando não houver relato, usar a indicação explícita "Testar", sem inventar um defeito.
+- Registrar data e hora da retirada de cada equipamento. A ordem inteira só fica Entregue quando todos forem retirados.
+- Ordens permanecem guardadas independentemente da data. Exclusão explícita é definitiva na base ativa, incluindo seus equipamentos; não é arquivamento automático.
+- Tela de gestão chamada "Funcionários". Isso não exige renomear o model User, coleções ou perfis técnicos.
+- Garantia e envio automático são futuros. WhatsApp, módulo completo de clientes, relatórios avançados e redesign amplo ficam fora deste pacote.
+
+Leia AGENTS.md, se existir, README.md, docs/dev-back/CICLO-1.md, docs/dev-back/CONTRATOS-CICLO-1.md e docs/dev-front/DECISIONS.md. Use os caminhos equivalentes se etapas anteriores reorganizaram a árvore. Decisões mais recentes do usuário prevalecem sobre os documentos históricos.
+
+Use Dev Back Master e Dev Front Master, com segurança e QA proporcionais às superfícies encontradas.
+
+Pré-requisitos: Fluxos e sessão das etapas 02–04 disponíveis; contexto de infraestrutura da etapa 05 conhecido. Segurança básica deve existir desde as etapas anteriores, não esperar esta auditoria.
+
+# Escopo e requisitos
+
+- Revalidar cadastro administrativo, usuários removidos/desativados, alterações de perfil, autorização por ação e ausência de credenciais padrão.
+- Concluir expiração, logout/revogação e recuperação de acesso conforme contrato. Se persistir Bearer/localStorage temporariamente, documentar risco e plano, sem chamá-lo equivalente a cookie HttpOnly.
+- Verificar cookies, CSRF, origens, cache e troca de usuários conforme a estratégia efetivamente implementada.
+- Restringir CORS, limitar abuso de login e tamanho/custo das requisições; considerar topologia real antes de confiar em cabeçalhos de proxy.
+- Validar todos os endpoints e respostas sem detalhes internos, inclusive CRUD de funcionários e retiradas parciais.
+- Revisar dependências por versão resolvida, alcance e ambiente. Corrigir vulnerabilidades aplicáveis com atualização compatível e testes, sem audit fix --force indiscriminado.
+- Revisar bundle/configuração para evitar segredos públicos; redigir logs, erros e telemetria.
+- Implementar saúde/readiness, encerramento gracioso e diagnóstico de falhas de banco. Definir monitoramento proporcional à hospedagem.
+- Verificar necessidade de rotação dos valores históricos, preparando procedimento; não alterar credenciais reais por conta própria.
+- Documentar achados com evidência, precondições, impacto e teste de regressão.
+
+# Fluxos e estados
+
+Tentativas sem sessão, perfil indevido, sessão expirada, conta desativada, logout e reutilização de token; payloads malformados; falha de banco; origem indevida; duas contas no mesmo navegador. Testar somente ambiente local/staging autorizado.
+
+# Restrições técnicas e protocolo Git
+
+- Inspecione git status, branch e histórico; preserve trabalho existente.
+- Crie branch descritiva a partir da base que contém os pré-requisitos desta etapa; não parta automaticamente de main, que pode não conter as correções. Para leitura pura, não crie commits vazios.
+- Faça commits pequenos em Conventional Commits. Revise os diffs, rode verificações pertinentes e inclua somente arquivos da tarefa.
+- Nunca versione segredos, dados de clientes ou artefatos gerados. Não imprima tokens, senhas, URIs autenticadas ou corpos com dados pessoais.
+- Não faça push, merge, deploy, contratação, migração remota, exclusão de dados reais ou envio de mensagens sem autorização específica. Preparar configurações/scripts não autoriza executá-los em produção.
+- Não reinstale ou atualize indiscriminadamente dependências; justifique alterações pelo escopo.
+- Aplique as skills indicadas e respeite checkpoints aplicáveis. Não reabra decisões já respondidas; pergunte somente ambiguidades que impeçam a etapa e avance no trabalho independente.
+- Ao encontrar uma dependência não concluída, explique a evidência e o bloqueio; não simule conclusão nem expanda automaticamente para todas as etapas.
+
+# Critérios de aceite e validação
+
+- Controles aplicáveis passam em testes positivos e negativos.
+- Nenhuma vulnerabilidade crítica alcançável conhecida fica sem tratamento antes da liberação.
+- Alertas de ferramentas são triados; ausência de alertas não é apresentada como garantia de segurança.
+- Saúde distingue processo vivo de serviço pronto e falhas não expõem credenciais.
+- Há plano de incidentes/rotação e riscos remanescentes explicitados.
+- Não houve pentest, carga ou ações destrutivas em produção.
+
+# Entrega esperada
+
+Entregar correções, testes, relatório priorizado e instruções operacionais. Separar confirmado, hipótese e não verificado; indicar bloqueios de publicação.
+
+Informe branch, commits, arquivos afetados, comandos/resultados, limitações e pendências. Registre continuidade para a próxima etapa sem afirmar aprovações não dadas.
+
+# Referências e pendências
+
+- Histórico do projeto: docs/diagnostico/RETOMADA.md e docs/dev-back/CICLO-1.md.
+- Regras confirmadas e ordem do pacote: docs/prompts/README.md.
+- Consulte documentação oficial compatível com as versões encontradas. Separe fatos, hipóteses e propostas.
+
+Referências: https://expressjs.com/en/advanced/best-practice-security/ , https://nextjs.org/docs/app/guides/authentication e https://nextjs.org/docs/app/guides/data-security .
+
+==================== FIM: 06 — Fechar segurança e prontidão operacional ====================
+
+==================== INÍCIO: 07 — Validar o sistema de ponta a ponta ====================
+
+# Objetivo
+
+Demonstrar que os fluxos operacionais e os controles funcionam juntos, com evidências reproduzíveis, e preparar a homologação com a empresa.
+
+# Contexto
+
+Repositório exclusivo: https://github.com/HigorSouzaa/eletropaulinia-web
+Cópia local: C:/Users/higor/Documents/ChatGPT/eletropaulinia-web
+
+A base do primeiro ciclo é 1f71959, na branch fix/primeiro-ciclo-api. Esse SHA é referência histórica, não instrução para reset ou checkout. Confirme o estado atual e as entregas anteriores antes de atuar. A última validação registrada tinha 13 testes HTTP/MongoDB aprovados, build e tipagem passando e dois avisos de Fast Refresh. Não declare que esses resultados continuam válidos sem verificar.
+
+Destino definido: Next.js com TypeScript, API Node.js/Express separada e MongoDB Atlas. Vercel é candidata para frontend, não decisão irrevogável; hospedagem do backend será pesquisada, preferencialmente gratuita.
+
+Regras confirmadas em 23/10/2026:
+- Todos os funcionários acessam todas as ordens. Preservar a restrição administrativa existente para cadastro de funcionários e exclusão de ordens.
+- Uma ordem pode ter vários equipamentos e retiradas parciais, frequentes na operação.
+- Cliente: nome e telefone obrigatórios; e-mail opcional.
+- Equipamento: identificação/nome obrigatório; marca/modelo e número de série opcionais. Registrar defeito relatado; quando não houver relato, usar a indicação explícita "Testar", sem inventar um defeito.
+- Registrar data e hora da retirada de cada equipamento. A ordem inteira só fica Entregue quando todos forem retirados.
+- Ordens permanecem guardadas independentemente da data. Exclusão explícita é definitiva na base ativa, incluindo seus equipamentos; não é arquivamento automático.
+- Tela de gestão chamada "Funcionários". Isso não exige renomear o model User, coleções ou perfis técnicos.
+- Garantia e envio automático são futuros. WhatsApp, módulo completo de clientes, relatórios avançados e redesign amplo ficam fora deste pacote.
+
+Leia AGENTS.md, se existir, README.md, docs/dev-back/CICLO-1.md, docs/dev-back/CONTRATOS-CICLO-1.md e docs/dev-front/DECISIONS.md. Use os caminhos equivalentes se etapas anteriores reorganizaram a árvore. Decisões mais recentes do usuário prevalecem sobre os documentos históricos.
+
+Use Dev Front Master e Dev Back Master, com QA e desempenho apenas no escopo necessário.
+
+Pré-requisitos: Etapas 02–06 concluídas no ambiente de homologação disponível, ou pendências declaradas que limitem os resultados.
+
+# Escopo e requisitos
+
+- Construir matriz requisito → teste → resultado, mantendo as regressões do primeiro ciclo.
+- Testar HTTP/API/MongoDB real isolado e navegador integrado; identificar qualquer mock e sua limitação.
+- Cobrir múltiplos equipamentos, marca ausente, cliente sem e-mail, indicação Testar, retiradas parciais, repetidas e finais.
+- Cobrir cadastro e permissões de funcionários, expiração, logout, acesso direto à edição, recarga, falhas de rede e conflitos.
+- Conferir numeração concorrente, paginação, filtros, estatísticas, preservação de ordens antigas e exclusão autorizada.
+- Verificar teclado, foco, erros acessíveis e mobile/desktop; registrar evidências.
+- Medir carregamento, consultas, volume de resposta e latência usando dados representativos, com ambiente/método informados.
+- Antes de teste de carga, propor alvo, volume, duração, limites de interrupção, dados sintéticos e métricas. Executar somente no alvo autorizado, nunca produção por inferência.
+- Executar build/tipos/lint/testes após instalação limpa e conferir CI. Para validar CI remoto, requer publicação autorizada; caso contrário, registrar que só houve execução local.
+- Preparar roteiro de homologação do trabalho diário e colher resultados reais da empresa. Não inventar aceite humano.
+
+# Fluxos e estados
+
+Funcionário faz login, cria OS com três equipamentos, outro consulta/edita, cliente retira um, sistema reinicia/recarrega, restantes continuam pendentes, última retirada conclui entrega. Repetir com condições de erro e verificar que nenhuma informação se perde.
+
+# Restrições técnicas e protocolo Git
+
+- Inspecione git status, branch e histórico; preserve trabalho existente.
+- Crie branch descritiva a partir da base que contém os pré-requisitos desta etapa; não parta automaticamente de main, que pode não conter as correções. Para leitura pura, não crie commits vazios.
+- Faça commits pequenos em Conventional Commits. Revise os diffs, rode verificações pertinentes e inclua somente arquivos da tarefa.
+- Nunca versione segredos, dados de clientes ou artefatos gerados. Não imprima tokens, senhas, URIs autenticadas ou corpos com dados pessoais.
+- Não faça push, merge, deploy, contratação, migração remota, exclusão de dados reais ou envio de mensagens sem autorização específica. Preparar configurações/scripts não autoriza executá-los em produção.
+- Não reinstale ou atualize indiscriminadamente dependências; justifique alterações pelo escopo.
+- Aplique as skills indicadas e respeite checkpoints aplicáveis. Não reabra decisões já respondidas; pergunte somente ambiguidades que impeçam a etapa e avance no trabalho independente.
+- Ao encontrar uma dependência não concluída, explique a evidência e o bloqueio; não simule conclusão nem expanda automaticamente para todas as etapas.
+
+# Critérios de aceite e validação
+
+- Cenários críticos passam e falhas encontradas são reproduzidas, corrigidas dentro do escopo e retestadas.
+- Métricas são observadas, não estimadas como resultado.
+- Não há falha crítica aberta escondida por retry ou enfraquecimento de testes.
+- Aprovação operacional da empresa é registrada somente quando fornecida.
+- Relatório distingue validação local, CI remoto, staging e produção.
+
+# Entrega esperada
+
+Entregar suíte, matriz de resultados, evidências de navegador, medições e relatório de prontidão com bloqueios. Não avançar automaticamente para publicação.
+
+Informe branch, commits, arquivos afetados, comandos/resultados, limitações e pendências. Registre continuidade para a próxima etapa sem afirmar aprovações não dadas.
+
+# Referências e pendências
+
+- Histórico do projeto: docs/diagnostico/RETOMADA.md e docs/dev-back/CICLO-1.md.
+- Regras confirmadas e ordem do pacote: docs/prompts/README.md.
+- Consulte documentação oficial compatível com as versões encontradas. Separe fatos, hipóteses e propostas.
+
+Referências: https://nodejs.org/api/test.html e documentação oficial da ferramenta de navegador efetivamente disponível. Usar dados sintéticos; não solicitar produção apenas para testar.
+
+==================== FIM: 07 — Validar o sistema de ponta a ponta ====================
+
+==================== INÍCIO: 08 — Preparar publicação e entrada em operação ====================
+
+# Objetivo
+
+Preparar uma proposta concreta de hospedagem, configuração, corte e reversão. Publicar somente após autorização específica sobre a proposta final.
+
+# Contexto
+
+Repositório exclusivo: https://github.com/HigorSouzaa/eletropaulinia-web
+Cópia local: C:/Users/higor/Documents/ChatGPT/eletropaulinia-web
+
+A base do primeiro ciclo é 1f71959, na branch fix/primeiro-ciclo-api. Esse SHA é referência histórica, não instrução para reset ou checkout. Confirme o estado atual e as entregas anteriores antes de atuar. A última validação registrada tinha 13 testes HTTP/MongoDB aprovados, build e tipagem passando e dois avisos de Fast Refresh. Não declare que esses resultados continuam válidos sem verificar.
+
+Destino definido: Next.js com TypeScript, API Node.js/Express separada e MongoDB Atlas. Vercel é candidata para frontend, não decisão irrevogável; hospedagem do backend será pesquisada, preferencialmente gratuita.
+
+Regras confirmadas em 23/10/2026:
+- Todos os funcionários acessam todas as ordens. Preservar a restrição administrativa existente para cadastro de funcionários e exclusão de ordens.
+- Uma ordem pode ter vários equipamentos e retiradas parciais, frequentes na operação.
+- Cliente: nome e telefone obrigatórios; e-mail opcional.
+- Equipamento: identificação/nome obrigatório; marca/modelo e número de série opcionais. Registrar defeito relatado; quando não houver relato, usar a indicação explícita "Testar", sem inventar um defeito.
+- Registrar data e hora da retirada de cada equipamento. A ordem inteira só fica Entregue quando todos forem retirados.
+- Ordens permanecem guardadas independentemente da data. Exclusão explícita é definitiva na base ativa, incluindo seus equipamentos; não é arquivamento automático.
+- Tela de gestão chamada "Funcionários". Isso não exige renomear o model User, coleções ou perfis técnicos.
+- Garantia e envio automático são futuros. WhatsApp, módulo completo de clientes, relatórios avançados e redesign amplo ficam fora deste pacote.
+
+Leia AGENTS.md, se existir, README.md, docs/dev-back/CICLO-1.md, docs/dev-back/CONTRATOS-CICLO-1.md e docs/dev-front/DECISIONS.md. Use os caminhos equivalentes se etapas anteriores reorganizaram a árvore. Decisões mais recentes do usuário prevalecem sobre os documentos históricos.
+
+Use Dev Back Master e Dev Front Master; use ferramentas/skills do provedor somente após confirmar o serviço escolhido.
+
+Pré-requisitos: Homologação e riscos da etapa 07 conhecidos; dados/backup da etapa 05 e segurança da etapa 06 revisados. Vercel é candidata; backend ainda não tem provedor definido.
+
+# Escopo e requisitos
+
+- Pesquisar documentação e preços atuais para Vercel e opções de backend Node/Express preferencialmente gratuitas. Não tratar plano gratuito como garantia de adequação ao uso empresarial.
+- Comparar suspensão por inatividade, partida lenta, memória, CPU, conexões, limites de rede, disponibilidade, suporte ao runtime e condições de uso comercial.
+- Considerar Atlas e recursos de backup no custo e na disponibilidade totais. Se nenhuma opção gratuita atender, explicar o impedimento e apresentar alternativas sem contratar.
+- Definir domínios/origens e estratégia de integração Next/Express/sessão. Preferir topologia compatível com o contrato, sem reescrever autenticação silenciosamente.
+- Preparar build/start, runtime, variáveis por nome, segredos via mecanismo seguro, HTTPS, health checks e monitoramento.
+- Preparar staging e checklist de smoke; produção deve usar dados e contas autorizados, sem fixtures sintéticas públicas.
+- Apresentar custo, limitações, conta/projeto/destino exatos, operações de migração e plano de rollback antes da aprovação final.
+- Preparar janela operacional, comunicação a ser aprovada, responsáveis e reconciliação de gravações. Não enviar mensagens a terceiros por conta própria.
+- Após autorização específica, executar somente o plano aprovado e verificar os fluxos, saúde e backups disponíveis. Se não houver autorização, entregar o pacote pronto para revisão.
+
+# Fluxos e estados
+
+Comparação → escolha do provedor → configuração revisável → staging autorizado → autorização de produção → corte → smoke operacional → acompanhamento inicial e decisão de manter/reverter. Não usar comandos de deploy apenas para descobrir configurações.
+
+# Restrições técnicas e protocolo Git
+
+- Inspecione git status, branch e histórico; preserve trabalho existente.
+- Crie branch descritiva a partir da base que contém os pré-requisitos desta etapa; não parta automaticamente de main, que pode não conter as correções. Para leitura pura, não crie commits vazios.
+- Faça commits pequenos em Conventional Commits. Revise os diffs, rode verificações pertinentes e inclua somente arquivos da tarefa.
+- Nunca versione segredos, dados de clientes ou artefatos gerados. Não imprima tokens, senhas, URIs autenticadas ou corpos com dados pessoais.
+- Não faça push, merge, deploy, contratação, migração remota, exclusão de dados reais ou envio de mensagens sem autorização específica. Preparar configurações/scripts não autoriza executá-los em produção.
+- Não reinstale ou atualize indiscriminadamente dependências; justifique alterações pelo escopo.
+- Aplique as skills indicadas e respeite checkpoints aplicáveis. Não reabra decisões já respondidas; pergunte somente ambiguidades que impeçam a etapa e avance no trabalho independente.
+- Ao encontrar uma dependência não concluída, explique a evidência e o bloqueio; não simule conclusão nem expanda automaticamente para todas as etapas.
+
+# Critérios de aceite e validação
+
+- Hospedagem e custos/limites estão confirmados por fontes atuais.
+- Não existem bloqueios críticos de dados/segurança/homologação omitidos.
+- Plano identifica backup, reversão e gravações posteriores ao corte.
+- Segredos não aparecem no Git, prompt, relatório ou bundle.
+- Publicação só é declarada após confirmação real; se não executada, indicar precisamente o que está pronto e o que depende de decisão.
+- Nenhuma contratação, push, merge, deploy ou alteração remota foi inferida como autorizada pela geração deste prompt.
+
+# Entrega esperada
+
+Entregar proposta comparativa, configuração versionada, runbook, checklist e pedido final de autorização com ações concretas. Se autorizado e executado, registrar URLs, versões, validações e resultado do corte.
+
+Informe branch, commits, arquivos afetados, comandos/resultados, limitações e pendências. Registre continuidade para a próxima etapa sem afirmar aprovações não dadas.
+
+# Referências e pendências
+
+- Histórico do projeto: docs/diagnostico/RETOMADA.md e docs/dev-back/CICLO-1.md.
+- Regras confirmadas e ordem do pacote: docs/prompts/README.md.
+- Consulte documentação oficial compatível com as versões encontradas. Separe fatos, hipóteses e propostas.
+
+Pesquisar na execução: documentação oficial e tabelas de preços de Vercel, MongoDB Atlas e candidatos ao backend. Não fixar no prompt um provedor gratuito com base em informações antigas.
+
+==================== FIM: 08 — Preparar publicação e entrada em operação ====================
