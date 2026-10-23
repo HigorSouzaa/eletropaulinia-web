@@ -85,3 +85,19 @@ Base 37c0ab0, branch feat/backend-ordens-v2. [Plano concreto para revisão](dev-
 | P24 | Em planejamento; Next ainda consome array v1 | DTO v2, leitura legada explícita, interrupção de escritores v1 e fixtures idempotentes | Legado visível, sem achatamento/perda; rollback compatível documentado |
 
 Prioridades e impactos continuam os do registro inicial. P15/P16 dependem de inventário/backup autorizado; não há acesso ao banco real. P18 continua aberta e bloqueia publicação; alertas não foram corrigidos nem reavaliados nesta preparação. P04/P05 permanecem resolvidas somente no escopo anterior, revalidado localmente; isso não valida mutações v2 futuras.
+
+## Primeira fatia da etapa 03 — aprovação e implementação
+
+Usuário respondeu “Pode aprovar” ao checkpoint A/B após 6f949fa. [Entrega parcial](dev-back/ETAPA-03-PRIMEIRO-FLUXO.md). Estados abaixo atualizam o histórico, sem encerrar a etapa 03.
+
+| ID | Estado/evidência atual | Próxima ação e critério restante |
+| --- | --- | --- |
+| P06 | Em andamento: POST/GET v2 persistem três itens, Testar e opcionais; teste HTTP/Mongo | Edição, compatibilidade e formulários da etapa 04 antes de fechar todo o fluxo |
+| P07 | Aberta: retiradas ainda não implementadas | Após checkpoint C, retirada com horário/ator e agregado aprovados; T08–T11 |
+| P08 | Em andamento: contador, índices, 16 criações simultâneas e oito tentativas idempotentes testadas | Implementar If-Match nas edições, reconciliação/aplicação real somente autorizada; testar perda de atualização |
+| P09 | Em andamento: validação estrita e erros na criação/consulta v2 | PATCH para limpar opcionais e finalizar tratamento de legado; T14/T22 |
+| P10 | Aberta: ainda não há listagem v2 | Paginação, filtros/summary e Next compatível na ampliação após C |
+| P11 | Parcialmente decidida: agregado misto aprovado pelo usuário; limites técnicos aprovados no contrato | Composição após primeira retirada continua indefinida e indisponível; implementar agregado e testar |
+| P24 | Em andamento: escritores v1 bloqueados; leitura v1 recusa conjunto com v2 sem achatamento | Prioridade P0 para liberar: Next ainda só lista legado; v2 causa erro explícito. Implementar lista v2/adaptador antes de uso real. Transformação/rollback continuam pendentes |
+
+P01/P02 permanecem sem aprovação operacional. Nenhum ID encerrado nesta fatia; nenhum ID novo necessário. P18 ainda bloqueia publicação. Documentação e testes não equivalem a inventário ou migração do banco real.

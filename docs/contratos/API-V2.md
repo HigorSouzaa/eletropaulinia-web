@@ -2,6 +2,8 @@
 
 Estado: especificação, não implementada. Regras confirmadas em [README](README.md); decisões excepcionais pendentes não são autorizadas por este documento. Prefixo proposto /api/v2 para impedir mudança silenciosa de payload no cliente Vite.
 
+Atualização etapa 03: arquitetura e contrato de ordens aprovados após 6f949fa. Apenas POST /api/v2/orders e GET /api/v2/orders/:id implementados na primeira fatia; demais endpoints abaixo continuam especificação. Autenticação permanece /api/auth. [Entrega parcial e limitações](../dev-back/ETAPA-03-PRIMEIRO-FLUXO.md). O estado inicial acima é histórico, não descrição de conclusão de toda a API.
+
 ## Convenções e limites técnicos propostos
 
 JSON UTF-8. IDs opacos de 24 caracteres hexadecimais para OS/equipamento/funcionário; gerados pelo servidor. Campos desconhecidos rejeitados com 400. Rejeitar objetos/arrays onde se espera string; não aceitar operadores Mongo do cliente. Limites abaixo são proteção técnica inicial, revisáveis conforme inventário, não regras históricas da empresa.

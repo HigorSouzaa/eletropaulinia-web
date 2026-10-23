@@ -2,6 +2,8 @@
 
 23/10/2026. Base `37c0ab0`, árvore inicialmente limpa, branch `feat/backend-ordens-v2`. Proposta para os checkpoints A/B da Dev Back Master; ainda não aprovada nem implementada. Dev Front Master aplicada ao transporte e à listagem existentes. Nenhum AGENTS.md encontrado no repositório. Runtime local Node 24.21.0, Express instalado 4.21.2, Mongoose 8.19.3; sem atualização de dependências.
 
+Atualização posterior: o usuário respondeu “Pode aprovar” à proposta apresentada no commit 6f949fa. Checkpoints A/B aprovados, incluindo agregado proposto e manutenção das exceções indisponíveis. Autorizada a primeira fatia criação/consulta com testes; checkpoint C ainda depende da demonstração e resposta. O restante deste documento preserva o planejamento original; implementação parcial descrita em [ETAPA-03-PRIMEIRO-FLUXO](ETAPA-03-PRIMEIRO-FLUXO.md).
+
 ## Evidências e escopo
 
 - Inspeção: `backend/models/Order.js` contém equipamento único, marca obrigatória e numeração baseada na última OS criada.

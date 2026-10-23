@@ -2,6 +2,8 @@
 
 Sistema de ordens de serviço em retomada. Base Next.js/App Router/TypeScript com login e listagem integrados à API Node.js/Express/Mongoose. Atlas e os fluxos de múltiplos equipamentos permanecem para as próximas etapas. [Entrega da etapa 02](docs/dev-front/ETAPA-02-ENTREGA.md).
 
+Etapa 03 em andamento: criação/consulta v2 com múltiplos equipamentos entregues como primeira fatia de revisão. **Versão intermediária, sem liberação operacional**: escritores v1 bloqueados; Next ainda lista somente o conjunto legado e não representa OS v2. Contador/índices preparados apenas em testes descartáveis, sem migrador real. [Escopo e limitações](docs/dev-back/ETAPA-03-PRIMEIRO-FLUXO.md).
+
 ## Preparação
 
 Use Node 24 (versão validada em `.node-version`) e npm 11.19.0.
