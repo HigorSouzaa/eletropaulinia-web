@@ -53,3 +53,19 @@ Garantia e envio automático; WhatsApp; módulo completo de clientes; relatório
 23/10/2026: P04 e P05 em andamento apenas no planejamento; não resolvidos. Proposta concreta em [ETAPA-02-ARQUITETURA.md](dev-front/ETAPA-02-ARQUITETURA.md). P20/P21 permanecem abertos, sem nova execução de testes/build ou navegador nesta preparação.
 
 P25 — origem 02, prioridade P1, estado aberto: lucide-react 0.344 não declara peer React 19, necessário para a combinação candidata Next 16.4.2/React 19.3.1. Evidência: npm view. Candidata consultada lucide-react 1.61.0 aceita React 19. Próxima ação: atualização pontual com revisão dos exports e lockfile após checkpoint. Encerrar com resolução sem flags de conflito, build e verificação visual dos ícones. Nenhum pacote foi instalado nesta preparação.
+
+## Fechamento da etapa 02 — 23/10/2026
+
+As atualizações abaixo substituem o estado inicial dos IDs, preservado acima como histórico.
+
+| ID | Estado atual | Evidência/limite | Próximo passo |
+| --- | --- | --- | --- |
+| P04 | Resolvida no fluxo da etapa 02 | Cookie HttpOnly, Express revalida/revoga, 16 testes HTTP e 6 E2E; 50c9bd2 e commit Next desta branch | Revalidar nas próximas mutações; gestão de desligamento continua P03 |
+| P05 | Resolvida no escopo login/lista | Next App Router, instalação limpa/check/E2E aprovados; legacy preservado | Fluxos completos seguem P06/P07/P13, sem alegar paridade |
+| P25 | Resolvida | Lucide 1.61.0/React 19.3.1; npm ls, instalação limpa, build e capturas com ícones | Sem ação restante nesta etapa |
+| P20 | Em andamento | Avisos Fast Refresh não pertencem mais ao frontend ativo; Browserslist antigo permanece | Atualizar dados de compatibilidade com justificativa; ferramentas de lint Next não usam plugin Vite |
+| P21 | Em andamento | Seis E2E locais em Chromium com API/MongoDB real; partes de erro/vazio usam interceptação explícita | CI remoto, outros navegadores, fluxos v2 e medições representativas ainda pendentes |
+| P14 | Em andamento | Desktop 1280x720/mobile 360x800 inspecionados, sem overflow da página no mobile | Auditoria completa de teclado/acessibilidade e telas novas na etapa 04/07 |
+| P18 | Aberta, bloqueia publicação | Raiz produção: 0 alertas; dev: 10. Backend produção: 8, incluindo proxy-addr crítico; alcance não demonstrado | Triar/corrigir antes de uso real, além de CORS/rate limit já registrados |
+
+Nenhuma pendência de produto foi silenciosamente aprovada. P01/P02/P03/P11 aguardam decisões na etapa correspondente. Sem Atlas, dados reais, push, merge ou deploy. Evidências e limites: [entrega da etapa 02](dev-front/ETAPA-02-ENTREGA.md).

@@ -33,3 +33,9 @@ Revalidação atual: npm run check exit 0; 13 testes HTTP/MongoDB isolado passar
 ## Etapa 02 iniciada — checkpoint pendente
 
 23/10/2026, branch feat/base-nextjs, base 4786525. Modo semi-auto conforme skills e prompt. Arquitetura concreta em [ETAPA-02-ARQUITETURA.md](ETAPA-02-ARQUITETURA.md): Next App Router com React 19, Express separado, JWT existente em cookie HttpOnly e revogação por hash persistido no backend. Proposta restrita a login/listagem; sem mudança no modelo de ordens. Preservar aparência atual. Checkpoint de arquitetura/contrato de sessão aguarda resposta explícita; implementação não iniciada. P04/P05 em planejamento, P25 aberto. Nenhuma nova aprovação visual/funcional registrada.
+
+## Etapa 02 — aprovação e primeiro fluxo entregue
+
+O usuário respondeu explicitamente “Sim está aprovado” à arquitetura/sessão e depois “Pode continuar”. Implementado somente o fluxo do Prompt 02, preservando a identidade visual existente. Branch feat/base-nextjs. Express mantém JWT com jti e revogação por hash; Next usa cookie HttpOnly e transportes fixos. Arquivo legacy preserva integralmente o frontend anterior. Não há aprovação inferida de redesign nem expansão para todos os fluxos.
+
+Instalação limpa, check (16 HTTP, tipos, lint, build) e seis E2E locais passaram. A proposta de arquitetura foi ajustada de src/features para web/ para separar claramente os módulos ativos do frontend arquivado. Revisão funcional do usuário ainda não registrada; primeira jornada está entregue para revisão. Não houve implantação ou migração real. [Relatório](ETAPA-02-ENTREGA.md); [pendências atualizadas](../PENDENCIAS.md).

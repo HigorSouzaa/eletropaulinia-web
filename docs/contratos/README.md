@@ -13,18 +13,18 @@ Skills utilizadas: Dev Back Master (referência CONTRACTS) e Dev Front Master (L
 
 | Evidência | Conclusão | Classificação |
 | --- | --- | --- |
-| [NovaOrdem](../../src/pages/NovaOrdem.tsx), handleSubmit, equipamentos[0] | Só o primeiro equipamento é enviado, apesar do formulário múltiplo | Confirmada por inspeção |
+| [NovaOrdem](../../legacy/src/pages/NovaOrdem.tsx), handleSubmit, equipamentos[0] | Só o primeiro equipamento é enviado, apesar do formulário múltiplo | Confirmada por inspeção |
 | Mesmo arquivo, input email sem estado/payload; [Order](../../backend/models/Order.js) | E-mail não persiste; marca e defeito são obrigatórios; apenas um equipamento | Confirmada por inspeção |
 | [orderController](../../backend/controllers/orderController.js), updateOrder | Número editável e opcionais com valor vazio não são limpos devido a fallback com OR | Confirmada por inspeção |
 | Order, pre-save | Número depende da última OS, sem contador atômico; corrida e reutilização são riscos | Mecanismo confirmado por inspeção; ocorrência real não verificada |
 | Order e updateOrderStatus | Quatro estados; nenhuma retirada individual, data de retirada ou transição validada além do enum | Confirmada por inspeção |
 | [routes/orders](../../backend/routes/orders.js) | Todas as OS exigem sessão; só exclusão exige admin; não há filtro createdBy | Confirmada por inspeção |
 | [auth](../../backend/middleware/auth.js) e [routes/auth](../../backend/routes/auth.js) | Usuário consultado por requisição, cadastro admin, JWT HS256 | Confirmada por inspeção; cenários executados descritos em VALIDACAO |
-| [AuthContext](../../src/contexts/AuthContext.tsx), [api](../../src/services/api.ts), [OrderContext](../../src/contexts/OrderContext.tsx) | localStorage; limpeza por 401 não sincroniza contextos; consulta inicial não depende da sessão | Confirmada por inspeção |
-| OrderContext.getOrder e [EditarOrdem](../../src/pages/EditarOrdem.tsx) | Detalhe/edição depende da lista carregada | Confirmada por inspeção |
-| [Ordens](../../src/pages/Ordens.tsx), handleStatusChange | Não aguarda atualização de status | Confirmada por inspeção |
+| [AuthContext](../../legacy/src/contexts/AuthContext.tsx), [api](../../legacy/src/services/api.ts), [OrderContext](../../legacy/src/contexts/OrderContext.tsx) | localStorage; limpeza por 401 não sincroniza contextos; consulta inicial não depende da sessão | Confirmada por inspeção |
+| OrderContext.getOrder e [EditarOrdem](../../legacy/src/pages/EditarOrdem.tsx) | Detalhe/edição depende da lista carregada | Confirmada por inspeção |
+| [Ordens](../../legacy/src/pages/Ordens.tsx), handleStatusChange | Não aguarda atualização de status | Confirmada por inspeção |
 | getOrders e Ordens | API retorna tudo; busca/filtros no cliente | Confirmada por inspeção |
-| [User](../../backend/models/User.js), routes/auth, [App](../../src/App.tsx) | Não há API de listar/editar/desativar funcionários, recuperação nem tela de gestão | Confirmada por inspeção |
+| [User](../../backend/models/User.js), routes/auth, [App](../../legacy/src/App.tsx) | Não há API de listar/editar/desativar funcionários, recuperação nem tela de gestão | Confirmada por inspeção |
 | Atlas, dados da empresa, backups, volume e uso de credenciais antigas | Não houve conexão a banco real nem inventário remoto | Não verificável com os acessos utilizados |
 
 Não se infere intenção do autor nem prontidão operacional a partir do build.
