@@ -47,3 +47,9 @@ Garantia e envio automático; WhatsApp; módulo completo de clientes; relatório
 
 - 23/10/2026: registro criado; nenhuma pendência considerada resolvida pela criação deste arquivo.
 - Etapa 01: npm run check passou (13 testes legados, tipagem/build; dois avisos). Não equivale a validar os fluxos novos.
+
+## Atualização da etapa 02 — checkpoint de arquitetura
+
+23/10/2026: P04 e P05 em andamento apenas no planejamento; não resolvidos. Proposta concreta em [ETAPA-02-ARQUITETURA.md](dev-front/ETAPA-02-ARQUITETURA.md). P20/P21 permanecem abertos, sem nova execução de testes/build ou navegador nesta preparação.
+
+P25 — origem 02, prioridade P1, estado aberto: lucide-react 0.344 não declara peer React 19, necessário para a combinação candidata Next 16.4.2/React 19.3.1. Evidência: npm view. Candidata consultada lucide-react 1.61.0 aceita React 19. Próxima ação: atualização pontual com revisão dos exports e lockfile após checkpoint. Encerrar com resolução sem flags de conflito, build e verificação visual dos ícones. Nenhum pacote foi instalado nesta preparação.
