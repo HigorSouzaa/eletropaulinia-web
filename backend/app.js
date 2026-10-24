@@ -3,11 +3,13 @@ import cors from 'cors';
 import authRoutes from './routes/auth.js';
 import orderRoutes from './routes/orders.js';
 import ordersV2 from './routes/ordersV2.js';
+import employees from './routes/employees.js';
 
 // Importar a aplicação não abre portas nem conecta a um banco.
 const app = express();
 app.use(cors());
 app.use('/api/v2/orders', ordersV2);
+app.use('/api/v2/employees', employees);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', authRoutes);

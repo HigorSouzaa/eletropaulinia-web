@@ -18,9 +18,9 @@ export const protect = async (req, res, next) => {
     if (await RevokedToken.exists({ hash: tokenHash(match[1]) })) {
       return res.status(401).json({ message: 'Sessão inválida ou expirada' });
     }
-    const user = await User.findById(decoded.id).select('-password');
+    const user = await User.findById(decoded.id).select('-password +sessionVersion');
     // Token válido não substitui um usuário ainda existente no banco.
-    if (!user) return res.status(401).json({ message: 'Sessão inválida ou expirada' });
+    if (!user || user.active === false || (decoded.sv ?? 0) !== (user.sessionVersion ?? 0)) return res.status(401).json({ message: 'Sessão inválida ou expirada' });
     req.user = user;
     req.authToken = match[1];
     req.authExpires = decoded.exp;

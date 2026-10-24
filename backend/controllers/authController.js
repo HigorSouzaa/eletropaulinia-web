@@ -8,6 +8,7 @@ const publicUser = user => ({
   username: user.username,
   name: user.name,
   role: user.role,
+  active: user.active !== false,
 });
 
 // Provisionamento administrativo não inicia sessão como o novo usuário.
@@ -26,11 +27,11 @@ export const register = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const { username, password } = req.body;
-    const user = await User.findOne({ username: username.trim() }).select('+password');
-    if (!user || !(await user.matchPassword(password))) {
+    const user = await User.findOne({ username: username.trim() }).select('+password +sessionVersion');
+    if (!user || user.active === false || !(await user.matchPassword(password))) {
       return res.status(401).json({ message: 'Credenciais inválidas' });
     }
-    const token = jwt.sign({ id: user._id.toString() }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user._id.toString(), sv: user.sessionVersion ?? 0 }, process.env.JWT_SECRET, {
       algorithm: 'HS256',
       jwtid: randomUUID(),
       expiresIn: process.env.JWT_EXPIRE || '1h',

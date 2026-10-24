@@ -2,7 +2,7 @@
 import { randomBytes } from 'node:crypto';
 import { createServer } from 'node:http';
 import mongoose from 'mongoose';
-import { MongoMemoryServer } from 'mongodb-memory-server-core';
+import { MongoMemoryReplSet } from 'mongodb-memory-server-core';
 import app from '../app.js';
 import User from '../models/User.js';
 import Order from '../models/Order.js';
@@ -11,7 +11,7 @@ import Counter from '../models/Counter.js';
 import { createOrder } from '../services/ordersV2.js';
 process.env.JWT_SECRET=randomBytes(48).toString('hex');
 process.env.JWT_EXPIRE='1h';
-const mongo=await MongoMemoryServer.create({binary:{version:'8.0.17'},instance:{ip:'127.0.0.1'}});
+const mongo=await MongoMemoryReplSet.create({binary:{version:'8.0.17'},replSet:{count:1}});
 await mongoose.connect(mongo.getUri(),{dbName:'e2e_synthetic'});
 await User.init();await Order.init();
 await User.create([
