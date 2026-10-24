@@ -94,19 +94,40 @@ export async function mutateOrder(id, match, operation, body, actor, equipmentId
     if (operation !== 'add' && index < 0) throw new OrderError(404, 'NOT_FOUND');
     const item = candidate.equipamentos[index];
     if (operation === 'add' || operation === 'remove') {
-      if (candidate.equipamentos.some(item => item.retirada)) throw new OrderError(409, 'COMPOSITION_LOCKED');
       if (operation === 'add') {
         const normalized = createInput({ ...inputOf(candidate), equipamentos: [...candidate.equipamentos.map(fields), body] });
         candidate.equipamentos.push({ ...normalized.equipamentos.at(-1), _id: new Order.base.Types.ObjectId(), andamento: 'Aguardando', retirada: null });
       } else {
         if (candidate.equipamentos.length === 1) throw new OrderError(409, 'LAST_EQUIPMENT');
+        if (item.retirada || item.historicoRetiradas?.length) throw new OrderError(409, 'EQUIPMENT_HISTORY_LOCKED');
         candidate.equipamentos.splice(index, 1);
       }
     } else if (operation === 'pickup') {
       object(body, [], 'body');
       if (item.retirada) return raw;
-      if (item.andamento !== 'Pronto') throw new OrderError(409, 'EQUIPMENT_NOT_READY');
-      item.retirada = { origem: 'operacao', retiradoEm: new Date(), registradoPor: actor };
+      const now = new Date();
+      item.retirada = { origem: 'operacao', retiradoEm: now, registradoPor: actor };
+      item.historicoRetiradas = [...(item.historicoRetiradas || []),
+        { tipo: 'retirada', em: now, registradoPor: actor, retiradaOriginal: item.retirada }];
+    } else if (operation === 'pickupCorrection') {
+      object(body, ['motivo'], 'body');
+      if (!item.retirada) throw new OrderError(409, 'NO_PICKUP_TO_CORRECT');
+      if (item.retirada.origem === 'legado') throw new OrderError(409, 'LEGACY_PICKUP_CORRECTION_UNAVAILABLE');
+      if (typeof body.motivo !== 'string' || !body.motivo.trim() || body.motivo.trim().length > 500) {
+        throw new OrderError(400, 'VALIDATION_ERROR', [{ path: 'motivo', code: 'REQUIRED' }]);
+      }
+      const previous = item.retirada;
+      const history = item.historicoRetiradas || [];
+      // v2 documents created before this audit field still retain their original event.
+      const initial = history.length ? history : [{
+        tipo: 'retirada', em: previous.retiradoEm, registradoPor: previous.registradoPor,
+        retiradaOriginal: previous,
+      }];
+      item.historicoRetiradas = [...initial, {
+        tipo: 'correcao', em: new Date(), registradoPor: actor,
+        motivo: body.motivo.trim(), retiradaOriginal: previous,
+      }];
+      item.retirada = null;
     } else if (operation === 'equipment') {
       object(body, ['nome', 'marca', 'modelo', 'numeroSerie', 'solicitacao', 'andamento'], 'body');
       if ('andamento' in body && !['Aguardando', 'Em andamento', 'Pronto'].includes(body.andamento)) throw new OrderError(400, 'VALIDATION_ERROR', [{ path: 'andamento', code: 'INVALID' }]);

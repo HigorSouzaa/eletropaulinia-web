@@ -120,7 +120,6 @@ test('edição parcial preserva itens, limpa opcionais e exige precondição', a
 test('retirada parcial, repetição e conclusão preservam horários e autoria', async () => {
   let order = await create(); const id = order.body.data._id;
   const items = order.body.data.equipamentos.map(item => item._id);
-  assert.equal((await pickup(order, items[0])).status, 409);
   for (const item of items) { order = await change(order, { andamento: 'Pronto' }, `/equipamentos/${item}`); assert.equal(order.status, 200); }
   assert.equal(order.body.data.status, 'Pronto');
   const previous = order;
@@ -133,8 +132,11 @@ test('retirada parcial, repetição e conclusão preservam horários e autoria',
   const repeated = await pickup(order, items[0]); assert.deepEqual(repeated.body, order.body); assert.equal(repeated.etag, order.etag);
   assert.equal((await pickup(previous, items[0])).status, 412);
   assert.equal((await change(order, { andamento: 'Pronto' }, `/equipamentos/${items[0]}`)).status, 409);
-  assert.equal((await request(`/${id}/equipamentos`, { method: 'POST', match: order.etag, body: payload().equipamentos[0] })).status, 409);
-  assert.equal((await request(`/${id}/equipamentos/${items[1]}`, { method: 'DELETE', match: order.etag })).status, 409);
+  const added = await request(`/${id}/equipamentos`, { method: 'POST', match: order.etag, body: payload().equipamentos[0] });
+  assert.equal(added.status, 201);
+  order = await request(`/${id}/equipamentos/${added.body.data.equipamentos.at(-1)._id}`, { method: 'DELETE', match: added.etag });
+  assert.equal(order.status, 200);
+  assert.equal((await request(`/${id}/equipamentos/${items[0]}`, { method: 'DELETE', match: order.etag })).status, 409);
   order = await pickup(order, items[1]); order = await pickup(order, items[2]);
   assert.equal(order.body.data.status, 'Entregue'); assert.equal(order.body.data.entrega.situacao, 'completa');
   const read = await request(`/${id}`); assert.deepEqual(read.body.data, order.body.data);
@@ -162,6 +164,49 @@ test('composição antes de retirada e agregado misto; nunca remove último', as
   assert.equal(order.status, 201); assert.equal(order.body.data.equipamentos.length, 4);
   while (order.body.data.equipamentos.length > 1) order = await request(`/${order.body.data._id}/equipamentos/${order.body.data.equipamentos.at(-1)._id}`, { method: 'DELETE', match: order.etag });
   assert.equal((await request(`/${order.body.data._id}/equipamentos/${order.body.data.equipamentos[0]._id}`, { method: 'DELETE', match: order.etag })).status, 409);
+});
+
+test('retirada antecipada e correção por outro funcionário preservam trilha e status', async () => {
+  let order = await create(); const id = order.body.data._id; const eid = order.body.data.equipamentos[0]._id;
+  order = await pickup(order, eid);
+  assert.equal(order.status, 200);
+  assert.equal(order.body.data.status, 'Aguardando');
+  assert.deepEqual(order.body.data.entrega, { total: 3, retirados: 1, situacao: 'parcial' });
+  const first = order.body.data.equipamentos[0].retirada;
+  assert.equal(order.body.data.equipamentos[0].historicoRetiradas.length, 1);
+  const route = `/${id}/equipamentos/${eid}/correcoes-retirada`;
+  assert.equal((await request(route, { method: 'POST', body: { motivo: '' }, match: order.etag })).status, 400);
+  assert.equal((await request(route, { method: 'POST', body: { motivo: 'Erro' }, match: order.etag, auth: null })).status, 401);
+  const previous = order;
+  order = await request(route, { method: 'POST', body: { motivo: 'Lançamento por engano' }, match: order.etag, auth: otherToken });
+  assert.equal(order.status, 200);
+  assert.equal(order.body.data.equipamentos[0].retirada, null);
+  assert.deepEqual(order.body.data.entrega, { total: 3, retirados: 0, situacao: 'nenhuma' });
+  const history = order.body.data.equipamentos[0].historicoRetiradas;
+  assert.deepEqual(history.map(item => item.tipo), ['retirada', 'correcao']);
+  assert.equal(history[1].retiradaOriginal.retiradoEm, first.retiradoEm);
+  assert.equal(history[1].registradoPor, jwt.decode(otherToken).id);
+  assert.equal((await request(route, { method: 'POST', body: { motivo: 'De novo' }, match: order.etag })).status, 409);
+  assert.equal((await request(route, { method: 'POST', body: { motivo: 'Antigo' }, match: previous.etag })).status, 412);
+  order = await pickup(order, eid);
+  assert.equal(order.body.data.equipamentos[0].historicoRetiradas.length, 3);
+  assert.equal((await request(`/${id}`)).body.data.equipamentos[0].historicoRetiradas[1].motivo, 'Lançamento por engano');
+});
+
+test('composição após retirada permite adicionar e remover item presente, preserva entregue', async () => {
+  let order = await create(); const id = order.body.data._id; const delivered = order.body.data.equipamentos[0]._id;
+  order = await pickup(order, delivered);
+  order = await request(`/${id}/equipamentos`, { method: 'POST', match: order.etag, body: { nome: 'Item adicional', solicitacao: { tipo: 'testar' } } });
+  assert.equal(order.status, 201);
+  const added = order.body.data.equipamentos.at(-1)._id;
+  assert.equal(order.body.data.entrega.total, 4);
+  assert.equal(order.body.data.entrega.retirados, 1);
+  assert.equal((await request(`/${id}/equipamentos/${delivered}`, { method: 'DELETE', match: order.etag })).status, 409);
+  order = await request(`/${id}/equipamentos/${added}`, { method: 'DELETE', match: order.etag });
+  assert.equal(order.status, 200);
+  assert.equal(order.body.data.entrega.total, 3);
+  assert.equal(order.body.data.equipamentos[0]._id, delivered);
+  assert.equal(order.body.data.equipamentos[0].historicoRetiradas.length, 1);
 });
 test('exclusão admin exige versão, remove somente alvo e não reduz contador', async () => {
   const first = await create(), second = await create();

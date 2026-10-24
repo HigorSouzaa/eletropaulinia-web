@@ -1,6 +1,17 @@
 import mongoose from 'mongoose';
 
 const text = (max, required = false) => ({ type: String, maxlength: max, required, default: required ? undefined : null });
+const withdrawal = new mongoose.Schema({
+  retiradoEm: Date, registradoPor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  origem: { type: String, enum: ['operacao', 'legado'] },
+}, { _id: false });
+const withdrawalHistory = new mongoose.Schema({
+  tipo: { type: String, enum: ['retirada', 'correcao'], required: true },
+  em: { type: Date, required: true },
+  registradoPor: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  motivo: text(500),
+  retiradaOriginal: { type: withdrawal, required: true },
+}, { _id: true });
 const equipment = new mongoose.Schema({
   nome: text(160, true), marca: text(120), modelo: text(120), numeroSerie: text(120),
   solicitacao: {
@@ -8,10 +19,8 @@ const equipment = new mongoose.Schema({
     descricao: text(2000),
   },
   andamento: { type: String, enum: ['Aguardando', 'Em andamento', 'Pronto', null], default: 'Aguardando' },
-  retirada: { type: new mongoose.Schema({
-    retiradoEm: Date, registradoPor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    origem: { type: String, enum: ['operacao', 'legado'] },
-  }, { _id: false }), default: null },
+  retirada: { type: withdrawal, default: null },
+  historicoRetiradas: { type: [withdrawalHistory], default: [] },
 }, { strict: 'throw' });
 const schema = new mongoose.Schema({
   schemaVersion: { type: Number, enum: [2], default: 2, required: true },

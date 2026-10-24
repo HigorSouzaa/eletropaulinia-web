@@ -54,6 +54,7 @@ router.post('/:id/equipamentos', mutation('add'));
 router.patch('/:id/equipamentos/:eid', mutation('equipment'));
 router.delete('/:id/equipamentos/:eid', mutation('remove'));
 router.put('/:id/equipamentos/:eid/retirada', mutation('pickup'));
+router.post('/:id/equipamentos/:eid/correcoes-retirada', mutation('pickupCorrection'));
 router.use((_req, _res, next) => next(new OrderError(404, 'NOT_FOUND')));
 router.use((error, req, res, _next) => {
   let status = 500;

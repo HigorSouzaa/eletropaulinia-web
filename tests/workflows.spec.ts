@@ -103,6 +103,39 @@ test('edição, conflito, retirada parcial/completa e exclusão real', async ({ 
     } finally { await removeOrder(request, order._id, admin); }
 });
 
+test('retirada antecipada, correção auditada e composição posterior no navegador', async ({ page, request }) => {
+    const admin = await token(request);
+    const order = await createOrder(request, admin);
+    try {
+        await login(page, 'teste-b');
+        await page.goto(`/ordens/${order._id}`);
+        const first = page.getByRole('article').filter({ has: page.getByRole('heading', { name: /Ventilador fluxo/ }) });
+        await first.getByRole('button', { name: 'Registrar retirada' }).click();
+        await expect(page.getByRole('dialog')).toContainText('ainda não está Pronto');
+        await page.getByRole('button', { name: 'Confirmar retirada' }).click();
+        await expect(page.getByText('1 de 3 retirado(s)')).toBeVisible();
+        await first.getByRole('button', { name: 'Corrigir retirada' }).click();
+        await expect(page.getByLabel('Motivo da correção')).toBeFocused();
+        await page.getByLabel('Motivo da correção').fill('Lançamento por engano');
+        await page.getByRole('button', { name: 'Confirmar correção' }).click();
+        await expect(page.getByText('0 de 3 retirado(s)')).toBeVisible();
+        await page.reload();
+        await first.getByText('Histórico de retiradas e correções').click();
+        await expect(first).toContainText('Lançamento por engano');
+        await page.goto(`/editar-ordem/${order._id}`);
+        const add = page.locator('form').filter({ has: page.getByRole('heading', { name: 'Adicionar equipamento' }) });
+        await add.getByLabel('Identificação *').fill('Equipamento posterior');
+        await add.getByLabel('Solicitação').selectOption('testar');
+        await add.getByRole('button', { name: 'Adicionar', exact: true }).click();
+        await expect(page.getByRole('heading', { name: 'Equipamento 4' })).toBeVisible();
+        const deliveredHistory = page.locator('form').filter({ has: page.getByRole('heading', { name: 'Equipamento 1' }) });
+        await expect(deliveredHistory.getByRole('button', { name: 'Remover' })).toHaveCount(0);
+        page.once('dialog', dialog => void dialog.accept());
+        await page.locator('form').filter({ has: page.getByRole('heading', { name: 'Equipamento 4' }) }).getByRole('button', { name: 'Remover' }).click();
+        await expect(page.getByRole('heading', { name: 'Equipamento 4' })).toHaveCount(0);
+    } finally { await removeOrder(request, order._id, admin); }
+});
+
 test('admin gerencia funcionários e desativação revoga sessão anterior', async ({ page, request, browser }) => {
     await login(page, 'teste-a');
     await page.goto('/funcionarios');
