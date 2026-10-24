@@ -33,7 +33,7 @@ P01/P02/P11 continuam decisões pendentes. P15/P16/P18/P24 continuam bloqueios d
 
 ## Fechamento da etapa 04 — 24/10/2026
 
-[Entrega e validações](dev-front/ETAPA-04-ENTREGA.md). A revisão da primeira fatia foi aprovada pelo usuário antes da ampliação. `npm run check` passou com 42 testes HTTP/Mongo descartável, tipagem, lint e build; `npm run test:e2e` passou 13 cenários. Após os últimos ajustes de exibição/foco, a suíte de três jornadas afetadas também passou. Nenhum banco real foi migrado, nenhum serviço foi publicado.
+[Entrega e validações](dev-front/ETAPA-04-ENTREGA.md). A revisão da primeira fatia foi aprovada pelo usuário antes da ampliação. `npm run check` passou com 42 testes HTTP/Mongo descartável, tipagem, lint e build; `npm run test:e2e` passou 15 cenários. Após os últimos ajustes de exibição/foco, a suíte de jornadas afetadas também passou. Nenhum banco real foi migrado, nenhum serviço foi publicado.
 
 | ID | Estado atual | Evidência/impacto | Dependência, próxima ação e critério |
 | --- | --- | --- | --- |
@@ -43,7 +43,7 @@ P01/P02/P11 continuam decisões pendentes. P15/P16/P18/P24 continuam bloqueios d
 | P12 | **Resolvida no fluxo local** | `ea4ee89`/`9b6981e`/`80580fd`; admin cadastra/lista/edita/desativa/reset, não admin negado, último admin preservado em transações concorrentes; HTTP+E2E | Mongo replica set exigido para mutações administrativas; validar ambiente real na etapa 05 |
 | P13 | **Resolvida no fluxo local** | `5281826`; detalhe/edição por URL, confirmação aguardada, conflito mantém rascunho; E2E | Homologação humana e falhas operacionais seguem P23/P21 |
 | P14 | Em andamento, P1 | Testes 360/768/1280 px sem rolagem horizontal, capturas inspecionadas, foco/Escape dos diálogos | Auditoria ampliada de acessibilidade e dispositivos na etapa 07; encerrar com matriz T24 completa |
-| P21 | Em andamento, P1 | 42 HTTP/Mongo e 13 E2E locais; interceptações declaradas | CI remoto, outros navegadores e carga/dados representativos na etapa 07; encerrar com resultados por ambiente |
+| P21 | Em andamento, P1 | 42 HTTP/Mongo e 15 E2E locais; interceptações declaradas | CI remoto, outros navegadores e carga/dados representativos na etapa 07; encerrar com resultados por ambiente |
 | P01/P02/P11 | Abertas, P1 | Exceções ainda sem decisão explícita; botões/rotas de correção ausentes e composição bloqueada após retirada | Obter regras da empresa e testar cenários antes de habilitar |
 | P15/P16/P18/P24 | Abertas, P0 para corte | Sem inventário/backup/restore real, triagem de segurança ou ensaio de reversão | Etapas 05/06; não publicar até critérios originais observados |
 | P20/P23 | Abertas | Browserslist antigo; homologação operacional da empresa ausente | Atualizar dados de compatibilidade com justificativa; obter aceite humano real |

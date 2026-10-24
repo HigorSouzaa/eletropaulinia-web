@@ -151,3 +151,38 @@ test('não admin não acessa Funcionários nem altera conta', async ({ page, req
     const staffToken = await token(request, 'teste-b');
     expect((await request.get(`${api}/v2/employees`, { headers: { Authorization: `Bearer ${staffToken}` } })).status()).toBe(403);
 });
+
+test('edição mantém rascunho em 503 e permite nova tentativa', async ({ page, request }) => {
+    const admin = await token(request), order = await createOrder(request, admin);
+    try {
+        await login(page, 'teste-b');
+        await page.goto(`/editar-ordem/${order._id}`);
+        await page.getByLabel('Nome do cliente *').fill('Rascunho após indisponibilidade');
+        await page.route(`**/api/orders/${order._id}`, route => route.request().method() === 'PATCH'
+            ? route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }) : route.continue());
+        await page.getByRole('button', { name: 'Salvar dados da ordem' }).click();
+        await expect(page.getByRole('alert').filter({ hasText: 'Seu rascunho foi mantido' })).toBeVisible();
+        await expect(page.getByLabel('Nome do cliente *')).toHaveValue('Rascunho após indisponibilidade');
+        await page.unroute(`**/api/orders/${order._id}`);
+        await page.getByRole('button', { name: 'Salvar dados da ordem' }).click();
+        await expect(page.getByRole('status').filter({ hasText: 'Alteração salva' })).toBeVisible();
+        await page.reload();
+        await expect(page.getByLabel('Nome do cliente *')).toHaveValue('Rascunho após indisponibilidade');
+    } finally { await removeOrder(request, order._id, admin); }
+});
+
+test('registro legado permanece legível e sem ações de escrita', async ({ page, request }) => {
+    const admin = await token(request);
+    const response = await request.get(`${api}/v2/orders?q=Ventilador%20de%20teste`, { headers: { Authorization: `Bearer ${admin}` } });
+    expect(response.status()).toBe(200);
+    const legacy = (await response.json()).data.find((value: { compatibility?: { legacy: boolean } }) => value.compatibility?.legacy);
+    expect(legacy?._id).toBeTruthy();
+    await login(page, 'teste-a');
+    await page.goto(`/ordens/${legacy._id}`);
+    await expect(page.getByText('Registro antigo somente para leitura')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Editar' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Excluir OS' })).toHaveCount(0);
+    await page.goto(`/editar-ordem/${legacy._id}`);
+    await expect(page.getByText('Registro antigo somente para leitura')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Salvar dados da ordem' })).toHaveCount(0);
+});
