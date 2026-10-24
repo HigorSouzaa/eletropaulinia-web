@@ -2,6 +2,7 @@
 // rehearsal runner. No URI, dotenv or production connection is accepted here.
 import mongoose from 'mongoose';
 import Order from '../models/OrderV2.js';
+import { prepareFreshDatabase } from './prepareFreshDatabase.js';
 import { transformLegacy } from './legacyOrders.js';
 
 const DATABASE = 'stage05_fixture_only';
@@ -69,4 +70,9 @@ export async function migrateFixtureBatch(db, { batchSize = 10, failAfter = null
     if (transformed >= batchSize) break;
   }
   return { examined, transformed, blocked, changed, remaining: await db.collection('orders').countDocuments({ schemaVersion: { $ne: 2 } }) };
+}
+
+export async function bootstrapFreshFixture(db) {
+  requireFixture(db);
+  return prepareFreshDatabase(db);
 }

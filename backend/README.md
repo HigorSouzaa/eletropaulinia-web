@@ -8,7 +8,7 @@ Copie `.env.example` para `.env` dentro de backend. Defina:
 
 | Variável | Finalidade |
 |---|---|
-| MONGODB_URI | Banco do ambiente escolhido; usar desenvolvimento local/staging nesta fase |
+| MONGODB_URI | URI do banco do ambiente escolhido. O exemplo fica vazio até você configurar um destino |
 | JWT_SECRET | Segredo aleatório de pelo menos 32 caracteres; nunca expor no frontend |
 | JWT_EXPIRE | Duração dos tokens; padrão 1h. Use duração positiva, por exemplo 1h |
 | PORT | Porta da API; padrão 5000 |
@@ -16,6 +16,8 @@ Copie `.env.example` para `.env` dentro de backend. Defina:
 | ADMIN_USERNAME / ADMIN_NAME / ADMIN_PASSWORD | Somente no provisionamento manual inicial |
 
 Não há credenciais padrão. Gere o segredo por ferramenta segura local e armazene fora do Git. O startup rejeita falta de URI, segredo curto ou porta inválida. Sem conexão ao banco, não abre a porta HTTP.
+
+Para iniciar com banco novo e vazio após configurar Atlas, consulte o [roteiro da etapa 05](../docs/dev-back/ETAPA-05-BASE-ZERO.md). O comando `node scripts/prepare-fresh-database.js --database NOME --confirm-empty`, executado nesta pasta, prepara índices e contador apenas quando o banco selecionado está vazio. Ele nunca limpa dados; confira o nome do banco antes de executá-lo. Ainda não foi usado em Atlas.
 
 ## Primeiro administrador
 

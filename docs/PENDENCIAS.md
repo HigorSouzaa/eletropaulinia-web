@@ -1,5 +1,9 @@
 # Pendências para revisão ao final dos prompts
 
+## Decisão de banco novo — 24/10/2026
+
+O usuário informou que as ordens anteriores eram somente testes e autorizou começar a operação em um banco novo e vazio. Não há cluster Atlas nem URI configurados; o exemplo `MONGODB_URI` foi deixado em branco. [Roteiro e comando guardado](dev-back/ETAPA-05-BASE-ZERO.md). O comando de preparo recusa banco não vazio e foi testado apenas em MongoDB descartável. `npm run check` passou com 51 testes HTTP/Mongo, tipagem, lint e build. P15/P24 não precisam mais transportar as OS de teste para o corte **se o destino novo for confirmado vazio**; continuam abertos até verificar banco, índices, contador e aplicação no Atlas. P16/P17 continuam abertos para backup/restauração e política de retenção do novo sistema. Nenhum dado antigo foi apagado nesta etapa.
+
 ## Primeira fatia da etapa 05 — 24/10/2026
 
 Checkpoints A/B aprovados pelo usuário. [Ensaio local e limites](dev-back/ETAPA-05-PRIMEIRA-FATIA.md), implementação `dc876ba`. Inventário agregado e conversão de lote restritos a `stage05_fixture_only` foram testados com dados sintéticos: preservação de ID/número/origem, bloqueio de anomalias, repetição sem escrita, interrupção/retomada e recusa de outro banco. `npm run check` passou com 47 testes HTTP/Mongo, tipagem, lint e build; o CLI confirmou duas conversões e zero escritas na repetição. **P15/P16/P17/P24 permanecem abertas para corte**: não houve inventário real, backup/restore, índice/contador no destino nem teste de reversão após escrita nova. P01/P02/P11 seguem sem implementação e P18 bloqueia publicação. Próxima ação: revisão do checkpoint C; só depois ampliar scripts/ensaios locais, sem acesso remoto implícito.

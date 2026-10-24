@@ -15,7 +15,7 @@ if (!(Test-Path .env)) { Copy-Item .env.example .env }
 if (!(Test-Path backend/.env)) { Copy-Item backend/.env.example backend/.env }
 ```
 
-Preencha `backend/.env` com uma conexão de **desenvolvimento** e um `JWT_SECRET` aleatório de pelo menos 32 caracteres. Nenhuma senha padrão é fornecida. Não versione arquivos de ambiente. A conexão pode ser MongoDB local ou Atlas; as alterações administrativas de Funcionários exigem um MongoDB configurado como replica set para transações. Um servidor local standalone permite consultas, mas essas alterações falham de modo seguro. Não há provisionamento automático de infraestrutura.
+O exemplo de `MONGODB_URI` fica em branco até você configurar a conexão. Preencha `backend/.env` com uma conexão de **desenvolvimento** e um `JWT_SECRET` aleatório de pelo menos 32 caracteres. Nenhuma senha padrão é fornecida. Não versione arquivos de ambiente. A conexão pode ser MongoDB local ou Atlas; as alterações administrativas de Funcionários exigem um MongoDB configurado como replica set para transações. Um servidor local standalone permite consultas, mas essas alterações falham de modo seguro. Não há provisionamento automático de infraestrutura. O [roteiro de banco novo](docs/dev-back/ETAPA-05-BASE-ZERO.md) orienta a preparação futura.
 
 ```powershell
 npm run start-all

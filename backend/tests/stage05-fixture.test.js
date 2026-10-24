@@ -2,7 +2,8 @@ import { before, after, beforeEach, test } from 'node:test';
 import assert from 'node:assert/strict';
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server-core';
-import { inventoryFixture, migrateFixtureBatch } from '../services/stage05FixtureMigration.js';
+import { inventoryFixture, migrateFixtureBatch, bootstrapFreshFixture } from '../services/stage05FixtureMigration.js';
+import { createOrder } from '../services/ordersV2.js';
 
 let mongo; let db;
 before(async () => {
@@ -11,7 +12,9 @@ before(async () => {
   db = mongoose.connection.db;
 });
 after(async () => { await mongoose.disconnect(); if (mongo) await mongo.stop(); });
-beforeEach(async () => { await db.collection('orders').deleteMany({}); });
+beforeEach(async () => {
+  for (const name of ['orders', 'users', 'counters', 'adminroleguards', 'revokedtokens']) await db.collection(name).deleteMany({});
+});
 const legacy = (n, overrides = {}) => ({
   _id: new mongoose.Types.ObjectId(), numero: `OS-${String(n).padStart(4, '0')}`,
   cliente: 'Pessoa sintética', telefone: '0000', equipamento: 'Rádio sintético',
@@ -83,4 +86,42 @@ test('serviço recusa conexão fora do banco descartável de ensaio', async () =
   await assert.rejects(inventoryFixture({ databaseName: 'production' }), /Disposable stage-05 database required/);
   await assert.rejects(migrateFixtureBatch({ databaseName: 'production' }), /Disposable stage-05 database required/);
   await assert.rejects(migrateFixtureBatch(db, { batchSize: 0 }), /Invalid batch size/);
+});
+
+test('início do zero prepara índices e contador sem apagar coleção existente', async () => {
+  const result = await bootstrapFreshFixture(db);
+  assert.deepEqual(result, { database: 'stage05_fixture_only', orders: 0, counter: 0, prepared: true });
+  const indexes = await db.collection('orders').indexes();
+  assert.ok(indexes.some(item => item.unique && item.key.numero === 1));
+  assert.ok(indexes.some(item => item.unique && item.key.creationKey === 1));
+  assert.equal((await db.collection('counters').findOne({ _id: 'orders' })).value, 0);
+  assert.equal((await bootstrapFreshFixture(db)).prepared, true);
+  await db.collection('orders').insertOne(legacy(1));
+  assert.equal((await db.collection('orders').countDocuments()), 1);
+});
+
+test('início do zero recusa ordem antiga em vez de eliminá-la', async () => {
+  const raw = legacy(1);
+  await db.collection('orders').insertOne(raw);
+  await assert.rejects(bootstrapFreshFixture(db), /Destination contains data/);
+  assert.deepEqual(await db.collection('orders').findOne({ _id: raw._id }), raw);
+  assert.equal(await db.collection('counters').countDocuments(), 0);
+});
+
+test('base preparada cria primeira OS v2 e não permite reinicializar contador depois', async () => {
+  await bootstrapFreshFixture(db);
+  const { document } = await createOrder({
+    cliente: { nome: 'Cliente sintético', telefone: '0000' }, dataEntrada: '2026-10-24',
+    equipamentos: [{ nome: 'Rádio', solicitacao: { tipo: 'testar' } }],
+  }, 'synthetic-first-order-key', new mongoose.Types.ObjectId());
+  assert.equal(document.numero, 'OS-0001');
+  await assert.rejects(bootstrapFreshFixture(db), /Destination contains data/);
+  assert.equal((await db.collection('counters').findOne({ _id: 'orders' })).value, 1);
+});
+
+test('coleção inesperada bloqueia preparação mesmo vazia', async () => {
+  await db.collection('unrelated').insertOne({ synthetic: true });
+  await db.collection('unrelated').deleteMany({});
+  await assert.rejects(bootstrapFreshFixture(db), /Unknown collection/);
+  await db.collection('unrelated').drop();
 });
