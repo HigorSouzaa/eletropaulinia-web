@@ -6,7 +6,7 @@ Branch `feat/fluxos-next-funcionarios`, base `4157aae`. Propostas para revisão 
 
 | IDs | Estado nesta preparação | Evidência, impacto e próximo critério |
 | --- | --- | --- |
-| P03 | Aberta, P1 | Desativação e recuperação não aprovadas; resposta operacional solicitada. Sem endpoints correspondentes até decisão e testes de revogação. |
+| P03 | Aberta, P1 | Decisão recebida em 24/10: desativar sem apagar histórico, revogar sessões e redefinir senha presencialmente por admin, sem envio automático. Implementar endpoints, proteção do último admin ativo e testes de revogação antes de resolver. |
 | P06/P07/P13 | Em andamento, P0/P1 | API v2 existe, mas criação/detalhe/edição/retirada/exclusão não têm telas Next. Implementar fatia real, recarga, conflitos e erros; validar HTTP+browser. |
 | P11 | Aberta, P1 | Composição após retirada indefinida; manter indisponível e obter decisão antes de habilitar. |
 | P12 | Aberta, P1 | `/auth/register` admin existe; listagem/edição e garantia concorrente do último admin faltam. Contrato proposto requer transação e teste de dois rebaixamentos. |
@@ -15,6 +15,21 @@ Branch `feat/fluxos-next-funcionarios`, base `4157aae`. Propostas para revisão 
 | P15/P16/P18/P24 | Abertas, P0 para corte | Dados/backup reais, segurança operacional e reversão não foram validados por esta preparação; etapas 05/06. |
 
 Critérios, dependências e histórico completos dos IDs permanecem nas tabelas abaixo. Próxima ação desta etapa: revisão dos checkpoints das skills; depois implementar um fluxo vertical e demonstrá-lo antes de ampliar. Sem migração real, push, merge ou deploy.
+
+## Primeira fatia da etapa 04 — 24/10/2026
+
+Implementação `cba10f7`, [relatório e limites](dev-front/ETAPA-04-PRIMEIRO-FLUXO.md). Checkpoints de arquitetura/contrato aprovados pelo usuário; revisão visual/funcional ainda pendente. Nenhum ID abaixo foi encerrado pelo primeiro fluxo.
+
+| IDs | Estado e evidência atual | Próxima ação/critério restante |
+| --- | --- | --- |
+| P06 | Em andamento: formulário Next cria três itens, marca/e-mail opcionais e Testar; recarga real por ID preserva | Edição, limpeza de opcionais, estados de erro completos e critérios T04–T07 |
+| P13 | Em andamento: deep link de detalhe funciona; lista aponta para OS | Edição por URL, modais/retirada, conflitos 412 e falhas sem perder rascunho |
+| P14 | Em andamento: criação sem overflow nos testes a 360/768/1280 px | Teclado/foco e todas as telas da etapa; auditoria completa |
+| P21 | Em andamento: oito E2E completos após código; dois testes direcionados após ampliar negativos/responsividade | Concluir jornadas restantes, CI remoto e medições representativas |
+| P03 | Aberta, decisão de negócio recebida | Desativar sem apagar histórico, revogar sessões e redefinir senha presencialmente por admin; implementar/testar na gestão de Funcionários |
+| P07/P12 | Abertas para UI/gestão: API de retirada existe; Funcionários carece de endpoints/tela | Implementar após revisão funcional, com negativos e concorrência |
+
+P01/P02/P11 continuam decisões pendentes. P15/P16/P18/P24 continuam bloqueios de corte/publicação. A regressão E2E usa exclusivamente Mongo descartável e dados sintéticos.
 
 Registro central solicitado pelo usuário. Atualizar durante as etapas 02–08 e revisar após a etapa 08. Criado em 23/10/2026 a partir da etapa 01 (8be92b1). Documentação não comprova implementação.
 

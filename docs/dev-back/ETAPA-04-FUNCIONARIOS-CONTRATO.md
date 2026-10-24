@@ -21,6 +21,10 @@ Uma contagem seguida de `save()` não basta: duas requisições poderiam rebaixa
 
 Implementar primeiro cadastro admin existente mais listagem pública para admin e 403 para não admin em HTTP/Mongo descartável. Antes de ampliar para edição/perfil e telas completas, revisar resposta real e restrições. Depois testar 401, 403, campo inválido, ETag ausente/desatualizado, dois rebaixamentos simultâneos e manutenção de um admin. Conferir que resposta, log e props não contêm hash/senha/token. Acesso às OS continua compartilhado pelos três perfis; exclusão de OS continua somente admin.
 
+## Decisão operacional posterior
+
+O usuário confirmou em 24/10/2026: desativar funcionário sem apagar o histórico; revogar as sessões dele; permitir redefinição administrativa de senha presencialmente, sem envio automático. Esta decisão atualiza P03, mas **não está implementada** na primeira fatia de criação de OS. O contrato executável de desativação/redefinição e seus testes serão definidos na etapa de Funcionários, incluindo garantia de que o último administrador ativo não possa ser desativado e que tokens emitidos antes do desligamento sejam recusados.
+
 ## Limites
 
-P03 segue aberta para desativação/redefinição de senha; P18 continua bloqueio de publicação. Esta proposta não modifica o schema nem garante prontidão operacional. Referências: [transações MongoDB](https://www.mongodb.com/docs/manual/core/transactions/) e [segurança de dados Next.js](https://nextjs.org/docs/app/guides/data-security).
+P03 segue aberta para implementação/validação de desativação/redefinição de senha; P18 continua bloqueio de publicação. Esta proposta não modifica o schema nem garante prontidão operacional. Referências: [transações MongoDB](https://www.mongodb.com/docs/manual/core/transactions/) e [segurança de dados Next.js](https://nextjs.org/docs/app/guides/data-security).
