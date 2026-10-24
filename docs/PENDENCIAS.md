@@ -1,5 +1,9 @@
 # Pendências para revisão ao final dos prompts
 
+## Segurança da API — avanço local em 24/10/2026
+
+P18 permanece **aberta para publicação**. A auditoria antes da correção encontrou oito alertas de produção no lockfile do backend (um crítico, seis altos, um moderado). A atualização compatível do lockfile (`f0346a5`) levou `npm audit --omit=dev` a zero alertas conhecidos; `npm run check` passou 53 testes HTTP/Mongo, tipagem, lint e build, e o teste HTTP completo após o controle de origem passou 54 cenários. A API agora rejeita requisições com `Origin` fora de `CORS_ORIGINS`; em desenvolvimento permite localhost/127.0.0.1:3000. A chamada servidor Next → Express não envia `Origin`. Faltam hospedagem/proxy definidos e testes de proteção de tentativas de login, TLS, logs, configuração de origem real e operação com instância(s) do destino. Zero alertas conhecidos não equivale a ausência de vulnerabilidades.
+
 ## Exceções operacionais implementadas localmente — 24/10/2026
 
 [Entrega e limites](dev-back/EXCECOES-RETIRADA-ENTREGA.md). P01, P02 e P11 estão **resolvidas no fluxo v2 local**, com testes HTTP/Mongo e navegador; a regra decidida não equivale a publicação. P01: retirada em qualquer andamento, sem falsear Pronto. P02: correção por qualquer funcionário com motivo, `If-Match`, registro anterior preservado; sem sessão negado. P11: inclusão após retirada e remoção somente de item sem histórico, preservando retirados. `npm run check` passou 53 testes HTTP/Mongo, tipagem, lint e build; `npm run test:e2e` passou 16 cenários Chromium. P15/P16/P17/P18/P21/P23 ainda bloqueiam a entrada real; P20 permanece aviso de ferramentas. Nenhum dado real foi alterado.
