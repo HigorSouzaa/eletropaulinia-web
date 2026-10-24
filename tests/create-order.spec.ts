@@ -59,3 +59,35 @@ test('transporte de criação exige sessão e origem permitida', async ({ reques
     const csrf = await request.post('/api/orders', { data, headers: { Origin: 'https://invalid.example', 'Idempotency-Key': key } });
     expect(csrf.status()).toBe(403);
 });
+
+test('falha transitória preserva formulário e chave da mesma tentativa', async ({ page, request }) => {
+    await page.goto('/login');
+    await page.getByLabel('Usuário', { exact: true }).fill('teste-b');
+    await page.getByLabel('Senha', { exact: true }).fill('Synthetic-test-password-42');
+    await page.getByRole('button', { name: 'Entrar' }).click();
+    await expect(page).toHaveURL(/\/ordens$/);
+    await page.goto('/nova-ordem');
+    await page.getByLabel('Nome *').fill('Cliente de retry sintético');
+    await page.getByLabel('Telefone *').fill('19900000001');
+    await page.getByLabel('Identificação *').fill('Aparelho retry');
+    await page.getByLabel('Solicitação').selectOption('testar');
+    const keys: string[] = [];
+    await page.route('**/api/orders', async route => {
+        if (route.request().method() !== 'POST') return route.continue();
+        keys.push(route.request().headers()['idempotency-key']);
+        if (keys.length === 1) return route.fulfill({ status: 503, contentType: 'application/json', body: '{}' });
+        return route.continue();
+    });
+    await page.getByRole('button', { name: 'Salvar ordem' }).click();
+    await expect(page.getByRole('alert').filter({ hasText: 'dados foram mantidos' })).toBeVisible();
+    await expect(page.getByLabel('Identificação *')).toHaveValue('Aparelho retry');
+    await page.getByRole('button', { name: 'Salvar ordem' }).click();
+    await expect(page).toHaveURL(/\/ordens\/[a-f0-9]{24}$/);
+    expect(keys).toHaveLength(2); expect(keys[0]).toBe(keys[1]);
+    const id = new URL(page.url()).pathname.split('/').at(-1)!;
+    const login = await request.post('http://127.0.0.1:5101/api/auth/login', { data: { username: 'teste-a', password: 'Synthetic-test-password-42' } });
+    const { token } = await login.json();
+    const target = `http://127.0.0.1:5101/api/v2/orders/${id}`;
+    const current = await request.get(target, { headers: { Authorization: `Bearer ${token}` } });
+    expect((await request.delete(target, { headers: { Authorization: `Bearer ${token}`, 'If-Match': current.headers()['etag'] } })).status()).toBe(204);
+});

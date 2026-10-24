@@ -3,12 +3,12 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 export const COOKIE = 'ep_session';
 export const noStore = { 'Cache-Control': 'private, no-store, max-age=0' };
-type ApiPath = '/auth/login' | '/auth/logout' | '/auth/me' | '/orders' | '/v2/orders' | `/v2/orders?${string}` | `/v2/orders/${string}`;
-export async function expressRequest(path: ApiPath, token?: string, body?: unknown, extraHeaders: Record<string, string> = {}) {
+export type ApiPath = '/auth/login' | '/auth/logout' | '/auth/me' | '/auth/register' | '/orders' | '/v2/orders' | `/v2/orders?${string}` | `/v2/orders/${string}` | '/v2/employees' | `/v2/employees?${string}` | `/v2/employees/${string}`;
+export async function expressRequest(path: ApiPath, token?: string, body?: unknown, extraHeaders: Record<string, string> = {}, method = body === undefined ? 'GET' : 'POST') {
     const base = process.env.API_INTERNAL_URL || 'http://127.0.0.1:5000/api';
     try {
         return await fetch(base.replace(/\/$/, '') + path, {
-            method: body === undefined ? 'GET' : 'POST',
+            method,
             headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}), ...extraHeaders },
             ...(body === undefined ? {} : { body: JSON.stringify(body) }),
             cache: 'no-store', signal: AbortSignal.timeout(8000), redirect: 'error',

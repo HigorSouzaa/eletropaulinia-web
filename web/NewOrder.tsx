@@ -20,6 +20,8 @@ export function NewOrder() {
         channel.onmessage = () => { active.current = false; router.replace('/login'); };
         return () => { active.current = false; channel.close(); };
     }, [router]);
+    useEffect(() => { if (fields.length) document.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus(); }, [fields]);
+    const fieldError = (path: string, id: string, label: string) => fields.includes(path) ? <span id={id} className="block text-sm text-red-700">Confira {label}.</span> : null;
     function changed() { attempt.current = null; setError(''); setFields([]); }
     function update(index: number, patch: Partial<Equipment>) { changed(); setEquipment(items => items.map((value, i) => i === index ? { ...value, ...patch } : value)); }
     async function save(event: React.FormEvent) {
@@ -54,22 +56,22 @@ export function NewOrder() {
         <p className="mt-1 text-gray-600">Cadastre o cliente e todos os equipamentos recebidos.</p>
         <form onSubmit={save} className="mt-6 space-y-6">
             <section className="rounded-xl border bg-white p-5"><h2 className="text-lg font-semibold">Cliente</h2><div className="mt-4 grid gap-4 sm:grid-cols-2">
-                <label>Nome *<input className={input} required maxLength={120} value={client.nome} onChange={e => { changed(); setClient(v => ({ ...v, nome: e.target.value })); }} aria-invalid={fields.includes('cliente.nome')} /></label>
-                <label>Telefone *<input className={input} required maxLength={32} value={client.telefone} onChange={e => { changed(); setClient(v => ({ ...v, telefone: e.target.value })); }} aria-invalid={fields.includes('cliente.telefone')} /></label>
-                <label>E-mail (opcional)<input className={input} type="email" maxLength={254} value={client.email} onChange={e => { changed(); setClient(v => ({ ...v, email: e.target.value })); }} aria-invalid={fields.includes('cliente.email')} /></label>
-                <label>Data de entrada *<input className={input} type="date" required value={date} onChange={e => { changed(); setDate(e.target.value); }} aria-invalid={fields.includes('dataEntrada')} /></label>
+                <label>Nome *<input className={input} required maxLength={120} value={client.nome} onChange={e => { changed(); setClient(v => ({ ...v, nome: e.target.value })); }} aria-invalid={fields.includes('cliente.nome')} aria-describedby={fields.includes('cliente.nome') ? 'client-name-error' : undefined} />{fieldError('cliente.nome', 'client-name-error', 'o nome do cliente')}</label>
+                <label>Telefone *<input className={input} required maxLength={32} value={client.telefone} onChange={e => { changed(); setClient(v => ({ ...v, telefone: e.target.value })); }} aria-invalid={fields.includes('cliente.telefone')} aria-describedby={fields.includes('cliente.telefone') ? 'client-phone-error' : undefined} />{fieldError('cliente.telefone', 'client-phone-error', 'o telefone')}</label>
+                <label>E-mail (opcional)<input className={input} type="email" maxLength={254} value={client.email} onChange={e => { changed(); setClient(v => ({ ...v, email: e.target.value })); }} aria-invalid={fields.includes('cliente.email')} aria-describedby={fields.includes('cliente.email') ? 'client-email-error' : undefined} />{fieldError('cliente.email', 'client-email-error', 'o e-mail')}</label>
+                <label>Data de entrada *<input className={input} type="date" required value={date} onChange={e => { changed(); setDate(e.target.value); }} aria-invalid={fields.includes('dataEntrada')} aria-describedby={fields.includes('dataEntrada') ? 'entry-date-error' : undefined} />{fieldError('dataEntrada', 'entry-date-error', 'a data de entrada')}</label>
             </div></section>
             <section><div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-lg font-semibold">Equipamentos</h2><button type="button" className="rounded-lg border bg-white px-4 py-2" onClick={() => { changed(); setEquipment(v => [...v, item()]); }}>Adicionar equipamento</button></div>
                 <div className="mt-3 space-y-4">{equipment.map((eq, index) => <fieldset key={eq.key} className="rounded-xl border bg-white p-5"><legend className="px-1 font-medium">Equipamento {index + 1}</legend>
-                    <div className="grid gap-4 sm:grid-cols-2"><label>Identificação *<input className={input} required maxLength={160} value={eq.nome} onChange={e => update(index, { nome: e.target.value })} aria-invalid={fields.includes(`equipamentos.${index}.nome`)} /></label>
+                    <div className="grid gap-4 sm:grid-cols-2"><label>Identificação *<input className={input} required maxLength={160} value={eq.nome} onChange={e => update(index, { nome: e.target.value })} aria-invalid={fields.includes(`equipamentos.${index}.nome`)} aria-describedby={fields.includes(`equipamentos.${index}.nome`) ? `equipment-${index}-name-error` : undefined} />{fieldError(`equipamentos.${index}.nome`, `equipment-${index}-name-error`, 'a identificação do equipamento')}</label>
                         <label>Marca (opcional)<input className={input} maxLength={120} value={eq.marca} onChange={e => update(index, { marca: e.target.value })} /></label>
                         <label>Modelo (opcional)<input className={input} maxLength={120} value={eq.modelo} onChange={e => update(index, { modelo: e.target.value })} /></label>
                         <label>Número de série (opcional)<input className={input} maxLength={120} value={eq.numeroSerie} onChange={e => update(index, { numeroSerie: e.target.value })} /></label>
                     </div><div className="mt-4"><label className="block">Solicitação<select className={input} value={eq.tipo} onChange={e => update(index, { tipo: e.target.value as Equipment['tipo'], descricao: '' })}><option value="relato">Defeito relatado</option><option value="testar">Testar — sem defeito relatado</option></select></label>
-                        {eq.tipo === 'relato' && <label className="mt-4 block">Defeito relatado *<textarea className={input} required maxLength={2000} value={eq.descricao} onChange={e => update(index, { descricao: e.target.value })} aria-invalid={fields.includes(`equipamentos.${index}.solicitacao.descricao`)} /></label>}</div>
+                        {eq.tipo === 'relato' && <label className="mt-4 block">Defeito relatado *<textarea className={input} required maxLength={2000} value={eq.descricao} onChange={e => update(index, { descricao: e.target.value })} aria-invalid={fields.includes(`equipamentos.${index}.solicitacao.descricao`)} aria-describedby={fields.includes(`equipamentos.${index}.solicitacao.descricao`) ? `equipment-${index}-description-error` : undefined} />{fieldError(`equipamentos.${index}.solicitacao.descricao`, `equipment-${index}-description-error`, 'o relato')}</label>}</div>
                     {equipment.length > 1 && <button type="button" className="mt-4 text-red-700 underline" onClick={() => { changed(); setEquipment(v => v.filter(value => value.key !== eq.key)); }}>Remover equipamento {index + 1}</button>}
                 </fieldset>)}</div></section>
-            {error && <p role="alert" className="rounded-lg bg-red-50 p-4 text-red-800">{error}{fields.length > 0 && <span className="block text-sm">{fields.join(', ')}</span>}</p>}
+            {error && <p role="alert" className="rounded-lg bg-red-50 p-4 text-red-800">{error}</p>}
             <button disabled={saving} className="rounded-lg bg-orange-600 px-5 py-3 font-medium text-white disabled:opacity-50">{saving ? 'Salvando...' : 'Salvar ordem'}</button>
         </form>
     </main>;

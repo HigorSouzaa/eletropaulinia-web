@@ -1,1 +1,5 @@
-export { default } from '../../nova-ordem/page';
+import { EditOrder } from '../../../../web/EditOrder';
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
+    return <EditOrder id={id} />;
+}
