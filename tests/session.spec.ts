@@ -77,7 +77,7 @@ test('mobile, navegação, busca e páginas pendentes', async ({ page }) => {
     await expect(page.getByText('Nenhuma ordem corresponde à busca.')).toBeVisible();
     await page.screenshot({ path: 'test-results/mobile.png', fullPage: true });
     await page.goto('/nova-ordem');
-    await expect(page.getByRole('heading', { name: 'Cadastro temporariamente indisponível' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Nova ordem de serviço' })).toBeVisible();
     await page.goto('/nao-existe');
     await expect(page.getByRole('heading', { name: 'Página não encontrada' })).toBeVisible();
 });

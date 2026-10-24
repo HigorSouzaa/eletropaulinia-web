@@ -3,13 +3,13 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 export const COOKIE = 'ep_session';
 export const noStore = { 'Cache-Control': 'private, no-store, max-age=0' };
-type ApiPath = '/auth/login' | '/auth/logout' | '/auth/me' | '/orders' | '/v2/orders' | `/v2/orders?${string}`;
-export async function expressRequest(path: ApiPath, token?: string, body?: unknown) {
+type ApiPath = '/auth/login' | '/auth/logout' | '/auth/me' | '/orders' | '/v2/orders' | `/v2/orders?${string}` | `/v2/orders/${string}`;
+export async function expressRequest(path: ApiPath, token?: string, body?: unknown, extraHeaders: Record<string, string> = {}) {
     const base = process.env.API_INTERNAL_URL || 'http://127.0.0.1:5000/api';
     try {
         return await fetch(base.replace(/\/$/, '') + path, {
             method: body === undefined ? 'GET' : 'POST',
-            headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) },
+            headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}), ...extraHeaders },
             ...(body === undefined ? {} : { body: JSON.stringify(body) }),
             cache: 'no-store', signal: AbortSignal.timeout(8000), redirect: 'error',
         });
@@ -34,6 +34,9 @@ export function validOrigin(request: Request) {
     }
 }
 export async function readLoginBody(request: Request) {
+    return readJsonBody(request, 4096);
+}
+export async function readJsonBody(request: Request, limit: number) {
     const reader = request.body?.getReader();
     if (!reader)
         throw new Error('EMPTY');
@@ -44,7 +47,7 @@ export async function readLoginBody(request: Request) {
         if (done)
             break;
         size += value.byteLength;
-        if (size > 4096) {
+        if (size > limit) {
             await reader.cancel();
             throw new Error('LIMIT');
         }
