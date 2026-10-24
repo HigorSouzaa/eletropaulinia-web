@@ -38,7 +38,7 @@ Na futura implementação da correção, preservar registro auditável do evento
 
 ### 2. Configuração Atlas
 
-- Comparar, pela documentação oficial atual, opções de cluster, limites/custo, região, transações, backup e restauração. Cluster Free não tem backup automático do Atlas; se for candidato, planejar `mongodump`/`mongorestore`, armazenamento seguro e restauração ensaiada. Não contratar ou provisionar.
+- Comparar, pela documentação oficial atual, opções de cluster, limites/custo, região, transações, backup e restauração. Backup diário pago em cluster Free existe como prévia privada e pode não estar disponível na conta; não presumir que venha incluído. Se Free for candidato, avaliar `mongodump`/`mongorestore`, consistência, armazenamento seguro e restauração ensaiada. Não contratar ou provisionar.
 - Separar desenvolvimento, homologação e produção; documentar TLS, menor privilégio, rede/IP, rotação de credenciais, reutilização de conexão/pool e falhas. Documentar variáveis somente por nome/finalidade.
 - Verificar em ambiente compatível que as transações usadas na proteção do último administrador ativo são suportadas; Mongo standalone local não comprova esse fluxo no destino.
 
@@ -101,6 +101,7 @@ Entregar scripts seguros/testados, inventário agregado quando autorizado, propo
 
 - `docs/dev-back/ETAPA-03-ENTREGA.md`, `docs/dev-front/ETAPA-04-ENTREGA.md`, `docs/PENDENCIAS.md`.
 - MongoDB Atlas — backup/restauração: https://www.mongodb.com/docs/atlas/backup-restore-cluster/
+- MongoDB Atlas — prévia privada de backup Free: https://www.mongodb.com/docs/atlas/backup/cloud-backup/free-cluster-backup/
 - MongoDB — atomicidade e transações: https://www.mongodb.com/docs/manual/core/write-operations-atomicity/
 
 Consultar documentação oficial atual para o cluster, rede e segurança escolhidos. Separar inspeção, execução, hipótese e ponto não verificável.

@@ -41,7 +41,7 @@ O frontend Vite foi preservado em [legacy](legacy/README.md), sem integrar o bui
 
 Login usa **username**, não e-mail. Cadastro de usuários exige sessão de administrador. O cadastro não devolve senha nem token do novo usuário. Para primeiro administrador, use o procedimento manual do backend.
 
-Os perfis admin, tecnico e atendente mantêm acesso compartilhado às ordens; exclusão e gestão de Funcionários são somente admin. O acesso compartilhado foi confirmado pela empresa. A desativação mantém o histórico e revoga sessões; a redefinição de senha é administrativa e presencial, sem envio automático. Consulte o [contrato v2](docs/contratos/API-V2.md) e o [contrato executado de Funcionários](docs/dev-back/ETAPA-04-FUNCIONARIOS-CONTRATO.md). Retirada antecipada, correção de retirada e alteração da composição após a primeira retirada continuam sem regra aprovada.
+Os perfis admin, tecnico e atendente mantêm acesso compartilhado às ordens; exclusão e gestão de Funcionários são somente admin. O acesso compartilhado foi confirmado pela empresa. A desativação mantém o histórico e revoga sessões; a redefinição de senha é administrativa e presencial, sem envio automático. Consulte o [contrato v2](docs/contratos/API-V2.md) e o [contrato executado de Funcionários](docs/dev-back/ETAPA-04-FUNCIONARIOS-CONTRATO.md). Retirada antecipada, correção de retirada por qualquer funcionário e alteração da composição após a primeira retirada foram aprovadas como regras, mas ainda não foram implementadas; P01/P02/P11 permanecem abertas.
 
 ## Estado e próximos passos
 

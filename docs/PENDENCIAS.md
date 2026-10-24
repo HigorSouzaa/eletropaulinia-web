@@ -1,5 +1,9 @@
 # Pendências para revisão ao final dos prompts
 
+## Preparação da etapa 05 — 24/10/2026
+
+Branch `feat/preparo-atlas-dados`, base `51b854a`. [Plano A/B para revisão](dev-back/ETAPA-05-PLANO.md). Releitura do código confirmou que a transformação atual é pura e que o preparador de índices/contador só roda no banco de teste `orders_v2_test`. `npm run check` revalidou tipagem, lint, 42 testes HTTP/Mongo descartável e build. Nenhum banco real ou Atlas foi acessado; nenhum aplicador foi implementado nesta preparação. P15/P16/P17/P24 continuam abertos, P0 para corte onde já indicado. Próximo passo: revisão da arquitetura/contrato; depois uma primeira fatia em Mongo descartável, conforme checkpoints da Dev Back Master. A documentação atual do Atlas registra uma prévia privada de backup diário pago em Free; disponibilidade, custo e adequação à empresa ainda não foram verificados.
+
 ## Decisões operacionais recebidas — 24/10/2026
 
 O usuário confirmou: (1) permitir retirada de equipamento antes de Pronto, inclusive antes da aprovação do serviço; (2) permitir que qualquer funcionário corrija uma retirada registrada por engano; (3) permitir alterar a composição da OS depois da primeira retirada. Esta é decisão de negócio, **não evidência de implementação**. A etapa 04 ainda bloqueia esses três caminhos. Preservar o evento anterior e o histórico dos itens entregues na solução técnica.
