@@ -7,7 +7,16 @@ import employees from './routes/employees.js';
 
 // Importar a aplicação não abre portas nem conecta a um banco.
 const app = express();
-app.use(cors());
+const localOrigins = ['http://127.0.0.1:3000', 'http://localhost:3000'];
+app.use((req, res, next) => {
+  const origin = req.get('Origin');
+  if (!origin) return next();
+  const configured = (process.env.CORS_ORIGINS || '').split(',').map(value => value.trim()).filter(Boolean);
+  const allowed = process.env.NODE_ENV === 'production' ? configured : [...localOrigins, ...configured];
+  if (!allowed.includes(origin)) return res.status(403).json({ message: 'Origem não permitida' });
+  return next();
+});
+app.use(cors({ origin: (origin, callback) => callback(null, origin || false) }));
 app.use('/api/v2/orders', ordersV2);
 app.use('/api/v2/employees', employees);
 app.use(express.json());

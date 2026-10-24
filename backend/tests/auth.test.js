@@ -66,6 +66,26 @@ test('cadastro anônimo não cria usuário nem administrador', async () => {
   assert.equal(await User.countDocuments(), 1);
 });
 
+test('API bloqueia origem web não autorizada e permite a origem local', async () => {
+  const blocked = await fetch(`${origin}/api/auth/login`, {
+    method: 'POST', headers: { Origin: 'https://unauthorized.example', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: admin.username, password }),
+  });
+  assert.equal(blocked.status, 403);
+  assert.equal(blocked.headers.get('access-control-allow-origin'), null);
+  const allowed = await fetch(`${origin}/api/auth/login`, {
+    method: 'POST', headers: { Origin: 'http://localhost:3000', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: admin.username, password }),
+  });
+  assert.equal(allowed.status, 200);
+  assert.equal(allowed.headers.get('access-control-allow-origin'), 'http://localhost:3000');
+  const preflight = await fetch(`${origin}/api/auth/login`, {
+    method: 'OPTIONS', headers: { Origin: 'http://localhost:3000', 'Access-Control-Request-Method': 'POST' },
+  });
+  assert.equal(preflight.status, 204);
+  assert.equal(preflight.headers.get('access-control-allow-origin'), 'http://localhost:3000');
+});
+
 test('token de usuário removido não permite consultar ordens', async () => {
   const token = tokenFor(admin);
   await User.deleteOne({ _id: admin._id });
