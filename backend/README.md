@@ -13,6 +13,7 @@ Copie `.env.example` para `.env` dentro de backend. Defina:
 | JWT_EXPIRE | Duração dos tokens; padrão 1h. Use duração positiva, por exemplo 1h |
 | PORT | Porta da API; padrão 5000 |
 | NODE_ENV | development ou production |
+| CORS_ORIGINS | Origens exatas do frontend separadas por vírgula; em produção nenhuma origem web é aceita se ficar vazio |
 | ADMIN_USERNAME / ADMIN_NAME / ADMIN_PASSWORD | Somente no provisionamento manual inicial |
 
 Não há credenciais padrão. Gere o segredo por ferramenta segura local e armazene fora do Git. O startup rejeita falta de URI, segredo curto ou porta inválida. Sem conexão ao banco, não abre a porta HTTP.
@@ -47,4 +48,8 @@ A suíte cobre autenticação/revogação/perfis e OS v2: múltiplos equipamento
 
 ## Limites operacionais atuais
 
-Express revalida JWT e revogação; Next mantém credencial em cookie HttpOnly. CORS, rate limit e dependências continuam P18, bloqueando publicação. Escritores v1 foram desativados; use /api/v2/orders. Não há inicialização automática de contador/índices ou migração de dados reais: preparar ambiente com inventário e backup na etapa 05, mediante autorização. Scripts/testes de fixtures não devem ser apontados para a empresa. Na raiz, `node backend/scripts/transform-order-fixtures.js --fixtures-only` demonstra transformação puramente sintética, sem conexão ou escrita.
+Express revalida JWT e revogação; Next mantém credencial em cookie HttpOnly. A API rejeita `Origin` fora da lista configurada e limita login em janelas de 15 minutos no MongoDB: 100 tentativas por endereço de conexão e cinco falhas por endereço/usuário. Ao atingir o limite, retorna 429 e `Retry-After`. O endereço vem do socket, sem confiar em `X-Forwarded-For`; se o Next for o único cliente da API, todas as contas compartilham o limite de 100 tentativas desse endereço. Definir a topologia de hospedagem e monitorar esse limite antes do corte.
+
+`GET /health/live` confirma que o processo responde; `GET /health/ready` faz ping no MongoDB e devolve 503 genérico quando a conexão não está pronta. O health não expõe URI ou dados internos. Logs HTTP em produção incluem somente ID da requisição, método, template de rota, status e duração; não registram URL completa, corpo, IP ou token. O provedor escolhido deve monitorar readiness e usar HTTPS. [Achados e pendências da etapa 06](../docs/dev-back/ETAPA-06-SEGURANCA.md).
+
+P18 ainda bloqueia publicação até validação da infraestrutura real, TLS, monitoramento e procedimento de incidentes. Escritores v1 foram desativados; use /api/v2/orders. Não há inicialização automática de contador/índices ou migração de dados reais: preparar ambiente com inventário e backup na etapa 05. Scripts/testes de fixtures não devem ser apontados para a empresa. Na raiz, `node backend/scripts/transform-order-fixtures.js --fixtures-only` demonstra transformação puramente sintética, sem conexão ou escrita.

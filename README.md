@@ -15,7 +15,7 @@ if (!(Test-Path .env)) { Copy-Item .env.example .env }
 if (!(Test-Path backend/.env)) { Copy-Item backend/.env.example backend/.env }
 ```
 
-O exemplo de `MONGODB_URI` fica em branco até você configurar a conexão. Preencha `backend/.env` com uma conexão de **desenvolvimento** e um `JWT_SECRET` aleatório de pelo menos 32 caracteres. Nenhuma senha padrão é fornecida. Não versione arquivos de ambiente. A conexão pode ser MongoDB local ou Atlas; as alterações administrativas de Funcionários exigem um MongoDB configurado como replica set para transações. Um servidor local standalone permite consultas, mas essas alterações falham de modo seguro. Em produção, configure `CORS_ORIGINS` com a origem exata do frontend; a API rejeita origens web não autorizadas. Não há provisionamento automático de infraestrutura. O [roteiro de banco novo](docs/dev-back/ETAPA-05-BASE-ZERO.md) orienta a preparação futura.
+O exemplo de `MONGODB_URI` fica em branco até você configurar a conexão. Preencha `backend/.env` com uma conexão de **desenvolvimento** e um `JWT_SECRET` aleatório de pelo menos 32 caracteres. Nenhuma senha padrão é fornecida. Não versione arquivos de ambiente. A conexão pode ser MongoDB local ou Atlas; as alterações administrativas de Funcionários exigem um MongoDB configurado como replica set para transações. Um servidor local standalone permite consultas, mas essas alterações falham de modo seguro. A API rejeita origens web não autorizadas. Se o navegador acessar somente o Next e o Next chamar Express no servidor, `CORS_ORIGINS` pode permanecer vazio em produção; uma origem de navegador direta precisa ser listada exatamente. Não há provisionamento automático de infraestrutura. O [roteiro de banco novo](docs/dev-back/ETAPA-05-BASE-ZERO.md) orienta a preparação futura.
 
 ```powershell
 npm run start-all
@@ -51,4 +51,4 @@ Os perfis admin, tecnico e atendente mantêm acesso compartilhado às ordens; ex
 - [Entrega do primeiro ciclo](docs/dev-back/CICLO-1.md)
 - [Decisões de continuidade](docs/dev-front/DECISIONS.md)
 
-Ainda há bloqueios antes do uso real: Atlas/URI e backup, triagem de dependências e controles operacionais, testes ampliados e homologação. Veja docs/PENDENCIAS.md para os estados atuais. A branch WhatsApp não faz parte deste ciclo. Build e testes aprovados não significam prontidão de produção.
+Ainda há bloqueios antes do uso real: Atlas/URI e backup, validação dos controles na hospedagem real, testes ampliados e homologação. A etapa 06 implementou limite de login e health checks locais; consulte o [relatório de segurança](docs/dev-back/ETAPA-06-SEGURANCA.md). Veja docs/PENDENCIAS.md para os estados atuais. A branch WhatsApp não faz parte deste ciclo. Build e testes aprovados não significam prontidão de produção.

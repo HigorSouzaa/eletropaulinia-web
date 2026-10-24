@@ -1,5 +1,9 @@
 # Pendências para revisão ao final dos prompts
 
+## Etapa 06 — segurança local em 24/10/2026
+
+[Achados, testes e limites](dev-back/ETAPA-06-SEGURANCA.md). P18 segue **aberta para publicação**, mas o login agora tem limite persistido no MongoDB por endereço e endereço/usuário (`6c0193b`), 429 com `Retry-After` atravessa Express→Next, e readiness testa o banco sem revelar erros internos. Após reinstalação limpa, `npm run check` passou 57 testes HTTP/Mongo, tipagem, lint e build; `npm run test:e2e` passou 17 cenários Chromium. A auditoria de produção retornou zero alertas conhecidos nos dois pacotes e a completa do backend também zero. Lockfiles de desenvolvimento receberam atualizações compatíveis (`e4d8a4d`); restam três alertas moderados via Tailwind 3 na auditoria completa da raiz. Não forçar Tailwind 4 sem migração/testes próprios. P20 **resolvida localmente** com `e4d8a4d`: dados Browserslist atualizados e build sem aviso. P15/P16/P17/P24 seguem dependentes do Atlas, P21 de CI remoto/ambiente representativo e P23 de aceite humano.
+
 ## Segurança da API — avanço local em 24/10/2026
 
 P18 permanece **aberta para publicação**. A auditoria antes da correção encontrou oito alertas de produção no lockfile do backend (um crítico, seis altos, um moderado). A atualização compatível do lockfile (`f0346a5`) levou `npm audit --omit=dev` a zero alertas conhecidos; `npm run check` passou 53 testes HTTP/Mongo, tipagem, lint e build, e o teste HTTP completo após o controle de origem passou 54 cenários. A API agora rejeita requisições com `Origin` fora de `CORS_ORIGINS`; em desenvolvimento permite localhost/127.0.0.1:3000. A chamada servidor Next → Express não envia `Origin`. Faltam hospedagem/proxy definidos e testes de proteção de tentativas de login, TLS, logs, configuração de origem real e operação com instância(s) do destino. Zero alertas conhecidos não equivale a ausência de vulnerabilidades.
