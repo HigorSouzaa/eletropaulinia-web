@@ -38,8 +38,8 @@ A etapa 01 consolida os contratos. A etapa 02 é a primeira implementação: bas
 
 Resolver na etapa correspondente, sem reabrir as regras acima:
 
-- Permitir retirada antes de Pronto e corrigir uma retirada registrada por engano.
-- Desligamento de funcionários e recuperação de acesso.
+- Retirada antes de Pronto, correção por qualquer funcionário e alteração da composição após retirada foram aprovadas como regras em 24/10/2026; faltam contrato, implementação e testes. Consulte P01/P02/P11 no registro central.
+- Desligamento sem apagar histórico, revogação de sessões e reset presencial por admin foram aprovados e implementados localmente na etapa 04.
 - Inventário real de dados, acessos aos ambientes, volume e requisitos operacionais.
 - Hospedagem do backend. Vercel é candidata ao frontend; gratuidade, limites e adequação para uso comercial precisam ser conferidos na decisão.
 - Política de backup, restauração, responsabilidades e tratamento de exclusões em backups.

@@ -1,5 +1,17 @@
 # Pendências para revisão ao final dos prompts
 
+## Decisões operacionais recebidas — 24/10/2026
+
+O usuário confirmou: (1) permitir retirada de equipamento antes de Pronto, inclusive antes da aprovação do serviço; (2) permitir que qualquer funcionário corrija uma retirada registrada por engano; (3) permitir alterar a composição da OS depois da primeira retirada. Esta é decisão de negócio, **não evidência de implementação**. A etapa 04 ainda bloqueia esses três caminhos. Preservar o evento anterior e o histórico dos itens entregues na solução técnica.
+
+| ID | Estado e impacto | Dependência, próxima ação e critério observável |
+| --- | --- | --- |
+| P01 | Regra decidida; implementação pendente, P1. API/UI só permitem retirada de item Pronto. | Criar contrato e fluxo de retirada antecipada em branch própria, sem contornar autorização/concorrência; testar retirada em outros andamentos, inclusive antes de aprovação, recarga e status agregado. |
+| P02 | Permissão decidida; implementação pendente, P1. Não há correção de retirada. | Definir contrato auditável que preserve evento original, autor da correção e estado atual; implementar para todos os funcionários, testar concorrência, repetição, recarga e negação sem sessão. |
+| P11 | Composição após retirada aprovada; implementação pendente, P1. API/UI bloqueiam alteração após primeira retirada. | Especificar limites que preservem equipamento já entregue e seu histórico; implementar inclusão, alteração e remoção permitidas com If-Match e testes de agregado, concorrência e recarga. |
+
+Essas exceções devem ser implementadas e validadas antes da homologação operacional e do corte. O Prompt 05 continua focado em dados/Atlas; não o usar como autorização implícita para alterar os fluxos. Detalhes técnicos de auditoria/correção e alterações de item entregue continuam para contrato e revisão de implementação, sem reabrir as três decisões acima.
+
 ## Preparação da etapa 04 — 23/10/2026
 
 Branch `feat/fluxos-next-funcionarios`, base `4157aae`. Propostas para revisão em [arquitetura frontend](dev-front/ETAPA-04-ARQUITETURA.md) e [contrato de Funcionários](dev-back/ETAPA-04-FUNCIONARIOS-CONTRATO.md). Nenhuma pendência foi resolvida apenas por documentação. `npm run check` revalidou tipagem, lint, build e 36 testes HTTP/Mongo descartável; não cobre as futuras telas/endpoints. O aviso Browserslist permanece em P20.
