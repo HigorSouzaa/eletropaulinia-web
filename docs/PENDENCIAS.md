@@ -1,5 +1,9 @@
 # Pendências para revisão ao final dos prompts
 
+## Primeira fatia da etapa 05 — 24/10/2026
+
+Checkpoints A/B aprovados pelo usuário. [Ensaio local e limites](dev-back/ETAPA-05-PRIMEIRA-FATIA.md), implementação `dc876ba`. Inventário agregado e conversão de lote restritos a `stage05_fixture_only` foram testados com dados sintéticos: preservação de ID/número/origem, bloqueio de anomalias, repetição sem escrita, interrupção/retomada e recusa de outro banco. `npm run check` passou com 47 testes HTTP/Mongo, tipagem, lint e build; o CLI confirmou duas conversões e zero escritas na repetição. **P15/P16/P17/P24 permanecem abertas para corte**: não houve inventário real, backup/restore, índice/contador no destino nem teste de reversão após escrita nova. P01/P02/P11 seguem sem implementação e P18 bloqueia publicação. Próxima ação: revisão do checkpoint C; só depois ampliar scripts/ensaios locais, sem acesso remoto implícito.
+
 ## Preparação da etapa 05 — 24/10/2026
 
 Branch `feat/preparo-atlas-dados`, base `51b854a`. [Plano A/B para revisão](dev-back/ETAPA-05-PLANO.md). Releitura do código confirmou que a transformação atual é pura e que o preparador de índices/contador só roda no banco de teste `orders_v2_test`. `npm run check` revalidou tipagem, lint, 42 testes HTTP/Mongo descartável e build. Nenhum banco real ou Atlas foi acessado; nenhum aplicador foi implementado nesta preparação. P15/P16/P17/P24 continuam abertos, P0 para corte onde já indicado. Próximo passo: revisão da arquitetura/contrato; depois uma primeira fatia em Mongo descartável, conforme checkpoints da Dev Back Master. A documentação atual do Atlas registra uma prévia privada de backup diário pago em Free; disponibilidade, custo e adequação à empresa ainda não foram verificados.

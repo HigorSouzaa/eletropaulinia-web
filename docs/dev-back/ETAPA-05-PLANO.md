@@ -1,8 +1,8 @@
 # Etapa 05 — plano de arquitetura e contrato de dados para revisão
 
-24/10/2026. Branch `feat/preparo-atlas-dados`, base `51b854a`. **Checkpoint A/B da Dev Back Master: proposta, sem aplicador implementado nem banco real acessado.** A etapa 04 foi validada localmente; isso não demonstra os dados ou recursos do destino.
+24/10/2026. Branch `feat/preparo-atlas-dados`, base `51b854a`. Checkpoints A/B da Dev Back Master aprovados pelo usuário para uma [primeira fatia em Mongo descartável](ETAPA-05-PRIMEIRA-FATIA.md). Nenhum banco real foi acessado. A etapa 04 foi validada localmente; isso não demonstra os dados ou recursos do destino.
 
-Baseline revalidado nesta preparação: `npm run check` concluiu com tipagem, lint, 42 testes HTTP/Mongo descartável e build aprovados. Nenhum teste novo de migração foi executado, pois os contratos de aplicador/ensaio abaixo ainda aguardam revisão.
+Baseline antes da implementação: `npm run check` concluiu com tipagem, lint, 42 testes HTTP/Mongo descartável e build aprovados. Após a primeira fatia, 47 testes passaram; consulte a entrega vinculada. O plano restante ainda não foi implementado.
 
 ## Evidência e limites
 

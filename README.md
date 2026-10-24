@@ -33,6 +33,8 @@ Executa tipagem, lint (inclui backend), testes HTTP com MongoDB descartável e b
 
 Scripts individuais: `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`. A configuração de GitHub Actions repete os checks em Linux; só rodará remotamente após publicação autorizada da branch.
 
+Ensaio local da primeira fatia da etapa 05: `node backend/scripts/stage05-fixture-rehearsal.js --fixtures-only`. O comando cria MongoDB descartável próprio e usa apenas OS sintéticas; não lê `MONGODB_URI`. Consulte [evidências e limites](docs/dev-back/ETAPA-05-PRIMEIRA-FATIA.md). Ele não prepara Atlas nem substitui backup ou migração operacional.
+
 Testes de navegador: execute `npx playwright install chromium`, `npm run build` e `npm run test:e2e`. O runner inicia Next (3100), Express (5101) e MongoDB descartável, sem usar o banco do ambiente local. Porta 5102 é um controle exclusivo de teste para simular indisponibilidade real. As três portas devem estar livres. Produção local: `npm run build` e `npm run preview`; a API precisa rodar separadamente.
 
 O frontend Vite foi preservado em [legacy](legacy/README.md), sem integrar o build ativo. No Next, use `/ordens` para consultar, `/nova-ordem` para cadastrar, `/ordens/:id` para detalhe/retirada/exclusão, `/editar-ordem/:id` para edição e `/funcionarios` para gestão administrativa. Registros antigos são somente leitura. Alterações usam sessão HttpOnly e versões `ETag`/`If-Match`; criação usa `Idempotency-Key`.
