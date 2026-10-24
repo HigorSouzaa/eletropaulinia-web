@@ -41,6 +41,20 @@ test('CSRF negado e dados sem cache público', async ({ page, request }) => {
     expect(response.headers()['cache-control']).toContain('no-store');
     expect((await response.json()).data.length).toBeGreaterThan(0);
 });
+test('limite de login é transmitido pela camada Next sem expor detalhes internos', async ({ request }) => {
+    for (let index = 0; index < 4; index++) {
+        const response = await request.post('/api/session/login', {
+            headers: { Origin: 'http://127.0.0.1:3100' }, data: { username: 'limited-e2e', password: 'wrong-password' },
+        });
+        expect(response.status()).toBe(401);
+    }
+    const limited = await request.post('/api/session/login', {
+        headers: { Origin: 'http://127.0.0.1:3100' }, data: { username: 'limited-e2e', password: 'wrong-password' },
+    });
+    expect(limited.status()).toBe(429);
+    expect(Number(limited.headers()['retry-after'])).toBeGreaterThan(0);
+    expect((await limited.json()).message).toContain('Muitas tentativas');
+});
 test('erro de consulta e nova tentativa; vazio sem confundir erro', async ({ page }) => {
     await login(page);
     // Falhas/vazio simulados no transporte; login e cenário principal usam banco real.

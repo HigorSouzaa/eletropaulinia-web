@@ -1,5 +1,7 @@
 import express from 'express';
 import cors from 'cors';
+import mongoose from 'mongoose';
+import { randomUUID } from 'node:crypto';
 import authRoutes from './routes/auth.js';
 import orderRoutes from './routes/orders.js';
 import ordersV2 from './routes/ordersV2.js';
@@ -7,6 +9,20 @@ import employees from './routes/employees.js';
 
 // Importar a aplicação não abre portas nem conecta a um banco.
 const app = express();
+app.disable('x-powered-by');
+app.use((req, res, next) => {
+  const requestId = randomUUID();
+  const started = performance.now();
+  res.set({ 'X-Request-ID': requestId, 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer' });
+  res.on('finish', () => {
+    if (process.env.NODE_ENV !== 'production' || req.path.startsWith('/health/')) return;
+    // Only route templates are logged; never URLs, request bodies, tokens or client IPs.
+    console.info(JSON.stringify({ event: 'http', requestId, method: req.method,
+      route: req.route ? `${req.baseUrl}${req.route.path}` : 'unmatched',
+      status: res.statusCode, durationMs: Math.round(performance.now() - started) }));
+  });
+  next();
+});
 const localOrigins = ['http://127.0.0.1:3000', 'http://localhost:3000'];
 app.use((req, res, next) => {
   const origin = req.get('Origin');
@@ -17,6 +33,17 @@ app.use((req, res, next) => {
   return next();
 });
 app.use(cors({ origin: (origin, callback) => callback(null, origin || false) }));
+app.get('/health/live', (_req, res) => res.set('Cache-Control', 'no-store').json({ status: 'live' }));
+app.get('/health/ready', async (_req, res) => {
+  res.set('Cache-Control', 'no-store');
+  if (mongoose.connection.readyState !== 1 || !mongoose.connection.db) return res.status(503).json({ status: 'unavailable' });
+  try {
+    await (app.locals.readinessProbe || (() => mongoose.connection.db.admin().command({ ping: 1, maxTimeMS: 1000 })))();
+    return res.json({ status: 'ready' });
+  } catch {
+    return res.status(503).json({ status: 'unavailable' });
+  }
+});
 app.use('/api/v2/orders', ordersV2);
 app.use('/api/v2/employees', employees);
 app.use(express.json());

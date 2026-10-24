@@ -11,6 +11,7 @@ import app from '../app.js';
 import User from '../models/User.js';
 import Order from '../models/Order.js';
 import RevokedToken from '../models/RevokedToken.js';
+import AuthAttempt from '../models/AuthAttempt.js';
 
 let mongo;
 let server;
@@ -28,7 +29,7 @@ before(async () => {
     instance: { ip: '127.0.0.1' },
   });
   await mongoose.connect(mongo.getUri(), { dbName: 'eletropaulinia_test' });
-  await Promise.all([User.init(), Order.init(), RevokedToken.init()]);
+  await Promise.all([User.init(), Order.init(), RevokedToken.init(), AuthAttempt.init()]);
   server = app.listen(0, '127.0.0.1');
   await once(server, 'listening');
   origin = `http://127.0.0.1:${server.address().port}`;
@@ -41,7 +42,7 @@ after(async () => {
 });
 
 beforeEach(async () => {
-  await Promise.all([User.deleteMany({}), Order.deleteMany({}), RevokedToken.deleteMany({})]);
+  await Promise.all([User.deleteMany({}), Order.deleteMany({}), RevokedToken.deleteMany({}), AuthAttempt.deleteMany({})]);
   admin = await User.create({ username: 'admin-test', name: 'Admin sintético', password, role: 'admin' });
 });
 
@@ -84,6 +85,25 @@ test('API bloqueia origem web não autorizada e permite a origem local', async (
   });
   assert.equal(preflight.status, 204);
   assert.equal(preflight.headers.get('access-control-allow-origin'), 'http://localhost:3000');
+});
+
+test('liveness e readiness distinguem processo vivo de falha do banco sem detalhes internos', async () => {
+  const live = await fetch(`${origin}/health/live`);
+  assert.equal(live.status, 200);
+  assert.equal((await live.json()).status, 'live');
+  assert.equal(live.headers.get('x-powered-by'), null);
+  assert.ok(live.headers.get('x-request-id'));
+  const ready = await fetch(`${origin}/health/ready`);
+  assert.equal(ready.status, 200);
+  assert.equal((await ready.json()).status, 'ready');
+  app.locals.readinessProbe = async () => { throw new Error('synthetic private database detail'); };
+  try {
+    const unavailable = await fetch(`${origin}/health/ready`);
+    assert.equal(unavailable.status, 503);
+    assert.deepEqual(await unavailable.json(), { status: 'unavailable' });
+  } finally {
+    delete app.locals.readinessProbe;
+  }
 });
 
 test('token de usuário removido não permite consultar ordens', async () => {
@@ -150,6 +170,34 @@ test('login rejeita tipos inesperados e credenciais incorretas', async () => {
   for (const username of ['missing-user', admin.username]) {
     assert.equal((await request('/auth/login', { method: 'POST', body: { username, password: 'wrong-password' } })).status, 401);
   }
+});
+
+test('tentativas incorretas recebem 429 sem bloquear outra conta', async () => {
+  const other = await User.create({ username: 'other-staff', name: 'Outra pessoa', password, role: 'atendente' });
+  const attempt = username => fetch(`${origin}/api/auth/login`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password: 'wrong-password' }),
+  });
+  for (let index = 0; index < 4; index++) assert.equal((await attempt(admin.username)).status, 401);
+  const limited = await attempt(admin.username);
+  assert.equal(limited.status, 429);
+  assert.ok(Number(limited.headers.get('retry-after')) > 0);
+  assert.deepEqual(Object.keys(await limited.json()), ['message']);
+  assert.equal((await request('/auth/login', { method: 'POST', body: { username: admin.username, password } })).status, 429);
+  assert.equal((await request('/auth/login', { method: 'POST', body: { username: other.username, password } })).status, 200);
+  await AuthAttempt.deleteMany({});
+  assert.equal((await request('/auth/login', { method: 'POST', body: { username: admin.username, password } })).status, 200);
+});
+
+test('tentativas simultâneas são contadas em uma janela compartilhada', async () => {
+  const responses = await Promise.all(Array.from({ length: 8 }, () => fetch(`${origin}/api/auth/login`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: 'missing-concurrent', password: 'wrong-password' }),
+  })));
+  assert.ok(responses.some(response => response.status === 429));
+  assert.ok(responses.every(response => [401, 429].includes(response.status)));
+  const pair = await AuthAttempt.findOne({ count: { $gte: 5 }, _id: { $type: 'string' } });
+  assert.ok(pair);
 });
 
 test('alterar nome não recalcula hash da senha', async () => {

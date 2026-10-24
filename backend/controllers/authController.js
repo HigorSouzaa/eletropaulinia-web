@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import { randomUUID } from 'node:crypto';
 import RevokedToken, { tokenHash } from '../models/RevokedToken.js';
 import User from '../models/User.js';
+import { beforeLogin, failedLogin, successfulLogin, LoginThrottled } from '../services/loginThrottle.js';
 
 const publicUser = user => ({
   _id: user._id,
@@ -27,18 +28,26 @@ export const register = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const { username, password } = req.body;
+    // The socket address cannot be replaced by an untrusted X-Forwarded-For header.
+    const attempt = await beforeLogin(username, req.socket.remoteAddress);
     const user = await User.findOne({ username: username.trim() }).select('+password +sessionVersion');
     if (!user || user.active === false || !(await user.matchPassword(password))) {
+      await failedLogin(attempt);
       return res.status(401).json({ message: 'Credenciais inválidas' });
     }
+    await successfulLogin(attempt);
     const token = jwt.sign({ id: user._id.toString(), sv: user.sessionVersion ?? 0 }, process.env.JWT_SECRET, {
       algorithm: 'HS256',
       jwtid: randomUUID(),
       expiresIn: process.env.JWT_EXPIRE || '1h',
     });
     return res.json({ ...publicUser(user), token });
-  } catch {
-    return res.status(500).json({ message: 'Não foi possível iniciar a sessão' });
+  } catch (error) {
+    if (error instanceof LoginThrottled) {
+      res.set('Retry-After', String(error.retryAfter));
+      return res.status(429).json({ message: 'Muitas tentativas. Aguarde antes de tentar novamente.' });
+    }
+    return res.status(503).json({ message: 'Login temporariamente indisponível' });
   }
 };
 

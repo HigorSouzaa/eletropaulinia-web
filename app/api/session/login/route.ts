@@ -12,8 +12,15 @@ export async function POST(request: Request) {
     if (!body || typeof body.username !== 'string' || typeof body.password !== 'string')
         return json({ message: 'Preencha usuário e senha' }, 400);
     const upstream = await expressRequest('/auth/login', undefined, { username: body.username, password: body.password });
-    if (!upstream.ok)
+    if (!upstream.ok) {
+        if (upstream.status === 429) {
+            const result = json({ message: 'Muitas tentativas. Aguarde antes de tentar novamente.' }, 429);
+            const retryAfter = upstream.headers.get('retry-after');
+            if (retryAfter && /^\d+$/.test(retryAfter)) result.headers.set('Retry-After', retryAfter);
+            return result;
+        }
         return json({ message: upstream.status === 401 ? 'Usuário ou senha inválidos' : 'Não foi possível entrar. Tente novamente.' }, [400, 401].includes(upstream.status) ? upstream.status : 503);
+    }
     const data = await upstream.json();
     let expires: number;
     try {
