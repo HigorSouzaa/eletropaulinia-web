@@ -43,3 +43,7 @@ Instalação limpa, check (16 HTTP, tipos, lint, build) e seis E2E locais passar
 ## Etapa 03 — continuidade aprovada
 
 Após aprovar o contrato e agregado (“Pode aprovar”), o usuário aprovou a demonstração do primeiro fluxo (“Pode aprovar então”). Checkpoints A/B/C da etapa 03 registrados; continuação restrita ao Prompt 03. Next passou à listagem v2 com busca/paginação/filtros no servidor e todos os equipamentos visíveis. Nenhum formulário da etapa 04, redesign, deploy ou dado real. [Entrega e limites](../dev-back/ETAPA-03-ENTREGA.md). Exceções de retirada/composição permanecem indisponíveis, sem aprovação inferida.
+
+## Etapa 04 — proposta para checkpoints, 23/10/2026
+
+O Prompt 04 autorizou a etapa e exigiu respeito aos checkpoints das skills. Branch `feat/fluxos-next-funcionarios`, base `4157aae`. A [arquitetura das telas](ETAPA-04-ARQUITETURA.md) e o [contrato de funcionários](../dev-back/ETAPA-04-FUNCIONARIOS-CONTRATO.md) foram preparados para revisão. Checkpoints de arquitetura/contrato, design e primeiro fluxo funcional **ainda não foram aprovados nesta etapa**; nenhuma implementação principal foi iniciada. A pergunta operacional de P03 foi encaminhada sem presumir resposta. Baseline `npm run check` passou: 36 testes HTTP/Mongo, tipagem, lint e build; aviso Browserslist antigo permanece. Não houve banco real nem publicação.

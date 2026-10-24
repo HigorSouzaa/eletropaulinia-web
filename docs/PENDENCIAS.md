@@ -1,5 +1,21 @@
 # Pendências para revisão ao final dos prompts
 
+## Preparação da etapa 04 — 23/10/2026
+
+Branch `feat/fluxos-next-funcionarios`, base `4157aae`. Propostas para revisão em [arquitetura frontend](dev-front/ETAPA-04-ARQUITETURA.md) e [contrato de Funcionários](dev-back/ETAPA-04-FUNCIONARIOS-CONTRATO.md). Nenhuma pendência foi resolvida apenas por documentação. `npm run check` revalidou tipagem, lint, build e 36 testes HTTP/Mongo descartável; não cobre as futuras telas/endpoints. O aviso Browserslist permanece em P20.
+
+| IDs | Estado nesta preparação | Evidência, impacto e próximo critério |
+| --- | --- | --- |
+| P03 | Aberta, P1 | Desativação e recuperação não aprovadas; resposta operacional solicitada. Sem endpoints correspondentes até decisão e testes de revogação. |
+| P06/P07/P13 | Em andamento, P0/P1 | API v2 existe, mas criação/detalhe/edição/retirada/exclusão não têm telas Next. Implementar fatia real, recarga, conflitos e erros; validar HTTP+browser. |
+| P11 | Aberta, P1 | Composição após retirada indefinida; manter indisponível e obter decisão antes de habilitar. |
+| P12 | Aberta, P1 | `/auth/register` admin existe; listagem/edição e garantia concorrente do último admin faltam. Contrato proposto requer transação e teste de dois rebaixamentos. |
+| P14/P21 | Em andamento, P1 | Novas telas exigem teclado/foco/360, 768, 1280 px e jornadas reais; interceptações devem ser rotuladas. |
+| P01/P02 | Abertas, P1 | Retirada antecipada e correção continuam indisponíveis, aguardando regra da empresa e testes negativos. |
+| P15/P16/P18/P24 | Abertas, P0 para corte | Dados/backup reais, segurança operacional e reversão não foram validados por esta preparação; etapas 05/06. |
+
+Critérios, dependências e histórico completos dos IDs permanecem nas tabelas abaixo. Próxima ação desta etapa: revisão dos checkpoints das skills; depois implementar um fluxo vertical e demonstrá-lo antes de ampliar. Sem migração real, push, merge ou deploy.
+
 Registro central solicitado pelo usuário. Atualizar durante as etapas 02–08 e revisar após a etapa 08. Criado em 23/10/2026 a partir da etapa 01 (8be92b1). Documentação não comprova implementação.
 
 ## Como manter
