@@ -77,6 +77,10 @@ test('dois administradores não podem ser desativados simultaneamente', async ()
   assert.equal(await User.countDocuments({ role: 'admin', active: { $ne: false } }), 1);
   const disabled = results[0].status === 200 ? tokenA : tokenB;
   assert.equal((await request('', { token: disabled })).status, 401);
+  const disabledUsername = results[0].status === 200 ? 'admin-a' : 'admin-b';
+  const relogin = await fetch(`${origin}/api/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: disabledUsername, password }) });
+  assert.equal(relogin.status, 401);
 });
 test('redefinição presencial invalida todas as sessões antigas e exige senha nova', async () => {
   const token = await login('admin-a');
@@ -104,4 +108,15 @@ test('entradas inválidas, versão antiga e perfil não autorizado não alteram 
   assert.equal(changed.status, 200);
   assert.equal((await request(`/${staff.id}`, { method: 'PATCH', token, match: target.etag, body: { role: 'admin' } })).status, 412);
   assert.equal((await User.findById(staff.id)).role, 'atendente');
+});
+test('JSON inválido e corpo excessivo retornam erro sem dados internos', async () => {
+  const token = await login('admin-a');
+  for (const [raw, expected] of [['{', 400], [JSON.stringify({ name: 'x'.repeat(17000) }), 413]]) {
+    const response = await fetch(`${origin}/api/v2/employees/${staff.id}`, { method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, 'If-Match': `"user-${staff.id}-v1"` }, body: raw });
+    assert.equal(response.status, expected);
+    const result = await response.json();
+    assert.equal(result.error.message.includes('x'.repeat(100)), false);
+    assert.equal(result.error.stack, undefined);
+  }
 });

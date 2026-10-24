@@ -93,8 +93,8 @@ for (const [method, path, operation] of [['patch', '/:id', 'edit'], ['patch', '/
 }
 router.use((_req, _res, next) => next(fail(404, 'NOT_FOUND')));
 router.use((error, req, res, _next) => {
-  const status = error.status || (error.code === 112 ? 412 : 503);
-  const code = error.code && typeof error.code === 'string' ? error.code : 'SERVICE_UNAVAILABLE';
+  const status = error.status || (error.type === 'entity.too.large' ? 413 : error.type === 'entity.parse.failed' ? 400 : error.code === 112 ? 412 : 503);
+  const code = error.status ? error.code : status === 413 ? 'PAYLOAD_TOO_LARGE' : status === 400 ? 'INVALID_JSON' : status === 412 ? 'VERSION_CONFLICT' : 'SERVICE_UNAVAILABLE';
   res.status(status).json({ error: { code: status === 503 ? 'SERVICE_UNAVAILABLE' : code,
     message: status === 503 ? 'Serviço temporariamente indisponível' : 'Não foi possível concluir a operação',
     ...(error.fields ? { fields: error.fields } : {}), requestId: req.requestId } });
