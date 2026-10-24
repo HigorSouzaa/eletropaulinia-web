@@ -1,5 +1,7 @@
 # Etapa 04 — primeira fatia funcional para revisão
 
+Atualização 24/10/2026: primeira fatia aprovada pelo usuário; etapa ampliada e entregue localmente em [ETAPA-04-ENTREGA.md](ETAPA-04-ENTREGA.md). Os limites abaixo descrevem o instante da primeira demonstração.
+
 24/10/2026. Branch `feat/fluxos-next-funcionarios`, implementação `cba10f7`. Arquitetura e contrato foram aprovados pelo usuário antes desta fatia. **A revisão de design e funcionalidade desta fatia ainda aguarda resposta; nenhuma expansão foi presumida.**
 
 ## Comportamento implementado

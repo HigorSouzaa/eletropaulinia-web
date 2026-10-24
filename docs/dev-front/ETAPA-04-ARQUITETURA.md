@@ -1,5 +1,7 @@
 # Etapa 04 — arquitetura e protótipo para revisão
 
+Atualização 24/10/2026: arquitetura aprovada pelo usuário e fluxos normais implementados/validados. [Entrega final da etapa](ETAPA-04-ENTREGA.md). O texto abaixo registra o checkpoint anterior à implementação.
+
 23/10/2026. Base `4157aae`, branch `feat/fluxos-next-funcionarios`. Este documento prepara os checkpoints das skills Dev Front Master e Dev Back Master. **Nenhuma tela ou endpoint novo foi implementado e nenhuma aprovação desta etapa foi presumida.** A interface seguirá a identidade laranja/cinza atual, sem biblioteca de formulário/estado ou redesign.
 
 ## Contrato executável encontrado

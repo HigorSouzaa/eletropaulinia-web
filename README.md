@@ -1,6 +1,6 @@
 # Eletro Paulínia
 
-Sistema de ordens de serviço em retomada. Next.js/App Router/TypeScript com login e listagem integrados à API Node.js/Express/Mongoose. API v2 de múltiplos equipamentos, retiradas parciais, concorrência e consultas entregue na [etapa 03](docs/dev-back/ETAPA-03-ENTREGA.md). Formulários completos e preparação operacional do Atlas continuam pendentes.
+Sistema de ordens de serviço em retomada. Next.js/App Router/TypeScript integrado à API Node.js/Express/Mongoose. A API v2 de múltiplos equipamentos, retiradas parciais, concorrência e consultas foi entregue na [etapa 03](docs/dev-back/ETAPA-03-ENTREGA.md). A etapa 04 acrescentou criação, detalhe, edição, retirada, exclusão e gestão de Funcionários no Next, validados somente com MongoDB descartável. A preparação operacional do Atlas continua pendente.
 
 **Sem liberação operacional**: Next lista registros legados e v2, com busca/filtros/paginação no servidor. Escritores v1 bloqueados; registros antigos permanecem somente para leitura até reconciliação. Contador/índices preparados apenas em testes descartáveis, sem migrador real. POST v2 falha fechado sem preparação explícita. [Pendências](docs/PENDENCIAS.md).
 
@@ -15,7 +15,7 @@ if (!(Test-Path .env)) { Copy-Item .env.example .env }
 if (!(Test-Path backend/.env)) { Copy-Item backend/.env.example backend/.env }
 ```
 
-Preencha `backend/.env` com uma conexão de **desenvolvimento** e um `JWT_SECRET` aleatório de pelo menos 32 caracteres. Nenhuma senha padrão é fornecida. Não versione arquivos de ambiente. A conexão pode ser MongoDB local ou Atlas; não há provisionamento automático de infraestrutura.
+Preencha `backend/.env` com uma conexão de **desenvolvimento** e um `JWT_SECRET` aleatório de pelo menos 32 caracteres. Nenhuma senha padrão é fornecida. Não versione arquivos de ambiente. A conexão pode ser MongoDB local ou Atlas; as alterações administrativas de Funcionários exigem um MongoDB configurado como replica set para transações. Um servidor local standalone permite consultas, mas essas alterações falham de modo seguro. Não há provisionamento automático de infraestrutura.
 
 ```powershell
 npm run start-all
@@ -35,13 +35,13 @@ Scripts individuais: `npm run typecheck`, `npm run lint`, `npm test`, `npm run b
 
 Testes de navegador: execute `npx playwright install chromium`, `npm run build` e `npm run test:e2e`. O runner inicia Next (3100), Express (5101) e MongoDB descartável, sem usar o banco do ambiente local. Porta 5102 é um controle exclusivo de teste para simular indisponibilidade real. As três portas devem estar livres. Produção local: `npm run build` e `npm run preview`; a API precisa rodar separadamente.
 
-O frontend Vite foi preservado em [legacy](legacy/README.md), sem integrar o build ativo. Cadastro e edição no Next estão temporariamente indisponíveis até a API v2; não há promessa de paridade completa.
+O frontend Vite foi preservado em [legacy](legacy/README.md), sem integrar o build ativo. No Next, use `/ordens` para consultar, `/nova-ordem` para cadastrar, `/ordens/:id` para detalhe/retirada/exclusão, `/editar-ordem/:id` para edição e `/funcionarios` para gestão administrativa. Registros antigos são somente leitura. Alterações usam sessão HttpOnly e versões `ETag`/`If-Match`; criação usa `Idempotency-Key`.
 
 ## Autenticação e permissões iniciais
 
 Login usa **username**, não e-mail. Cadastro de usuários exige sessão de administrador. O cadastro não devolve senha nem token do novo usuário. Para primeiro administrador, use o procedimento manual do backend.
 
-Os perfis admin, tecnico e atendente mantêm acesso compartilhado às ordens; exclusão é somente admin. O acesso compartilhado foi confirmado pela empresa. Consulte o [contrato v2 e limites de implementação](docs/contratos/API-V2.md); contratos de funcionários e exceções permanecem propostas.
+Os perfis admin, tecnico e atendente mantêm acesso compartilhado às ordens; exclusão e gestão de Funcionários são somente admin. O acesso compartilhado foi confirmado pela empresa. A desativação mantém o histórico e revoga sessões; a redefinição de senha é administrativa e presencial, sem envio automático. Consulte o [contrato v2](docs/contratos/API-V2.md) e o [contrato executado de Funcionários](docs/dev-back/ETAPA-04-FUNCIONARIOS-CONTRATO.md). Retirada antecipada, correção de retirada e alteração da composição após a primeira retirada continuam sem regra aprovada.
 
 ## Estado e próximos passos
 
@@ -49,4 +49,4 @@ Os perfis admin, tecnico e atendente mantêm acesso compartilhado às ordens; ex
 - [Entrega do primeiro ciclo](docs/dev-back/CICLO-1.md)
 - [Decisões de continuidade](docs/dev-front/DECISIONS.md)
 
-Ainda há bloqueios antes do uso real: conclusão dos formulários, decisões excepcionais, preparação/reconciliação dos dados e índices, triagem de dependências e homologação/backup do Atlas. Veja docs/PENDENCIAS.md para os estados atuais. A branch WhatsApp não faz parte deste ciclo. Build e testes aprovados não significam prontidão de produção.
+Ainda há bloqueios antes do uso real: decisões excepcionais, preparação/reconciliação dos dados e índices, triagem de dependências, testes operacionais e homologação/backup do Atlas. Veja docs/PENDENCIAS.md para os estados atuais. A branch WhatsApp não faz parte deste ciclo. Build e testes aprovados não significam prontidão de produção.

@@ -1,6 +1,17 @@
 # Etapa 04 — proposta de contrato de Funcionários
 
-23/10/2026. **Proposta para checkpoint; ainda não implementada.** `backend/models/User.js` contém `username`, `name`, hash de senha oculto e `role` (`admin`, `tecnico`, `atendente`). `/api/auth/register` já permite cadastro somente por admin. A API consulta o perfil atual do banco a cada requisição protegida; a mudança de perfil pode surtir efeito no token existente. Ainda não há listagem/edição e não há política aprovada de desativação ou recuperação.
+23/10/2026. Registro original de proposta para checkpoint; a seção abaixo descreve o estado implementado em 24/10/2026. `backend/models/User.js` contém `username`, `name`, hash de senha oculto e `role` (`admin`, `tecnico`, `atendente`). `/api/auth/register` já permitia cadastro somente por admin. A API consulta o perfil atual do banco a cada requisição protegida.
+
+## Estado executável após a implementação
+
+- `GET /api/v2/employees` lista somente para admin, com `page`/`pageSize` (1–100) e `meta`; `GET /:id` retorna perfil público e ETag. `PATCH /:id` aceita apenas nome/perfil e exige `If-Match`.
+- Cadastro continua em `POST /api/auth/register`, admin apenas. Não cria sessão para o novo funcionário. Respostas não incluem senha, hash, token nem versão interna de sessão.
+- `PATCH /api/v2/employees/:id/access` aceita `active: false/true`; desativação preserva o registro e relações históricas. `POST /api/v2/employees/:id/password-reset` aceita nova senha segundo a política de cadastro, devolve 204 e exige comunicação presencial. Ambos exigem ETag e incrementam `sessionVersion`, invalidando tokens anteriores. Login e middleware rejeitam contas inativas.
+- Mudança de perfil e desativação usam transação MongoDB e escrita do mesmo documento de serialização. A contagem de administradores ativos ocorre dentro da transação. Duas desativações simultâneas deixam um admin ativo; última desativação/rebaixamento retorna 409. Se a transação estiver indisponível, a alteração falha, sem tentar uma escrita insegura fora dela.
+- O transporte Next usa rotas fixas, cookie HttpOnly, checagem de origem nas mutações e `private, no-store`. A tela `/funcionarios` é protegida também no servidor Next; Express continua a autoridade de permissões.
+- Testes HTTP com MongoDB descartável em replica set cobrem listagem, 401/403, cadastro, ETag, último admin, concorrência, revogação de sessão, reset e parser. Testes de navegador cobrem as jornadas administrativas e a negação ao não admin. Nenhum banco real foi alterado.
+
+A proposta abaixo permanece como histórico de decisões técnicas. Divergências: listagem ainda não tem filtros de busca/perfil/ativo; redefinição não obriga troca no próximo login, pois a empresa aprovou redefinição presencial, não esse requisito adicional. A restauração da conta é pela operação `active:true`, sem envio de e-mail.
 
 ## Endpoints e contratos propostos
 

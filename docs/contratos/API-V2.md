@@ -1,6 +1,6 @@
 # API e dados v2 — contrato e histórico
 
-**Estado atual após etapa 03:** endpoints de ordens abaixo implementados e testados, incluindo edição versionada, retiradas, exclusão administrativa, paginação/summary e leitura compatível do legado. [Contrato executável, diferenças e validação](../dev-back/ETAPA-03-ENTREGA.md). Auth continua em /api/auth; endpoints v2 de auth, funcionários e correção de retirada continuam propostas. A descrição de estado inicial abaixo é histórica.
+**Estado atual após etapa 04:** endpoints de ordens abaixo implementados e integrados às telas Next. Auth continua em `/api/auth`; cadastro administrativo permanece `/api/auth/register`. `/api/v2/employees` lista/consulta/edita, `/api/v2/employees/:id/access` desativa/reativa e `/api/v2/employees/:id/password-reset` redefine senha presencialmente. Os dois últimos revogam sessões anteriores por versão de sessão. Detalhes executáveis: [contrato de Funcionários](../dev-back/ETAPA-04-FUNCIONARIOS-CONTRATO.md). Correção/retirada antecipada continuam indisponíveis; a descrição de estado inicial abaixo é histórica. [Etapa 03](../dev-back/ETAPA-03-ENTREGA.md).
 
 Estado: especificação, não implementada. Regras confirmadas em [README](README.md); decisões excepcionais pendentes não são autorizadas por este documento. Prefixo proposto /api/v2 para impedir mudança silenciosa de payload no cliente Vite.
 
