@@ -1,5 +1,9 @@
 # Pendências para revisão ao final dos prompts
 
+## Exceções operacionais implementadas localmente — 24/10/2026
+
+[Entrega e limites](dev-back/EXCECOES-RETIRADA-ENTREGA.md). P01, P02 e P11 estão **resolvidas no fluxo v2 local**, com testes HTTP/Mongo e navegador; a regra decidida não equivale a publicação. P01: retirada em qualquer andamento, sem falsear Pronto. P02: correção por qualquer funcionário com motivo, `If-Match`, registro anterior preservado; sem sessão negado. P11: inclusão após retirada e remoção somente de item sem histórico, preservando retirados. `npm run check` passou 53 testes HTTP/Mongo, tipagem, lint e build; `npm run test:e2e` passou 16 cenários Chromium. P15/P16/P17/P18/P21/P23 ainda bloqueiam a entrada real; P20 permanece aviso de ferramentas. Nenhum dado real foi alterado.
+
 ## Decisão de banco novo — 24/10/2026
 
 O usuário informou que as ordens anteriores eram somente testes e autorizou começar a operação em um banco novo e vazio. Não há cluster Atlas nem URI configurados; o exemplo `MONGODB_URI` foi deixado em branco. [Roteiro e comando guardado](dev-back/ETAPA-05-BASE-ZERO.md). O comando de preparo recusa banco não vazio e foi testado apenas em MongoDB descartável. `npm run check` passou com 51 testes HTTP/Mongo, tipagem, lint e build. P15/P24 não precisam mais transportar as OS de teste para o corte **se o destino novo for confirmado vazio**; continuam abertos até verificar banco, índices, contador e aplicação no Atlas. P16/P17 continuam abertos para backup/restauração e política de retenção do novo sistema. Nenhum dado antigo foi apagado nesta etapa.

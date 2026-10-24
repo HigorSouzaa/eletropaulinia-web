@@ -1,6 +1,6 @@
 # API e dados v2 — contrato e histórico
 
-**Estado atual após etapa 04:** endpoints de ordens abaixo implementados e integrados às telas Next. Auth continua em `/api/auth`; cadastro administrativo permanece `/api/auth/register`. `/api/v2/employees` lista/consulta/edita, `/api/v2/employees/:id/access` desativa/reativa e `/api/v2/employees/:id/password-reset` redefine senha presencialmente. Os dois últimos revogam sessões anteriores por versão de sessão. Detalhes executáveis: [contrato de Funcionários](../dev-back/ETAPA-04-FUNCIONARIOS-CONTRATO.md). Correção/retirada antecipada continuam indisponíveis; a descrição de estado inicial abaixo é histórica. [Etapa 03](../dev-back/ETAPA-03-ENTREGA.md).
+**Estado atual após etapa 04 e exceções posteriores:** endpoints de ordens integrados às telas Next. Auth continua em `/api/auth`; cadastro administrativo permanece `/api/auth/register`. `/api/v2/employees` lista/consulta/edita, `/api/v2/employees/:id/access` desativa/reativa e `/api/v2/employees/:id/password-reset` redefine senha presencialmente. Os dois últimos revogam sessões anteriores por versão de sessão. [Contrato de Funcionários](../dev-back/ETAPA-04-FUNCIONARIOS-CONTRATO.md). As regras novas de retirada e composição estão no adendo ao fim deste documento; trechos antigos abaixo são históricos. [Etapa 03](../dev-back/ETAPA-03-ENTREGA.md).
 
 Estado: especificação, não implementada. Regras confirmadas em [README](README.md); decisões excepcionais pendentes não são autorizadas por este documento. Prefixo proposto /api/v2 para impedir mudança silenciosa de payload no cliente Vite.
 
@@ -154,3 +154,12 @@ POST /api/v2/orders:
 
 Exemplo de paginação sem resultados: {"data":[],"meta":{"page":1,"pageSize":25,"total":0,"totalPages":0}}.
 Exemplo de funcionário público: {"data":{"_id":"000000000000000000000099","username":"funcionario-teste","name":"Funcionário de teste","role":"atendente","active":true,"version":1}}. active/version são campos propostos, não existentes hoje.
+# Atualização executada — exceções de retirada (24/10/2026)
+
+As regras anteriores deste documento sobre bloquear retirada antes de Pronto e composição após a primeira retirada são históricas. A decisão recente do usuário permite retirada de qualquer andamento, correção por todos os funcionários e alteração da composição após retirada. A API mantém `ETag`/`If-Match` e autenticação para essas mutações.
+
+- `PUT /orders/:id/equipamentos/:eid/retirada`: corpo vazio; registra horário UTC e funcionário mesmo se o item estiver Aguardando ou Em andamento. Não altera artificialmente o andamento para Pronto. Repetição com versão atual mantém o primeiro evento; versão antiga retorna 412.
+- `POST /orders/:id/equipamentos/:eid/correcoes-retirada`: `{ "motivo": "Lançamento por engano" }`; qualquer funcionário autenticado pode corrigir uma retirada operacional. Exige motivo não vazio até 500 caracteres, `If-Match` e item atualmente retirado. O estado atual volta a `retirada: null`; `historicoRetiradas` preserva o evento original, a correção, horários, autores e motivo. Sem retirada retorna 409 `NO_PICKUP_TO_CORRECT`; entrega histórica de origem legada não é corrigida por este endpoint.
+- `POST /orders/:id/equipamentos` e `DELETE /orders/:id/equipamentos/:eid` continuam disponíveis após retirada. Não é permitido remover o último item nem item retirado ou com histórico de retirada (`EQUIPMENT_HISTORY_LOCKED`). Incluir novo item após OS Entregue reabre o agregado conforme os itens ainda presentes. Alterações concorrentes retornam 412.
+
+O histórico permanece embutido na OS e nunca é aceito como entrada genérica de edição. Cópias antigas de documentos v2 sem `historicoRetiradas` recebem a retirada existente no histórico no momento da primeira correção. A regra de excluir a OS inteira por admin permanece separada.
