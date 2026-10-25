@@ -322,15 +322,18 @@ test('cliente v1 não modifica nem achata uma OS v2', async () => {
 test('medição local limitada e plano de índice da listagem v2', async context => {
   await Promise.all(Array.from({ length: 50 }, () => create()));
   const durations = [];
+  const bodySizes = [];
   for (let i = 0; i < 10; i++) {
     const start = performance.now();
     const result = await request('?pageSize=25');
     durations.push(performance.now() - start);
     assert.equal(result.status, 200); assert.equal(result.body.meta.total, 50);
+    bodySizes.push(Buffer.byteLength(JSON.stringify(result.body)));
   }
   const plan = await Order.collection.find({}).sort({ dataEntrada: -1, _id: -1 }).limit(25).explain('executionStats');
   const sorted = durations.toSorted((a, b) => a - b);
-  context.diagnostic(JSON.stringify({ fixtureOrders: 50, requests: 10, latencyMedianMs: Number(sorted[5].toFixed(2)), latencyMaxMs: Number(sorted.at(-1).toFixed(2)),
+  context.diagnostic(JSON.stringify({ fixtureOrders: 50, requests: 10, latencyMedianMs: Number(sorted[5].toFixed(2)), latencyP95Ms: Number(sorted[9].toFixed(2)), latencyMaxMs: Number(sorted.at(-1).toFixed(2)),
+    responseJsonBytes: { min: Math.min(...bodySizes), max: Math.max(...bodySizes) },
     returned: plan.executionStats.nReturned, documentsExamined: plan.executionStats.totalDocsExamined,
     dateIndexUsed: JSON.stringify(plan.queryPlanner.winningPlan).includes('dataEntrada_-1__id_-1'),
     limitation: 'loopback, Mongo descartável, sem carga representativa de produção' }));

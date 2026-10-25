@@ -103,6 +103,39 @@ test('edição, conflito, retirada parcial/completa e exclusão real', async ({ 
     } finally { await removeOrder(request, order._id, admin); }
 });
 
+test('dois funcionários continuam a mesma OS após retirada parcial e recarga', async ({ page, request, browser }) => {
+    const admin = await token(request);
+    const order = await createOrder(request, admin);
+    const colleague = await browser.newContext();
+    const colleaguePage = await colleague.newPage();
+    try {
+        await login(page, 'teste-a');
+        await page.goto(`/ordens/${order._id}`);
+        const first = page.getByRole('article').filter({ has: page.getByRole('heading', { name: /Ventilador fluxo/ }) });
+        await first.getByRole('button', { name: 'Registrar retirada' }).click();
+        await page.getByRole('button', { name: 'Confirmar retirada' }).click();
+        await expect(page.getByText('1 de 3 retirado(s)')).toBeVisible();
+
+        await login(colleaguePage, 'teste-b');
+        await colleaguePage.goto(`/ordens/${order._id}`);
+        await expect(colleaguePage.getByText('1 de 3 retirado(s)')).toBeVisible();
+        await expect(colleaguePage.getByText(/^Entregue/)).toHaveCount(0);
+        for (const name of ['Rádio fluxo', 'Ferro fluxo']) {
+            await colleaguePage.getByRole('article').filter({ has: colleaguePage.getByRole('heading', { name: new RegExp(name) }) })
+                .getByRole('button', { name: 'Registrar retirada' }).click();
+            await colleaguePage.getByRole('button', { name: 'Confirmar retirada' }).click();
+        }
+        await colleaguePage.reload();
+        await expect(colleaguePage.getByText('3 de 3 retirado(s)')).toBeVisible();
+        await expect(colleaguePage.getByText(/^Entregue/)).toBeVisible();
+        await page.reload();
+        await expect(page.getByText('3 de 3 retirado(s)')).toBeVisible();
+    } finally {
+        await colleague.close();
+        await removeOrder(request, order._id, admin);
+    }
+});
+
 test('retirada antecipada, correção auditada e composição posterior no navegador', async ({ page, request }) => {
     const admin = await token(request);
     const order = await createOrder(request, admin);
