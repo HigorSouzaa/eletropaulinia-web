@@ -56,3 +56,5 @@ Ainda há bloqueios antes do uso real: Atlas/URI e backup, validação dos contr
 A [matriz da etapa 07](docs/qa/ETAPA-07-HOMOLOGACAO.md) registra os testes integrados locais, a medição sintética e o roteiro de aceite da empresa; Atlas e homologação operacional continuam pendentes.
 
 A [proposta da etapa 08](docs/operacao/ETAPA-08-PUBLICACAO.md) compara hospedagem, custos e limites atuais e descreve configuração, corte e reversão para revisão. Nenhum provedor, cluster ou publicação foi escolhido/executado por esse documento.
+
+A [alternativa gratuita provisória](docs/operacao/ALTERNATIVA-GRATUITA.md) considera Next e Express numa VM Oracle Always Free com Atlas Free, além do procedimento para pausas e recuperação. Ela exige validação de capacidade, backup e aceite do risco de indisponibilidade antes de uso diário.
