@@ -52,3 +52,5 @@ Os perfis admin, tecnico e atendente mantêm acesso compartilhado às ordens; ex
 - [Decisões de continuidade](docs/dev-front/DECISIONS.md)
 
 Ainda há bloqueios antes do uso real: Atlas/URI e backup, validação dos controles na hospedagem real, testes ampliados e homologação. A etapa 06 implementou limite de login e health checks locais; consulte o [relatório de segurança](docs/dev-back/ETAPA-06-SEGURANCA.md). Veja docs/PENDENCIAS.md para os estados atuais. A branch WhatsApp não faz parte deste ciclo. Build e testes aprovados não significam prontidão de produção.
+
+A [matriz da etapa 07](docs/qa/ETAPA-07-HOMOLOGACAO.md) registra os testes integrados locais, a medição sintética e o roteiro de aceite da empresa; Atlas e homologação operacional continuam pendentes.
