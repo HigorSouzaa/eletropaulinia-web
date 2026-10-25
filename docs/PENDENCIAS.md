@@ -1,5 +1,9 @@
 # Pendências para revisão ao final dos prompts
 
+## Preparação local de hospedagem gratuita — 25/10/2026
+
+P22 permanece aberta: cadastros OCI e Atlas foram abertos no navegador, mas não há sessão ativa, conta, cluster, região, domínio ou cota confirmados. Modelos versionados de Caddy/systemd e roteiro de implantação estão em `deploy/oci/`; não foram aplicados. P18 permanece aberta: a API foi configurada para escutar em `127.0.0.1` por padrão, mas o limite geral de login por endereço ainda agrega todos os funcionários encaminhados pelo Next. Exige correção e teste na topologia final. Nenhuma VM, cluster, credencial, banco ou deploy foi criado por este preparo.
+
 ## Alternativa gratuita provisória — pesquisa de 25/10/2026
 
 [Topologia OCI Always Free + Atlas Free, comparação e recuperação](operacao/ALTERNATIVA-GRATUITA.md). P22 **atualizada e aberta**: opção de custo base zero identificada para piloto, sem conta/cota/região/domínio confirmados; VM gratuita pode ser recolhida quando ociosa e não há disponibilidade prometida. P15/P24 seguem abertas para cluster novo, vazio, índices, contador e transações testadas. P16/P17 seguem abertas: Atlas Free não garante backup automático gratuito; backup manual criptografado e restore isolado precisam de implementação/ensaio e política de retenção. P18 segue aberta: Next e Express na mesma VM fazem logins chegarem à API pelo loopback, compartilhando o limite geral de 100 tentativas; corrigir/testar antes de uso. P21/P23 seguem abertas para validação remota e aceite humano. Não é necessário ping para Atlas ativo: ele só pausa após 30 dias sem conexões; se pausar, a retomada é operação administrativa. Nenhum ID foi resolvido por esta pesquisa. Sem criação de VM/cluster, URI, push ou deploy.

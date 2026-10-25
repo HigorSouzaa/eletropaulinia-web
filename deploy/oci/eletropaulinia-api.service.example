@@ -1,0 +1,21 @@
+[Unit]
+Description=Eletro Paulinia API Express
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=eletropaulinia
+Group=eletropaulinia
+WorkingDirectory=/srv/eletropaulinia/current/backend
+EnvironmentFile=/etc/eletropaulinia/api.env
+ExecStart=/usr/bin/node server.js
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

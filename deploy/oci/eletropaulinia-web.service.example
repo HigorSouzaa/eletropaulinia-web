@@ -1,0 +1,22 @@
+[Unit]
+Description=Eletro Paulinia Next.js
+After=network-online.target eletropaulinia-api.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=eletropaulinia
+Group=eletropaulinia
+WorkingDirectory=/srv/eletropaulinia/current
+EnvironmentFile=/etc/eletropaulinia/web.env
+ExecStart=/usr/bin/npm run preview -- --hostname 127.0.0.1 --port 3000
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/srv/eletropaulinia/current/.next
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
