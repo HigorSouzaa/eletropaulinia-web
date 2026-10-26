@@ -29,8 +29,10 @@ try {
   };
   process.on('SIGINT', shutdown);
   process.on('SIGTERM', shutdown);
-} catch {
-  console.error('Falha ao iniciar API: confira MONGODB_URI, JWT_SECRET (mínimo 32 caracteres), API_HOST, PORT e acesso ao banco');
+} catch (error) {
+  const category = error instanceof Error ? error.name : 'UnknownError';
+  const code = typeof error?.code === 'string' || typeof error?.code === 'number' ? String(error.code) : 'none';
+  console.error(`Falha ao iniciar API (${category}, código ${code}): confira configuração e acesso ao banco`);
   await mongoose.disconnect();
   process.exitCode = 1;
 }
