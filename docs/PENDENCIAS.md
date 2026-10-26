@@ -1,5 +1,9 @@
 # Pendências para revisão ao final dos prompts
 
+## Hospedagem Netlify/Render/Atlas — 26/10/2026
+
+[Roteiro de configuração gratuita](operacao/NETLIFY-RENDER-FREE.md). O usuário escolheu Netlify Free para o Next.js, Render Free para a API e Atlas Free para um banco novo, sem aproveitar os dados antigos de teste. Foi criado no Atlas o projeto isolado `Eletro Paulinia`; cluster, usuário de banco e acesso de rede ainda não estão confirmados. O login Netlify ainda depende de entrada do usuário. A UI ganhou aviso e verificação de readiness durante o despertar do Render, sem repetir login ou perder o formulário. P22 segue aberta até serviços criados, variáveis configuradas e jornada remota validada. P15/P24 seguem abertas até cluster novo e preparo de índices/contador; P16/P17 até backup e restauração ensaiada; P18 até validação da limitação de login no proxy e segurança de rede; P21/P23 até testes remotos e aceite. Não registrar esta preparação como publicação concluída.
+
 ## Preparação local de hospedagem gratuita — 25/10/2026
 
 P22 permanece aberta: cadastros OCI e Atlas foram abertos no navegador, mas não há sessão ativa, conta, cluster, região, domínio ou cota confirmados. Modelos versionados de Caddy/systemd e roteiro de implantação estão em `deploy/oci/`; não foram aplicados. P18 permanece aberta: a API foi configurada para escutar em `127.0.0.1` por padrão, mas o limite geral de login por endereço ainda agrega todos os funcionários encaminhados pelo Next. Exige correção e teste na topologia final. Nenhuma VM, cluster, credencial, banco ou deploy foi criado por este preparo.
