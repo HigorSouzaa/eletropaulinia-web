@@ -141,3 +141,20 @@ test('API realmente indisponível não vira erro de credencial; sessão preserva
         await request.post('http://127.0.0.1:5102/start');
     }
 });
+
+test('login informa despertar da API gratuita e preserva credenciais até ela voltar', async ({ page, request }) => {
+    await request.post('http://127.0.0.1:5102/stop');
+    try {
+        await page.goto('/login');
+        await page.getByLabel('Usuário', { exact: true }).fill('teste-a');
+        await page.getByLabel('Senha', { exact: true }).fill('Synthetic-test-password-42');
+        await expect(page.getByRole('status')).toContainText('Preparando o sistema');
+        await request.post('http://127.0.0.1:5102/start');
+        await expect(page.getByRole('status')).toHaveCount(0, { timeout: 15000 });
+        await expect(page.getByLabel('Usuário', { exact: true })).toHaveValue('teste-a');
+        await page.getByRole('button', { name: 'Entrar', exact: true }).click();
+        await expect(page).toHaveURL(/\/ordens$/);
+    } finally {
+        await request.post('http://127.0.0.1:5102/start');
+    }
+});
