@@ -32,6 +32,7 @@ dist-ssr
 
 .next/
 .netlify/
+.agents/
 *.tsbuildinfo
 playwright-report/
 test-results/

@@ -1,6 +1,15 @@
 # Pendências para revisão ao final dos prompts
 
+## Piloto remoto — atualização de 26/10/2026
+
+- **P22, aberta:** o site Netlify `eletropaulinia-web` foi criado e recebeu `API_INTERNAL_URL` e `APP_ORIGIN`. O build Next passou no deploy de prévia `6adfe7c3ea47ce75494108ec`; `/login` respondeu 200, mas `/api/system/ready` respondeu 503. A conexão Git para deploy automático e a publicação na URL principal ainda não foram concluídas.
+- **P15/P24, abertas para o Atlas:** o projeto `Eletro Paulinia` e o cluster `Cluster0` foram verificados. O banco novo `eletropaulinia_test` não continha coleções antes do ensaio local; o ensaio criou índices/coleções técnicos de autenticação. Um administrador inicial foi criado com senha aleatória forte e hash; há zero OS. Conexão e criação de índices locais passaram. Preparo integral de índices/contador e teste de transações no destino ainda faltam.
+- **P18/P21, abertas para publicação:** Render Free `eletropaulinia-api` recebeu `MONGODB_URI` e `JWT_SECRET` como variáveis de ambiente, mas a API falhou ao iniciar com `MongooseServerSelectionError`. O Atlas liberava apenas o IP do computador local. A adição das duas faixas de saída informadas pelo Render depende de confirmação específica; não foi feita. O usuário de teste do Atlas teve a função `atlasAdmin` reduzida para `readWriteAnyDatabase`, sem trocar a senha. Esta função ainda é mais ampla que o `readWrite` do banco específico recomendado no roteiro. O segredo de teste deve ser substituído antes de uso real.
+- **P16/P17/P23, abertas:** backup/restauração, política de retenção, jornada remota completa e aceite da empresa não foram verificados. Nenhuma ordem real foi criada ou migrada.
+
 ## Hospedagem Netlify/Render/Atlas — 26/10/2026
+
+[Estado histórico desta preparação; a atualização acima registra as verificações posteriores.]
 
 [Roteiro de configuração gratuita](operacao/NETLIFY-RENDER-FREE.md). O usuário escolheu Netlify Free para o Next.js, Render Free para a API e Atlas Free para um banco novo, sem aproveitar os dados antigos de teste. Foi criado no Atlas o projeto isolado `Eletro Paulinia`; o formulário do cluster Free (`$0/hour`, sem dataset e sem configuração automática de segurança) não concluiu duas tentativas porque o serviço reCAPTCHA do Atlas não respondeu, inclusive após recarga. Cluster, usuário de banco e acesso de rede ainda não estão confirmados. Foi criado o serviço Render Free `eletropaulinia-api` na branch `feat/hospedagem-netlify-render`, com `API_HOST=0.0.0.0`; o build iniciou com Node 24, mas o processo terminou por falta de `MONGODB_URI` e `JWT_SECRET`. O login Netlify ainda depende de entrada do usuário. A UI ganhou aviso e verificação de readiness durante o despertar do Render, sem repetir login ou perder o formulário. P22 segue aberta até serviços configurados e jornada remota validada. P15/P24 seguem abertas até cluster novo e preparo de índices/contador; P16/P17 até backup e restauração ensaiada; P18 até validação da limitação de login no proxy e segurança de rede; P21/P23 até testes remotos e aceite. Não registrar esta preparação como publicação concluída.
 
