@@ -1,5 +1,12 @@
 # Pendências para revisão ao final dos prompts
 
+## Piloto remoto — atualização de 27/10/2026
+
+- **P22/P21, em validação:** Netlify `https://eletropaulinia-web.netlify.app` e Render `https://eletropaulinia-api.onrender.com` estão publicados; ambos os endpoints de readiness responderam 200. Login, sessão, listagem e logout foram validados pela URL pública. A conexão Git da Netlify continua pendente: o site usa deploy manual e o botão de autorização GitHub aparece desabilitado no navegador. O usuário autorizou o acesso solicitado, mas o vínculo ainda não foi confirmado.
+- **P15/P24, parcialmente validadas:** no banco novo `eletropaulinia_test` havia zero ordens, um administrador e coleções técnicas de autenticação. Após conferir o nome e as contagens, foram criados os índices de OS e o contador em zero sem apagar dados. A primeira OS sintética foi criada remotamente com dois equipamentos; uma falha de transporte de `ETag` da Netlify impediu retirada e exclusão na versão publicada. Correção local validada por tipagem, lint, 57 testes HTTP/Mongo, build e teste de navegador específico; falta republicar e repetir a jornada remota. A OS sintética criada ainda precisa ser removida após a correção.
+- **P18, aberta:** as duas faixas de saída compartilhadas do Render foram adicionadas à lista de rede do Atlas e a API conectou. A conta `local_teste` ainda tem `readWriteAnyDatabase`, mais amplo que o desejado, e a senha inicial de teste deve ser rotacionada antes de uso real. Limite de autenticação e operação no proxy remoto ainda exigem validação.
+- **P16/P17/P23, abertas:** backup/restauração isolada, política de retenção e aceite da empresa ainda não foram concluídos. A publicação atual é piloto, não liberação de uso real.
+
 ## Piloto remoto — atualização de 26/10/2026
 
 - **P22, aberta:** o site Netlify `eletropaulinia-web` foi criado e recebeu `API_INTERNAL_URL` e `APP_ORIGIN`. O build Next passou no deploy de prévia `6adfe7c3ea47ce75494108ec`; `/login` respondeu 200, mas `/api/system/ready` respondeu 503. A conexão Git para deploy automático e a publicação na URL principal ainda não foram concluídas.
