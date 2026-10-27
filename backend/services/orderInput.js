@@ -21,16 +21,18 @@ function date(value, path, required = false) {
   if (result !== null && (!/^\d{4}-\d{2}-\d{2}$/.test(result) || !Number.isFinite(Date.parse(result)) || new Date(result).toISOString().slice(0, 10) !== result)) invalid(path);
   return result;
 }
-export function createInput(body) {
-  object(body, ['cliente', 'equipamentos', 'dataEntrada', 'dataPrevista', 'tecnico', 'observacoes'], 'body');
-  object(body.cliente, ['nome', 'telefone', 'email'], 'cliente');
+export function clientSnapshotInput(value) {
+  object(value, ['nome', 'telefone', 'email'], 'cliente');
   const cliente = {
-    nome: string(body.cliente.nome, 120, 'cliente.nome', true),
-    telefone: string(body.cliente.telefone, 32, 'cliente.telefone', true),
-    email: string(body.cliente.email, 254, 'cliente.email'),
+    nome: string(value.nome, 120, 'cliente.nome', true),
+    telefone: string(value.telefone, 40, 'cliente.telefone', true),
+    email: string(value.email, 254, 'cliente.email'),
   };
   if (!/\d/.test(cliente.telefone)) invalid('cliente.telefone');
   if (cliente.email !== null && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cliente.email)) invalid('cliente.email');
+  return cliente;
+}
+export function orderFieldsInput(body) {
   if (!Array.isArray(body.equipamentos) || body.equipamentos.length < 1 || body.equipamentos.length > 100) invalid('equipamentos');
   const equipamentos = body.equipamentos.map((item, i) => {
     const path = `equipamentos.${i}`;
@@ -44,15 +46,21 @@ export function createInput(body) {
       modelo: string(item.modelo, 120, `${path}.modelo`), numeroSerie: string(item.numeroSerie, 120, `${path}.numeroSerie`),
       solicitacao: { tipo, descricao } };
   });
-  return { cliente, equipamentos, dataEntrada: date(body.dataEntrada, 'dataEntrada', true),
+  return { equipamentos, dataEntrada: date(body.dataEntrada, 'dataEntrada', true),
     dataPrevista: date(body.dataPrevista, 'dataPrevista'), tecnico: string(body.tecnico, 120, 'tecnico'),
     observacoes: string(body.observacoes, 5000, 'observacoes') };
+}
+// Historic snapshots/replays keep the original permissive phone validation.
+// New customer creation additionally uses the shared Brazilian normalizer.
+export function createInput(body) {
+  object(body, ['cliente', 'equipamentos', 'dataEntrada', 'dataPrevista', 'tecnico', 'observacoes'], 'body');
+  return { cliente: clientSnapshotInput(body.cliente), ...orderFieldsInput(body) };
 }
 export function creationKey(value) {
   if (typeof value !== 'string' || !/^[A-Za-z0-9_-]{16,128}$/.test(value)) invalid('Idempotency-Key');
   return value;
 }
 export function validId(id) {
-  if (!/^[a-f\d]{24}$/i.test(id)) throw new OrderError(400, 'INVALID_ID');
+  if (typeof id !== 'string' || !/^[a-f\d]{24}$/i.test(id)) throw new OrderError(400, 'INVALID_ID');
   return id;
 }

@@ -4,11 +4,12 @@ import { randomBytes, randomUUID } from 'node:crypto';
 import { once } from 'node:events';
 import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
-import { MongoMemoryServer } from 'mongodb-memory-server-core';
+import { MongoMemoryReplSet } from 'mongodb-memory-server-core';
 import app from '../app.js';
 import User from '../models/User.js';
 import Order from '../models/OrderV2.js';
 import Counter from '../models/Counter.js';
+import Client from '../models/Client.js';
 import RevokedToken from '../models/RevokedToken.js';
 import { prepareNumberingFixture } from './numbering-fixture.js';
 import { transformLegacy } from '../services/legacyOrders.js';
@@ -16,7 +17,7 @@ import { transformLegacy } from '../services/legacyOrders.js';
 let mongo, server, origin, token, otherToken;
 before(async () => {
   process.env.JWT_SECRET = randomBytes(48).toString('hex');
-  mongo = await MongoMemoryServer.create({ binary: { version: '8.0.17' }, instance: { ip: '127.0.0.1' } });
+  mongo = await MongoMemoryReplSet.create({ binary: { version: '8.0.17' }, replSet: { count: 1, ip: '127.0.0.1' } });
   await mongoose.connect(mongo.getUri(), { dbName: 'orders_v2_test' });
   await Promise.all([User.init(), Counter.init(), RevokedToken.init()]);
   server = app.listen(0, '127.0.0.1'); await once(server, 'listening');
@@ -27,7 +28,7 @@ after(async () => {
   await mongoose.disconnect(); if (mongo) await mongo.stop();
 });
 beforeEach(async () => {
-  await Promise.all([Order.deleteMany({}), Counter.deleteMany({}), User.deleteMany({}), RevokedToken.deleteMany({})]);
+  await Promise.all([Order.deleteMany({}), Client.deleteMany({}), Counter.deleteMany({}), User.deleteMany({}), RevokedToken.deleteMany({})]);
   const users = await User.create([
     { username: 'synthetic-a', name: 'Teste A', password: 'Synthetic-test-password-42', role: 'tecnico' },
     { username: 'synthetic-b', name: 'Teste B', password: 'Synthetic-test-password-42', role: 'atendente' },
@@ -36,7 +37,7 @@ beforeEach(async () => {
   await prepareNumberingFixture();
 });
 function payload() {
-  return { cliente: { nome: 'Cliente sintético', telefone: '(00) 0000-0000' }, dataEntrada: '2026-10-23',
+  return { cliente: { nome: 'Cliente sintético', telefone: '(19) 90000-0042' }, dataEntrada: '2026-10-23',
     equipamentos: [
       { nome: 'Ventilador', marca: 'Marca sintética', modelo: 'Modelo A', numeroSerie: 'SERIE-TESTE', solicitacao: { tipo: 'relato', descricao: 'Não liga' } },
       { nome: 'Rádio', solicitacao: { tipo: 'testar' } },
@@ -105,9 +106,9 @@ function pickup(order, eid) {
 test('edição parcial preserva itens, limpa opcionais e exige precondição', async () => {
   let order = await create(); const ids = order.body.data.equipamentos.map(item => item._id);
   assert.equal((await request(`/${order.body.data._id}`, { method: 'PATCH', body: {} })).status, 428);
-  order = await change(order, { cliente: { email: 'fixture@example.invalid' }, observacoes: 'Observação sintética' });
+  order = await change(order, { observacoes: 'Observação sintética' });
   assert.equal(order.status, 200); assert.equal(order.body.data.cliente.nome, 'Cliente sintético');
-  order = await change(order, { cliente: { email: '' }, observacoes: null });
+  order = await change(order, { observacoes: null });
   assert.equal(order.body.data.cliente.email, null); assert.equal(order.body.data.observacoes, null);
   order = await change(order, { marca: '', numeroSerie: null }, `/equipamentos/${ids[0]}`);
   assert.equal(order.status, 200); assert.equal(order.body.data.equipamentos[0].marca, null);
@@ -287,7 +288,8 @@ test('contador ausente falha fechado; número conflitante não cria documento pa
   await Counter.deleteMany({}); assert.equal((await create()).status, 503); assert.equal(await Order.countDocuments(), 0);
   await prepareNumberingFixture(); await Order.collection.insertOne({ numero: 'OS-0001' });
   const result = await create(); assert.equal(result.status, 409); assert.equal(result.body.error.code, 'NUMBER_CONFLICT');
-  assert.equal(await Order.countDocuments(), 1); assert.equal((await Counter.findById('orders')).value, 1);
+  assert.equal(await Order.countDocuments(), 1); assert.equal((await Counter.findById('orders')).value, 0);
+  assert.equal(await Client.countDocuments(), 0); // The failed creation rolls back the entire transaction.
 });
 test('sem índice idempotente não aceita criação nem consome número', async () => {
   await Order.collection.dropIndex('createdBy_1_creationKey_1');

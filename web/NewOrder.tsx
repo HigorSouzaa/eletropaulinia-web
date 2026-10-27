@@ -1,44 +1,64 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { ClientLookup, type ClientSelection } from './components/ClientLookup';
 
 type Equipment = { key: string; nome: string; marca: string; modelo: string; numeroSerie: string; tipo: 'relato' | 'testar'; descricao: string };
 const item = (): Equipment => ({ key: crypto.randomUUID(), nome: '', marca: '', modelo: '', numeroSerie: '', tipo: 'relato', descricao: '' });
 const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 export function NewOrder() {
     const router = useRouter();
-    const [client, setClient] = useState({ nome: '', telefone: '', email: '' });
+    const [client, setClient] = useState<ClientSelection | null>(null);
+    const [lookupRefresh, setLookupRefresh] = useState(0);
+    const [expired, setExpired] = useState(false);
     const [equipment, setEquipment] = useState<Equipment[]>([item()]);
     const [date, setDate] = useState(today);
     const [saving, setSaving] = useState(false), [error, setError] = useState('');
     const [fields, setFields] = useState<string[]>([]);
     const attempt = useRef<string | null>(null);
     const active = useRef(true);
-    useEffect(() => {
-        const channel = new BroadcastChannel('ep-session');
-        channel.onmessage = () => { active.current = false; router.replace('/login'); };
-        return () => { active.current = false; channel.close(); };
+    const savingRequest = useRef<AbortController | null>(null);
+    const expireSession = useCallback(() => {
+        active.current = false; savingRequest.current?.abort(); setClient(null); setExpired(true);
+        setEquipment([item()]); setFields([]); setError(''); router.replace('/login');
     }, [router]);
+    const selectClient = useCallback((value: ClientSelection | null) => {
+        setClient(value); attempt.current = null; setFields([]);
+    }, []);
+    useEffect(() => {
+        active.current = true;
+        const channel = new BroadcastChannel('ep-session');
+        channel.onmessage = expireSession;
+        return () => { active.current = false; savingRequest.current?.abort(); channel.close(); };
+    }, [expireSession]);
     useEffect(() => { if (fields.length) document.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus(); }, [fields]);
     const fieldError = (path: string, id: string, label: string) => fields.includes(path) ? <span id={id} className="block text-sm text-red-700">Confira {label}.</span> : null;
     function changed() { attempt.current = null; setError(''); setFields([]); }
     function update(index: number, patch: Partial<Equipment>) { changed(); setEquipment(items => items.map((value, i) => i === index ? { ...value, ...patch } : value)); }
     async function save(event: React.FormEvent) {
         event.preventDefault();
-        if (saving) return;
+        if (saving || !client || !active.current) return;
         setSaving(true); setError(''); setFields([]);
         if (!attempt.current) attempt.current = crypto.randomUUID();
         const body = {
-            cliente: { nome: client.nome, telefone: client.telefone, email: client.email || null },
+            ...client,
             equipamentos: equipment.map(({ nome, marca, modelo, numeroSerie, tipo, descricao }) => ({ nome, marca: marca || null, modelo: modelo || null, numeroSerie: numeroSerie || null, solicitacao: { tipo, descricao: tipo === 'testar' ? null : descricao } })),
             dataEntrada: date,
         };
+        const controller = new AbortController(); savingRequest.current = controller;
         try {
-            const response = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': attempt.current }, body: JSON.stringify(body), cache: 'no-store' });
-            if (response.status === 401) { router.replace('/login'); return; }
+            const response = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': attempt.current }, body: JSON.stringify(body), cache: 'no-store', signal: controller.signal });
+            if (!active.current || controller.signal.aborted) return;
+            if (response.status === 401) { expireSession(); return; }
             if (!response.ok) {
                 const failure = await response.json().catch(() => ({}));
+                if (!active.current || controller.signal.aborted) return;
+                if (['CLIENT_REVIEW_REQUIRED', 'CLIENT_CHANGED'].includes(failure.error?.code)) {
+                    setClient(null); setLookupRefresh(value => value + 1);
+                    setError('O cadastro deste telefone mudou ou já existe. Confira o resultado da nova consulta antes de salvar; os equipamentos foram mantidos.');
+                    return;
+                }
                 if (response.status === 400 && Array.isArray(failure.error?.fields)) setFields(failure.error.fields.map((field: { path: string }) => field.path));
                 setError(response.status === 400 ? 'Confira os campos indicados.' : response.status === 409 ? 'Esta tentativa já foi usada com outros dados. Revise antes de tentar novamente.' : 'Não foi possível salvar. Seus dados foram mantidos; tente novamente.');
                 return;
@@ -50,15 +70,14 @@ export function NewOrder() {
         finally { if (active.current) setSaving(false); }
     }
     const input = 'w-full rounded-lg border bg-white px-3 py-2';
+    if (expired) return <main className="p-6" role="status">Sessão encerrada. Abrindo o login...</main>;
     return <main className="mx-auto max-w-4xl p-4 md:p-8">
         <Link href="/ordens" className="text-orange-700 underline">Voltar às ordens</Link>
         <h1 className="mt-4 text-2xl font-bold">Nova ordem de serviço</h1>
         <p className="mt-1 text-gray-600">Cadastre o cliente e todos os equipamentos recebidos.</p>
-        <form onSubmit={save} className="mt-6 space-y-6">
+        <form onSubmit={save} className="mt-6"><fieldset disabled={saving} className="min-w-0 space-y-6"><legend className="sr-only">Nova ordem</legend>
             <section className="rounded-xl border bg-white p-5"><h2 className="text-lg font-semibold">Cliente</h2><div className="mt-4 grid gap-4 sm:grid-cols-2">
-                <label>Nome *<input className={input} required maxLength={120} value={client.nome} onChange={e => { changed(); setClient(v => ({ ...v, nome: e.target.value })); }} aria-invalid={fields.includes('cliente.nome')} aria-describedby={fields.includes('cliente.nome') ? 'client-name-error' : undefined} />{fieldError('cliente.nome', 'client-name-error', 'o nome do cliente')}</label>
-                <label>Telefone *<input className={input} required maxLength={32} value={client.telefone} onChange={e => { changed(); setClient(v => ({ ...v, telefone: e.target.value })); }} aria-invalid={fields.includes('cliente.telefone')} aria-describedby={fields.includes('cliente.telefone') ? 'client-phone-error' : undefined} />{fieldError('cliente.telefone', 'client-phone-error', 'o telefone')}</label>
-                <label>E-mail (opcional)<input className={input} type="email" maxLength={254} value={client.email} onChange={e => { changed(); setClient(v => ({ ...v, email: e.target.value })); }} aria-invalid={fields.includes('cliente.email')} aria-describedby={fields.includes('cliente.email') ? 'client-email-error' : undefined} />{fieldError('cliente.email', 'client-email-error', 'o e-mail')}</label>
+                <ClientLookup onChange={selectClient} onSessionExpired={expireSession} refresh={lookupRefresh} fields={fields} />
                 <label>Data de entrada *<input className={input} type="date" required value={date} onChange={e => { changed(); setDate(e.target.value); }} aria-invalid={fields.includes('dataEntrada')} aria-describedby={fields.includes('dataEntrada') ? 'entry-date-error' : undefined} />{fieldError('dataEntrada', 'entry-date-error', 'a data de entrada')}</label>
             </div></section>
             <section><div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-lg font-semibold">Equipamentos</h2><button type="button" className="rounded-lg border bg-white px-4 py-2" onClick={() => { changed(); setEquipment(v => [...v, item()]); }}>Adicionar equipamento</button></div>
@@ -72,7 +91,8 @@ export function NewOrder() {
                     {equipment.length > 1 && <button type="button" className="mt-4 text-red-700 underline" onClick={() => { changed(); setEquipment(v => v.filter(value => value.key !== eq.key)); }}>Remover equipamento {index + 1}</button>}
                 </fieldset>)}</div></section>
             {error && <p role="alert" className="rounded-lg bg-red-50 p-4 text-red-800">{error}</p>}
-            <button disabled={saving} className="rounded-lg bg-orange-600 px-5 py-3 font-medium text-white disabled:opacity-50">{saving ? 'Salvando...' : 'Salvar ordem'}</button>
+            <button disabled={saving || !client} className="rounded-lg bg-orange-600 px-5 py-3 font-medium text-white disabled:opacity-50">{saving ? 'Salvando...' : 'Salvar ordem'}</button>
+            </fieldset>
         </form>
     </main>;
 }

@@ -28,6 +28,7 @@ const schema = new mongoose.Schema({
   numero: { type: String, required: true, immutable: true },
   sequencia: { type: Number, required: true, min: 1, immutable: true },
   cliente: { nome: text(120, true), telefone: text(32, true), email: text(254) },
+  clienteId: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', default: null },
   equipamentos: { type: [equipment], validate: v => v.length >= 1 && v.length <= 100 },
   dataEntrada: { type: String, required: true }, dataPrevista: text(10),
   tecnico: text(120), observacoes: text(5000),
@@ -35,6 +36,7 @@ const schema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   creationKey: { type: String, select: false },
   creationHash: { type: String, select: false },
+  creationHashVersion: { type: Number, enum: [2], select: false },
   migration: { type: mongoose.Schema.Types.Mixed, select: false },
 }, { collection: 'orders', timestamps: true, strict: 'throw', autoIndex: false });
 // Index installation is explicit, never a side effect of importing this model.

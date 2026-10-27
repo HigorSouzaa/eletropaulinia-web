@@ -2,8 +2,9 @@ import Order from '../models/OrderV2.js';
 import User from '../models/User.js';
 import RevokedToken from '../models/RevokedToken.js';
 import Counter from '../models/Counter.js';
+import Client from '../models/Client.js';
 
-const ALLOWED = new Set(['orders', 'users', 'counters', 'adminroleguards', 'revokedtokens']);
+const ALLOWED = new Set(['orders', 'users', 'clients', 'counters', 'adminroleguards', 'revokedtokens']);
 
 export async function prepareFreshDatabase(db) {
   if (!db || db !== Order.db.db || db !== User.db.db) throw new Error('Model connection mismatch');
@@ -22,6 +23,8 @@ export async function prepareFreshDatabase(db) {
   }
   // Explicit index setup, never sync/drop. Safe to repeat while the database stays empty.
   await Order.createIndexes();
+  await Client.createCollection();
+  await Client.createIndexes();
   await User.createIndexes();
   await RevokedToken.createIndexes();
   await Counter.collection.updateOne({ _id: 'orders' }, { $setOnInsert: { value: 0 } }, { upsert: true });

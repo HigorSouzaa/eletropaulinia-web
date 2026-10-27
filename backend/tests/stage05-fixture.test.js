@@ -1,18 +1,19 @@
 import { before, after, beforeEach, test } from 'node:test';
 import assert from 'node:assert/strict';
 import mongoose from 'mongoose';
-import { MongoMemoryServer } from 'mongodb-memory-server-core';
+import { MongoMemoryReplSet } from 'mongodb-memory-server-core';
 import { inventoryFixture, migrateFixtureBatch, bootstrapFreshFixture } from '../services/stage05FixtureMigration.js';
 import { createOrder } from '../services/ordersV2.js';
 
 let mongo; let db;
 before(async () => {
-  mongo = await MongoMemoryServer.create({ binary: { version: '8.0.17' }, instance: { ip: '127.0.0.1' } });
+  mongo = await MongoMemoryReplSet.create({ binary: { version: '8.0.17' }, replSet: { count: 1, ip: '127.0.0.1' } });
   await mongoose.connect(mongo.getUri(), { dbName: 'stage05_fixture_only' });
   db = mongoose.connection.db;
 });
 after(async () => { await mongoose.disconnect(); if (mongo) await mongo.stop(); });
 beforeEach(async () => {
+  if (await db.listCollections({ name: 'clients' }).hasNext()) await db.collection('clients').drop();
   for (const name of ['orders', 'users', 'counters', 'adminroleguards', 'revokedtokens']) await db.collection(name).deleteMany({});
 });
 const legacy = (n, overrides = {}) => ({
@@ -111,7 +112,7 @@ test('início do zero recusa ordem antiga em vez de eliminá-la', async () => {
 test('base preparada cria primeira OS v2 e não permite reinicializar contador depois', async () => {
   await bootstrapFreshFixture(db);
   const { document } = await createOrder({
-    cliente: { nome: 'Cliente sintético', telefone: '0000' }, dataEntrada: '2026-10-24',
+    cliente: { nome: 'Cliente sintético', telefone: '19900000042' }, dataEntrada: '2026-10-24',
     equipamentos: [{ nome: 'Rádio', solicitacao: { tipo: 'testar' } }],
   }, 'synthetic-first-order-key', new mongoose.Types.ObjectId());
   assert.equal(document.numero, 'OS-0001');

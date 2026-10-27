@@ -1,6 +1,7 @@
 // Test-only setup: does not import dotenv or open connections.
 import Order from '../models/OrderV2.js';
 import Counter from '../models/Counter.js';
+import Client from '../models/Client.js';
 
 export async function prepareNumberingFixture() {
   if (Order.db.name !== 'orders_v2_test') throw new Error('Isolated test database required');
@@ -13,5 +14,7 @@ export async function prepareNumberingFixture() {
     seen.add(number); maximum = Math.max(maximum, number);
   }
   await Order.createIndexes();
+  await Client.createCollection();
+  await Client.createIndexes();
   await Counter.updateOne({ _id: 'orders' }, { $max: { value: maximum } }, { upsert: true });
 }

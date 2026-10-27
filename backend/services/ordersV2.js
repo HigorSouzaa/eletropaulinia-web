@@ -1,8 +1,7 @@
-import { createHash } from 'node:crypto';
 import Order from '../models/OrderV2.js';
-import Counter from '../models/Counter.js';
-import { OrderError, createInput, creationKey, validId, object } from './orderInput.js';
+import { OrderError, createInput, validId, object, clientSnapshotInput } from './orderInput.js';
 import { legacyView } from './legacyOrders.js';
+export { createOrder } from './orderCreation.js';
 
 export function orderDTO(document) {
   let raw = document.toObject ? document.toObject() : document;
@@ -10,40 +9,9 @@ export function orderDTO(document) {
   const { _id, numero, schemaVersion, version, cliente, equipamentos, dataEntrada, dataPrevista,
     tecnico, observacoes, status, createdBy, createdAt, updatedAt } = raw;
   const retirados = equipamentos.filter(item => item.retirada !== null).length;
-  return { _id, numero, schemaVersion, version, cliente, equipamentos, dataEntrada, dataPrevista,
+  return { _id, numero, schemaVersion, version, cliente, clienteId: raw.clienteId ?? null, equipamentos, dataEntrada, dataPrevista,
     tecnico, observacoes, status, createdBy, createdAt, updatedAt, ...(raw.compatibility ? { compatibility: raw.compatibility } : {}),
     entrega: { total: equipamentos.length, retirados, situacao: retirados === 0 ? 'nenhuma' : retirados === equipamentos.length ? 'completa' : 'parcial' } };
-}
-function replay(existing, hash) {
-  if (existing.creationHash !== hash) throw new OrderError(409, 'IDEMPOTENCY_CONFLICT');
-  return { document: existing, created: false };
-}
-export async function createOrder(body, key, actor) {
-  const input = createInput(body);
-  const validatedKey = creationKey(key);
-  const hash = createHash('sha256').update(JSON.stringify(input)).digest('hex');
-  const scope = { schemaVersion: 2, createdBy: actor, creationKey: validatedKey };
-  const existing = await Order.findOne(scope).select('+creationHash');
-  if (existing) return replay(existing, hash);
-  const indexes = await Order.collection.indexes();
-  const numberIndex = indexes.some(index => index.unique && index.key.numero === 1 && Object.keys(index.key).length === 1 && !index.partialFilterExpression && !index.sparse);
-  const keyIndex = indexes.some(index => index.unique && index.key.createdBy === 1 && index.key.creationKey === 1 && Object.keys(index.key).length === 2 && index.partialFilterExpression?.schemaVersion === 2 && index.partialFilterExpression?.creationKey?.$type === 'string');
-  if (!numberIndex || !keyIndex) throw new OrderError(503, 'NUMBERING_NOT_READY');
-  // No upsert: only an explicitly reconciled database may allocate numbers.
-  const counter = await Counter.findOneAndUpdate({ _id: 'orders', value: { $lt: Number.MAX_SAFE_INTEGER } }, { $inc: { value: 1 } }, { new: true });
-  if (!counter) throw new OrderError(503, 'NUMBERING_NOT_READY');
-  try {
-    const document = await Order.create({ ...input, numero: `OS-${String(counter.value).padStart(4, '0')}`,
-      sequencia: counter.value, createdBy: actor, creationKey: validatedKey, creationHash: hash });
-    return { document, created: true };
-  } catch (error) {
-    if (error.code === 11000) {
-      const winner = await Order.findOne(scope).select('+creationHash');
-      if (winner) return replay(winner, hash);
-      throw new OrderError(409, 'NUMBER_CONFLICT');
-    }
-    throw error;
-  }
 }
 export async function getOrder(id) {
   validId(id);
@@ -86,7 +54,11 @@ export async function mutateOrder(id, match, operation, body, actor, equipmentId
   const candidate = { ...raw, cliente: { ...raw.cliente }, equipamentos: raw.equipamentos.map(item => ({ ...item })) };
   if (operation === 'patch') {
     object(body, ['cliente', 'dataEntrada', 'dataPrevista', 'tecnico', 'observacoes'], 'body');
-    if ('cliente' in body) object(body.cliente, ['nome', 'telefone', 'email'], 'cliente');
+    if ('cliente' in body) {
+      object(body.cliente, ['nome', 'telefone', 'email'], 'cliente');
+      const snapshot = clientSnapshotInput({ ...candidate.cliente, ...body.cliente });
+      if (Object.keys(snapshot).some(key => snapshot[key] !== candidate.cliente[key])) throw new OrderError(409, 'CLIENT_SNAPSHOT_IMMUTABLE');
+    }
     const normalized = createInput({ ...inputOf(candidate), ...body, cliente: { ...candidate.cliente, ...body.cliente } });
     Object.assign(candidate, { ...normalized, equipamentos: candidate.equipamentos });
   } else {

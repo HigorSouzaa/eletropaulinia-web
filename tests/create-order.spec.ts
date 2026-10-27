@@ -11,8 +11,9 @@ test('funcionário cria três equipamentos e consulta a OS real por URL após re
         await page.setViewportSize({ width, height: 800 });
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     }
-    await page.getByLabel('Nome *').fill('Cliente de teste da etapa 04');
     await page.getByLabel('Telefone *').fill('19900000000');
+    await expect(page.getByRole('status')).toContainText('Cliente não encontrado');
+    await page.getByLabel('Nome *').fill('Cliente de teste da etapa 04');
     const first = page.getByRole('group', { name: 'Equipamento 1' });
     await first.getByLabel('Identificação *').fill('Ventilador de teste novo');
     await first.getByLabel('Defeito relatado *').fill('Não liga');
@@ -67,8 +68,9 @@ test('falha transitória preserva formulário e chave da mesma tentativa', async
     await page.getByRole('button', { name: 'Entrar' }).click();
     await expect(page).toHaveURL(/\/ordens$/);
     await page.goto('/nova-ordem');
-    await page.getByLabel('Nome *').fill('Cliente de retry sintético');
     await page.getByLabel('Telefone *').fill('19900000001');
+    await expect(page.getByRole('status')).toContainText('Cliente não encontrado');
+    await page.getByLabel('Nome *').fill('Cliente de retry sintético');
     await page.getByLabel('Identificação *').fill('Aparelho retry');
     await page.getByLabel('Solicitação').selectOption('testar');
     const keys: string[] = [];

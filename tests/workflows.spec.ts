@@ -17,7 +17,7 @@ async function token(request: APIRequestContext, username = 'teste-a') {
 }
 async function createOrder(request: APIRequestContext, auth: string) {
     const response = await request.post(`${api}/v2/orders`, { headers: { Authorization: `Bearer ${auth}`, 'Idempotency-Key': randomUUID() }, data: {
-        cliente: { nome: 'Cliente fluxo sintético', telefone: '19900000000' }, dataEntrada: '2026-10-24',
+        cliente: { nome: 'Cliente fluxo sintético', telefone: '19900000099' }, dataEntrada: '2026-10-24',
         equipamentos: ['Ventilador fluxo', 'Rádio fluxo', 'Ferro fluxo'].map(nome => ({ nome, marca: 'Marca sintética', solicitacao: { tipo: 'testar' } })),
     } });
     expect(response.status()).toBe(201);
@@ -72,10 +72,10 @@ test('edição, conflito, retirada parcial/completa e exclusão real', async ({ 
         const current = await request.get(target, { headers: { Authorization: `Bearer ${admin}` } });
         const external = await request.patch(target, { headers: { Authorization: `Bearer ${admin}`, 'If-Match': current.headers()['etag'] }, data: { observacoes: 'Alteração externa sintética' } });
         expect(external.status()).toBe(200);
-        await page.getByLabel('Nome do cliente *').fill('Rascunho preservado');
+        await page.getByLabel('Observações (opcional)').fill('Rascunho preservado');
         await page.getByRole('button', { name: 'Salvar dados da ordem' }).click();
         await expect(page.getByRole('alert').filter({ hasText: 'mudou enquanto você editava' })).toBeVisible();
-        await expect(page.getByLabel('Nome do cliente *')).toHaveValue('Rascunho preservado');
+        await expect(page.getByLabel('Observações (opcional)')).toHaveValue('Rascunho preservado');
         await page.getByRole('button', { name: 'Descartar meu rascunho' }).click();
         await page.goto(`/ordens/${order._id}`);
         for (const width of [360, 768, 1280]) {
@@ -242,17 +242,17 @@ test('edição mantém rascunho em 503 e permite nova tentativa', async ({ page,
     try {
         await login(page, 'teste-b');
         await page.goto(`/editar-ordem/${order._id}`);
-        await page.getByLabel('Nome do cliente *').fill('Rascunho após indisponibilidade');
+        await page.getByLabel('Observações (opcional)').fill('Rascunho após indisponibilidade');
         await page.route(`**/api/orders/${order._id}`, route => route.request().method() === 'PATCH'
             ? route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }) : route.continue());
         await page.getByRole('button', { name: 'Salvar dados da ordem' }).click();
         await expect(page.getByRole('alert').filter({ hasText: 'Seu rascunho foi mantido' })).toBeVisible();
-        await expect(page.getByLabel('Nome do cliente *')).toHaveValue('Rascunho após indisponibilidade');
+        await expect(page.getByLabel('Observações (opcional)')).toHaveValue('Rascunho após indisponibilidade');
         await page.unroute(`**/api/orders/${order._id}`);
         await page.getByRole('button', { name: 'Salvar dados da ordem' }).click();
         await expect(page.getByRole('status').filter({ hasText: 'Alteração salva' })).toBeVisible();
         await page.reload();
-        await expect(page.getByLabel('Nome do cliente *')).toHaveValue('Rascunho após indisponibilidade');
+        await expect(page.getByLabel('Observações (opcional)')).toHaveValue('Rascunho após indisponibilidade');
     } finally { await removeOrder(request, order._id, admin); }
 });
 

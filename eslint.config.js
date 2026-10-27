@@ -7,7 +7,7 @@ import tseslint from "typescript-eslint";
 export default tseslint.config(
   { ignores: ["dist", ".next/**", ".netlify/**", "legacy/**", "next-env.d.ts", "test-results/**", "playwright-report/**"] },
   {
-    files: ["backend/**/*.js"],
+    files: ["backend/**/*.js", "shared/**/*.js"],
     extends: [js.configs.recommended],
     languageOptions: { ecmaVersion: "latest", sourceType: "module", globals: globals.node },
     rules: { "no-unused-vars": ["error", { argsIgnorePattern: "^_" }] },
