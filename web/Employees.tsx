@@ -65,7 +65,7 @@ export function Employees() {
         const epoch = sessionEpoch.current;
         setBusy(true); setError(''); setNotice('');
         try {
-            const response = await fetch(path, { method, headers: { 'Content-Type': 'application/json', 'If-Match': editor.etag }, body: JSON.stringify(body), cache: 'no-store' });
+            const response = await fetch(path, { method, headers: { 'Content-Type': 'application/json', 'If-Match': editor.etag, 'X-Resource-Version': editor.etag }, body: JSON.stringify(body), cache: 'no-store' });
             if (epoch !== sessionEpoch.current) return;
             if (response.status === 401) { setEditor(null); router.replace('/login'); return; }
             if (response.status === 412) {

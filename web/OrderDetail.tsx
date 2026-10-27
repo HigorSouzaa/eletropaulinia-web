@@ -51,7 +51,7 @@ export function OrderDetail({ id }: { id: string }) {
         const requestEpoch = epoch.current;
         setBusy(true); setError('');
         try {
-            const response = await fetch(path, { method, headers: { 'Content-Type': 'application/json', 'If-Match': etag }, ...(body === undefined ? {} : { body: JSON.stringify(body) }), cache: 'no-store' });
+            const response = await fetch(path, { method, headers: { 'Content-Type': 'application/json', 'If-Match': etag, 'X-Resource-Version': etag }, ...(body === undefined ? {} : { body: JSON.stringify(body) }), cache: 'no-store' });
             if (requestEpoch !== epoch.current) return;
             if (response.status === 401) { setOrder(null); router.replace('/login'); return; }
             if (response.status === 204) { router.replace('/ordens'); return; }

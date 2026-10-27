@@ -40,7 +40,7 @@ test('transporte aceita ETag com sufixo de variante da hospedagem', async ({ pag
         expect(current.status()).toBe(200);
         const variant = current.headers()['etag'].replace(/"$/, '-df"');
         const updated = await page.request.patch(`/api/orders/${order._id}`, {
-            headers: { Origin: 'http://127.0.0.1:3100', 'If-Match': variant },
+            headers: { Origin: 'http://127.0.0.1:3100', 'If-Match': 'altered-by-proxy', 'X-Resource-Version': variant },
             data: { observacoes: 'Variante sintética' },
         });
         expect(updated.status()).toBe(200);

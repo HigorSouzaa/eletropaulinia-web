@@ -24,7 +24,10 @@ export async function forwardWrite(request: Request, path: ApiPath, method: 'POS
         const match = request.headers.get('if-match');
         // Netlify may append a short response-variant suffix to ETags sent to browsers.
         // Express owns the version check, so forward only the canonical resource tag.
-        const parsed = match?.match(/^"((?:os|user)-[a-f\d]{24}-v\d+)(?:-[a-f\d]{1,16})?"$/i);
+        const pattern = /^"((?:os|user)-[a-f\d]{24}-v\d+)(?:-[a-f\d]{1,16})?"$/i;
+        // Some hosting proxies alter conditional HTTP headers. A dedicated header
+        // carries the same version; Express still enforces it as If-Match.
+        const parsed = match?.match(pattern) ?? request.headers.get('x-resource-version')?.match(pattern);
         if (!parsed) return json({ message: 'Versão da alteração ausente ou inválida' }, 428);
         headers['If-Match'] = `"${parsed[1]}"`;
     }
