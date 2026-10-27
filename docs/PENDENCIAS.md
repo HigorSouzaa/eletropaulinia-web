@@ -1,5 +1,18 @@
 # Pendências para revisão ao final dos prompts
 
+## Clientes — primeira jornada local, 27/10/2026
+
+Estado mais recente; os registros abaixo permanecem históricos. Contratos A/B e arquitetura aprovados pelo usuário (“Aprovo pode fazer”). Implementação dde449f; [evidências e reprodução](qa/CLIENTES-PRIMEIRA-JORNADA.md). Checkpoint C funcional pendente, sem autorização remota.
+
+| ID | Estado / prioridade / impacto | Evidência e dependências | Próxima ação e conclusão observável |
+| --- | --- | --- | --- |
+| P26 | Parcial local, P1; cadastro/vínculo implementados, gestão/histórico ausentes | Client, lookup, transação e formulário em dde449f; concorrência/rollback/recarga reais | Após C, lista/detalhe/histórico por ID e PATCH só admin com ETag; concluir CL01–CL10 |
+| P27 | Planejada, P1; falta laudo/orçamento | Modelo/UI sem avaliação; depende da expansão após C | LA01–LA04: valores exatos, autoria, conflitos e persistência |
+| P28 | Planejada, P1; técnico segue texto livre | Consulta elegível e tecnicoId ainda ausentes; depende de C | TE01–TE03: seleção válida, concorrência e histórico |
+| P29 | Parcial local, P1 para publicação | Snapshot, telefone antigo e replay cobertos; nenhum vínculo automático | Inventário/aplicador isolado, preparo incremental de índices em base existente e reversão; CO01–CO03 sem descarte |
+
+P14/P21 atualizadas: npm run check passou (66 testes backend/HTTP/Mongo, tipos/lint/build); npm run test:e2e passou (25 Chromium). Capturas em 360/768/1280 revisadas. Dispositivos reais, CI remoto e carga representativa permanecem pendentes. P24 aberta para transição remota; P22 não muda a versão publicada. Nenhum ID novo ou resolvido. P26/P29 parciais; P14/P21/P24 atualizadas; P27/P28 permanecem planejadas. Demais bloqueios anteriores preservados.
+
 ## Clientes, laudos e técnicos — preparação local de 27/10/2026
 
 Este bloco é o estado mais recente deste novo pacote e preserva o histórico abaixo. Base `b2515e6`; branch `feat/clientes-laudos-tecnicos`. [Contrato concreto para revisão](contratos/CLIENTES-LAUDOS-TECNICOS.md), [telas e matriz de testes](dev-front/CLIENTES-LAUDOS-TECNICOS.md), [revalidação da base](qa/CLIENTES-LAUDOS-TECNICOS-BASE.md).

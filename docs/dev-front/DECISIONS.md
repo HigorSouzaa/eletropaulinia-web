@@ -1,5 +1,9 @@
 # Decisões — Eletro Paulínia
 
+## Primeira jornada de Clientes — aprovação e implementação local
+
+O usuário aprovou os contratos e a arquitetura apresentados com "Aprovo pode fazer". Implementada a fatia telefone → consulta → cliente/OS transacionais → detalhe/recarga. A/B e arquitetura/design estão aprovados para este pacote; o checkpoint C funcional aguarda demonstração e resposta. A aprovação não autoriza publicação nem acesso ao banco real. Detalhes e limites em [primeira jornada](../qa/CLIENTES-PRIMEIRA-JORNADA.md). Os blocos seguintes preservam o histórico anterior.
+
 ## Atualização vigente — Clientes, laudos e técnicos, 27/10/2026
 
 Novo pacote solicitado pelo usuário: cliente separado de User, telefone primeiro com máscara/consulta, criação automática junto com OS, vínculo estável, área Clientes e edição de cadastro somente admin. Laudo por equipamento com serviços/valores individuais somados; técnico opcional selecionado entre técnico/admin ativo. Dados históricos da OS preservados. Endereço/CPF/CNPJ e comunicação automática continuam fora.

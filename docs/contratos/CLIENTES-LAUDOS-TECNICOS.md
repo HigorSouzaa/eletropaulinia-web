@@ -2,7 +2,9 @@
 
 Data: 27/10/2026. Base inspecionada: `b2515e6`, branch de origem `feat/hospedagem-netlify-render`; branch de trabalho `feat/clientes-laudos-tecnicos`.
 
-**Estado: proposta, ainda sem implementação.** As regras de produto foram confirmadas pelo usuário; contratos, limites técnicos e estrutura abaixo estão em revisão nos checkpoints A/B da Dev Back Master e arquitetura/design da Dev Front Master. Não há aprovação presumida da primeira jornada funcional. [Plano de telas e testes](../dev-front/CLIENTES-LAUDOS-TECNICOS.md).
+**Atualização após aprovação:** o usuário aprovou os contratos concretos e a primeira jornada ("Aprovo pode fazer"). Lookup, criação transacional de cliente/OS, snapshot e formulário estão implementados localmente; a área Clientes completa, avaliações, seleção de técnico e reconciliação continuam planejadas. Ver entrega da primeira jornada em `../qa/CLIENTES-PRIMEIRA-JORNADA.md`. O restante deste documento registra o contrato do pacote completo, não funcionalidades integralmente entregues.
+
+**Estado histórico da preparação:** As regras de produto foram confirmadas pelo usuário; contratos, limites técnicos e estrutura abaixo estão em revisão nos checkpoints A/B da Dev Back Master e arquitetura/design da Dev Front Master. Não há aprovação presumida da primeira jornada funcional. [Plano de telas e testes](../dev-front/CLIENTES-LAUDOS-TECNICOS.md).
 
 ## 1. Base e evidências
 
