@@ -22,8 +22,11 @@ export async function forwardWrite(request: Request, path: ApiPath, method: 'POS
     const headers: Record<string, string> = {};
     if (options.match) {
         const match = request.headers.get('if-match');
-        if (!match || !/^"(?:os|user)-[a-f\d]{24}-v\d+"$/i.test(match)) return json({ message: 'Versão da alteração ausente ou inválida' }, 428);
-        headers['If-Match'] = match;
+        // Netlify may append a short response-variant suffix to ETags sent to browsers.
+        // Express owns the version check, so forward only the canonical resource tag.
+        const parsed = match?.match(/^"((?:os|user)-[a-f\d]{24}-v\d+)(?:-[a-f\d]{1,16})?"$/i);
+        if (!parsed) return json({ message: 'Versão da alteração ausente ou inválida' }, 428);
+        headers['If-Match'] = `"${parsed[1]}"`;
     }
     if (options.key) {
         const key = request.headers.get('idempotency-key');

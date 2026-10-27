@@ -5,7 +5,7 @@ import reactHooks from "eslint-plugin-react-hooks";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist", ".next/**", "legacy/**", "next-env.d.ts", "test-results/**", "playwright-report/**"] },
+  { ignores: ["dist", ".next/**", ".netlify/**", "legacy/**", "next-env.d.ts", "test-results/**", "playwright-report/**"] },
   {
     files: ["backend/**/*.js"],
     extends: [js.configs.recommended],
