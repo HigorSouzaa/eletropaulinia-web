@@ -1,5 +1,17 @@
 # Decisões — Eletro Paulínia
 
+## Atualização vigente — Clientes, laudos e técnicos, 27/10/2026
+
+Novo pacote solicitado pelo usuário: cliente separado de User, telefone primeiro com máscara/consulta, criação automática junto com OS, vínculo estável, área Clientes e edição de cadastro somente admin. Laudo por equipamento com serviços/valores individuais somados; técnico opcional selecionado entre técnico/admin ativo. Dados históricos da OS preservados. Endereço/CPF/CNPJ e comunicação automática continuam fora.
+
+Modo semi-auto conforme prompt e skills. As decisões de produto estão respondidas; [contratos concretos](../contratos/CLIENTES-LAUDOS-TECNICOS.md) e [arquitetura/design descritivo](CLIENTES-LAUDOS-TECNICOS.md) foram preparados para revisão conjunta. A aprovação do planejamento anterior não é registrada como aprovação desses detalhes nem da primeira jornada ainda inexistente. Próximo passo: revisão A/B e arquitetura/design, seguida da primeira fatia telefone→cliente→OS→recarga e checkpoint funcional C antes da expansão.
+
+Branch `feat/clientes-laudos-tecnicos`, baseada em `b2515e6`, preservando a branch hospedada. Somente documentação nesta preparação. `npm run check` passou com 57 testes HTTP/Mongo, tipos/lint/build; `npm run test:e2e` passou 20 cenários Chromium. [Evidências e limites](../qa/CLIENTES-LAUDOS-TECNICOS-BASE.md). Testes da base não validam Clientes/laudos/técnicos novos.
+
+O usuário determinou que Netlify e Render serão atualizados depois dos testes e autorização posterior. Nenhum push, deploy, acesso/transformação de Atlas, alteração de credenciais ou descarte de dados foi realizado nesta preparação. A antiga autorização de banco de teste do zero não foi reaproveitada.
+
+Os registros abaixo permanecem históricos; não anulam estas novas decisões.
+
 22/10/2026 — modo análise, sem implementação. Skills Dev Front Master e Dev Back Master utilizadas, com referências de arquitetura, segurança, desempenho e investigação de falhas.
 
 Decisões explícitas do usuário: somente eletropaulinia-web; sistema para uso real; Next.js/TypeScript no frontend, Node.js/Express separado e MongoDB Atlas. Autorizados diagnóstico, plano e documentação em branch com commits. Sem push, merge, deploy ou migração nesta etapa.

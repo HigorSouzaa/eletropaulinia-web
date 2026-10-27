@@ -1,5 +1,24 @@
 # Pendências para revisão ao final dos prompts
 
+## Clientes, laudos e técnicos — preparação local de 27/10/2026
+
+Este bloco é o estado mais recente deste novo pacote e preserva o histórico abaixo. Base `b2515e6`; branch `feat/clientes-laudos-tecnicos`. [Contrato concreto para revisão](contratos/CLIENTES-LAUDOS-TECNICOS.md), [telas e matriz de testes](dev-front/CLIENTES-LAUDOS-TECNICOS.md), [revalidação da base](qa/CLIENTES-LAUDOS-TECNICOS-BASE.md).
+
+O usuário incluiu o módulo básico de Clientes no escopo: cadastro automático na OS, telefone único normalizado, consulta compartilhada e edição apenas pelo admin. Confirmou laudo por equipamento com vários serviços somados e técnico opcional selecionado entre técnico/admin ativo. Endereço/CPF/CNPJ, WhatsApp, garantia e demais módulos avançados continuam adiados. Não há decisão de negócio nova em aberto para preparar a primeira jornada.
+
+| ID / origem | Estado, prioridade e impacto | Evidência | Dependências / próxima ação | Critério observável de conclusão |
+| --- | --- | --- | --- | --- |
+| P26 / pacote Clientes | Planejada, P1; retrabalho de cadastro e ausência de histórico vinculado | OrderV2.cliente embutido; NewOrder sem lookup; inexistência de Client | Revisão A/B → primeira jornada → expansão da área Clientes | Telefone identifica ficha única; cliente e OS consistentes sob falha/concorrência; histórico por ID; PATCH só admin; testes CL01–CL10 |
+| P27 / pacote Clientes | Planejada, P1; laudos e preços por equipamento não podem ser registrados | OrderV2.equipamentos não possui avaliação/serviços | Contrato → checkpoint C → implementação da avaliação | Conteúdo/IDs persistem por equipamento; total exato, ausência distinta de zero, autoria e CAS; LA01–LA04 |
+| P28 / pacote Clientes | Planejada, P1; responsável é texto sem vínculo validado | tecnico textual em OrderV2/EditOrder; employees restrito a admin | Contrato → consulta mínima → atribuição transacional após C | Somente técnicos/admins ativos selecionáveis; validação concorrente; responsável antigo preservado; TE01–TE03 |
+| P29 / pacote Clientes | Planejada, P1 para atualização; risco de bloquear ou perder campos de OS anteriores | mutateOrder reusa createInput na OS inteira e substitui array; não há clienteId | P26–P28 e P24; fixtures de leitura, escrita e reconciliação explícita | CO01–CO03 preservam IDs/snapshots/histórico; sem união silenciosa; rollback não recoloca escritor incompatível |
+
+**P14/P21 atualizadas, não encerradas:** `npm run check` exit 0 (57 HTTP/Mongo, tipagem, lint e build), `npm run test:e2e` exit 0 (20 Chromium). São regressões da base, não prova dos novos recursos. Próxima ação: matriz CL/LA/TE/CO/SE/UI/RG; dispositivos reais/CI e volume representativo continuam pendentes conforme registros anteriores.
+
+**P24 atualizada, aberta para transição:** este pacote acrescenta referência de cliente, avaliações e técnico por ID. Inventário/reconciliação reais não foram executados; plano local em P29. **P22 atualizada:** publicação permanece no piloto já existente; o usuário pediu não atualizar Netlify/Render antes dos testes e autorização posterior. Sem push/deploy nesta preparação. P15/P16/P17/P18/P23 mantêm limitações operacionais anteriores; nenhuma foi resolvida por este plano.
+
+Checkpoints: contratos concretos e proposta descritiva de interface preparados para revisão conjunta; primeira fatia ainda não implementada. Nenhum ID foi resolvido nesta preparação. Documentação e resultados da base não significam autorização de alteração remota.
+
 ## Piloto remoto — atualização de 27/10/2026
 
 - **P22/P21, em validação:** Netlify `https://eletropaulinia-web.netlify.app` e Render `https://eletropaulinia-api.onrender.com` estão publicados; ambos os endpoints de readiness responderam 200. Login, sessão, listagem e logout passaram pela URL pública. Criação de OS com dois equipamentos, retirada parcial, exclusão administrativa e consulta 404 posterior também passaram; a OS sintética foi removida. A versão validada foi publicada pela CLI Netlify no deploy `6ae0800df7601f6f598c8d6b`. O deploy por upload simples do plugin não configurou a função Next e retornou 404; foi revertido antes da publicação funcional pela CLI. A Netlify foi vinculada ao repositório GitHub e à branch de produção `feat/hospedagem-netlify-render`; o push `21eab77` gerou automaticamente o deploy `6ae081733a775e1a1be41e0f`, publicado com sucesso. `/login` e `/api/system/ready` responderam 200 depois da publicação automática. P21 ainda depende de CI remoto com testes e carga representativa; P22 ainda depende de critérios operacionais para uso real.
