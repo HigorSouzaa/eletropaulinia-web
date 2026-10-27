@@ -1,5 +1,11 @@
 # Decisões — Eletro Paulínia
 
+## Complemento: retorno
+
+Checkpoint C de Clientes aprovado pelo usuário: “Sim pode aprovar”. Expansão local autorizada. Nova decisão: retorno pode ser cadastrado sem vínculo, com busca opcional de OS anteriores e consulta da referência de 90 dias; fora do prazo também pode ser atendido. [Proposta concreta]( ../contratos/RETORNO.md ) aguarda revisão dos detalhes novos.
+
+P30 — retorno e referência de prazo: planejada, P1, origem nesta solicitação; OrderV2 possui retirada individual, mas não tipo/origem de retorno. Depende do histórico por cliente P26 e do contrato de referência. Próxima ação: revisar proposta, implementar e testar dias 89/90/91, ausência de vínculo/data, origem corrigida/excluída, concorrência e retornos sucessivos. Conclusão: nova OS vinculável opcionalmente, preservando histórico, sem presumir cobertura nem bloquear fora do prazo. Não publicada.
+
 ## Primeira jornada de Clientes — aprovação e implementação local
 
 O usuário aprovou os contratos e a arquitetura apresentados com "Aprovo pode fazer". Implementada a fatia telefone → consulta → cliente/OS transacionais → detalhe/recarga. A/B e arquitetura/design estão aprovados para este pacote; o checkpoint C funcional aguarda demonstração e resposta. A aprovação não autoriza publicação nem acesso ao banco real. Detalhes e limites em [primeira jornada](../qa/CLIENTES-PRIMEIRA-JORNADA.md). Os blocos seguintes preservam o histórico anterior.

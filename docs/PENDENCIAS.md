@@ -1,5 +1,11 @@
 # Pendências para revisão ao final dos prompts
 
+## Complemento: retorno
+
+Checkpoint C de Clientes aprovado pelo usuário: “Sim pode aprovar”. Expansão local autorizada. Nova decisão: retorno pode ser cadastrado sem vínculo, com busca opcional de OS anteriores e consulta da referência de 90 dias; fora do prazo também pode ser atendido. [Proposta concreta]( contratos/RETORNO.md ) aguarda revisão dos detalhes novos.
+
+P30 — retorno e referência de prazo: planejada, P1, origem nesta solicitação; OrderV2 possui retirada individual, mas não tipo/origem de retorno. Depende do histórico por cliente P26 e do contrato de referência. Próxima ação: revisar proposta, implementar e testar dias 89/90/91, ausência de vínculo/data, origem corrigida/excluída, concorrência e retornos sucessivos. Conclusão: nova OS vinculável opcionalmente, preservando histórico, sem presumir cobertura nem bloquear fora do prazo. Não publicada.
+
 ## Clientes — primeira jornada local, 27/10/2026
 
 Estado mais recente; os registros abaixo permanecem históricos. Contratos A/B e arquitetura aprovados pelo usuário (“Aprovo pode fazer”). Implementação dde449f; [evidências e reprodução](qa/CLIENTES-PRIMEIRA-JORNADA.md). Checkpoint C funcional pendente, sem autorização remota.
