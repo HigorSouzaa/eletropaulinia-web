@@ -1,5 +1,9 @@
 # Pendências para revisão ao final dos prompts
 
+## Finanças — primeira jornada local, 28/10/2026
+
+P31 — **parcial local, P1**. Origem: solicitação de Finanças. Evidência: `FinanceReceipt`, rota Express `/api/v2/finance`, tela mínima `/financas`, registro explícito por equipamento, resumo de receita confirmada, bloqueio de exclusão de OS com histórico financeiro e testes em Mongo descartável/navegador. Impacto: o módulo ainda não atende despesas, recorrências, previsão, filtros e gráficos; não pode ser publicado como completo. Dependências: revisão funcional C e expansão aprovada, seguida de migração aditiva/índices e validação no ambiente remoto. Próxima ação: após C, implementar estorno auditável, despesas, recorrências, previsões, filtros e séries. Critério: todos os cenários de `docs/contratos/FINANCAS-API-DADOS.md` validados sem dupla contagem e com autorização Express. Nenhum Atlas, Netlify ou Render foi alterado neste pacote.
+
 ## Estado vigente — expansão local concluída em 28/10/2026
 
 Este bloco prevalece sobre os estados históricos abaixo. Implementação API 7a681c5; telas/compatibilidade 726d6e1; primeira jornada dde449f. [Entrega e validação](qa/CLIENTES-EXPANSAO.md). Checkpoints A/B/C e expansão aprovados; prazo de 90 dias desde retirada individual e ajuste manual exclusivo de admin confirmados. Sem publicação.

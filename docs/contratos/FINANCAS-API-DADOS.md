@@ -1,8 +1,8 @@
-# Finanças — contratos propostos (checkpoint B)
+# Finanças — contratos aprovados (checkpoint B)
 
-Data: 28/10/2026. Branch `feat/financas-operacionais`. A arquitetura e direção visual em [FINANCAS-PROPOSTA.md](FINANCAS-PROPOSTA.md) foram aprovadas pelo usuário. Este documento é proposta de API/dados e escolhas operacionais para aprovação antes de codificar. Não há lançamentos financeiros atuais nem migração remota autorizada.
+Data: 28/10/2026. Branch `feat/financas-operacionais`. O usuário aprovou arquitetura, direção visual e este contrato. A primeira jornada local está documentada em [FINANCAS-PRIMEIRA-JORNADA.md](../qa/FINANCAS-PRIMEIRA-JORNADA.md); as demais seções são escopo futuro deste pacote e ainda não estão implementadas. Não houve migração remota.
 
-## 1. Decisões técnicas recomendadas para aprovação
+## 1. Decisões aprovadas
 
 1. **Um recebimento confirmado por equipamento nesta versão.** Valor pode ser menor ou maior que o orçamento, com motivo obrigatório quando divergir. Isto representa o valor efetivamente cobrado como um único acerto, não uma parcela. Segunda cobrança exige estornar/corrigir ou uma decisão futura sobre parcelas. A primeira fatia fica simples e impede dupla contagem; pagamentos parciais ficam fora até regra própria.
 2. **Forma de pagamento opcional**, dentre dinheiro, Pix, cartão, transferência ou outro. Não guardar dados de cartão, conta ou comprovante nesta etapa. Caso a loja precise conciliar caixa por meio, tornar a forma obrigatória em etapa posterior.

@@ -1,6 +1,6 @@
 # Finanças — diagnóstico e arquitetura propostos (checkpoint A)
 
-Data: 28/10/2026. Branch: `feat/financas-operacionais`, baseada em `91ccc4a`. Estado: arquitetura e direção visual aprovadas pelo usuário em 28/10/2026. Contrato B em [FINANCAS-API-DADOS.md](FINANCAS-API-DADOS.md) aguarda revisão; nenhuma API/tela/modelo financeiro implementado e nenhum banco real alterado.
+Data: 28/10/2026. Branch: `feat/financas-operacionais`, baseada em `91ccc4a`. Estado: arquitetura, direção visual e contrato B em [FINANCAS-API-DADOS.md](FINANCAS-API-DADOS.md) aprovados pelo usuário. Primeira jornada local implementada; revisão funcional C pendente. Nenhum banco real alterado.
 
 ## Evidências da base
 
