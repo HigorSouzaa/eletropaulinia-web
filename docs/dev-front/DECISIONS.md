@@ -2,7 +2,7 @@
 
 ## Finanças — 28/10/2026
 
-Modo semi-auto. O usuário aprovou arquitetura/direção visual (A) e contratos/dados (B) em `docs/contratos/FINANCAS-PROPOSTA.md` e `docs/contratos/FINANCAS-API-DADOS.md`. A primeira jornada local de pagamento por equipamento foi implementada e validada; a revisão funcional C ainda aguarda resposta. Despesas, recorrências e gráficos não foram implementados. Não houve deploy ou mudança no Atlas. Os registros abaixo são históricos ou de outros pacotes.
+Modo semi-auto. O usuário aprovou arquitetura/direção visual (A), contratos/dados (B), revisão funcional (C), expansão e as quatro regras financeiras em `docs/contratos/FINANCAS-PROPOSTA.md` e `docs/contratos/FINANCAS-API-DADOS.md`. A implementação local agora inclui pagamento por equipamento, estorno auditado, despesas, recorrências, previsões, filtros e gráfico; ver `docs/qa/FINANCAS-EXPANSAO.md`. Não houve deploy ou mudança no Atlas. Os registros abaixo são históricos ou de outros pacotes.
 
 ## Estado vigente — 28/10/2026
 
