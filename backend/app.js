@@ -8,6 +8,7 @@ import ordersV2 from './routes/ordersV2.js';
 import employees from './routes/employees.js';
 import technicians from './routes/technicians.js';
 import clients from './routes/clients.js';
+import finance from './routes/finance.js';
 
 // Importar a aplicação não abre portas nem conecta a um banco.
 const app = express();
@@ -49,6 +50,7 @@ app.get('/health/ready', async (_req, res) => {
 app.use('/api/v2/orders', ordersV2);
 app.use('/api/v2/employees', employees);
 app.use('/api/v2/clients', clients);
+app.use('/api/v2/finance', finance);
 app.use('/api/v2/technicians', technicians);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

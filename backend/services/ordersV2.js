@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { evaluationInput, resolveTechnician, warrantyView, civilDate } from './orderExtras.js';
 import Order from '../models/OrderV2.js';
+import FinanceReceipt from '../models/FinanceReceipt.js';
 import { OrderError, createInput, validId, object, clientSnapshotInput } from './orderInput.js';
 import { legacyView } from './legacyOrders.js';
 export { createOrder } from './orderCreation.js';
@@ -49,7 +50,7 @@ function aggregate(items) {
   return 'Em andamento';
 }
 export async function mutateOrder(id, match, operation, body, actor, equipmentId, session) {
-  if (operation === 'patch' && body && Object.hasOwn(body, 'tecnicoId') && !session) {
+  if ((operation === 'delete' || (operation === 'patch' && body && Object.hasOwn(body, 'tecnicoId'))) && !session) {
     const current = await mongoose.startSession();
     try { return await current.withTransaction(() => mutateOrder(id, match, operation, body, actor, equipmentId, current)); }
     finally { await current.endSession(); }
@@ -57,7 +58,8 @@ export async function mutateOrder(id, match, operation, body, actor, equipmentId
   if (equipmentId) validId(equipmentId);
   const raw = await editable(id, match);
   if (operation === 'delete') {
-    const deleted = await Order.deleteOne({ _id: raw._id, version: raw.version, schemaVersion: 2 });
+    if (await FinanceReceipt.exists({ orderId: raw._id }).session(session)) throw new OrderError(409, 'FINANCIAL_HISTORY_BLOCKS_DELETE');
+    const deleted = await Order.deleteOne({ _id: raw._id, version: raw.version, schemaVersion: 2 }, { session });
     if (!deleted.deletedCount) throw new OrderError(412, 'VERSION_CONFLICT');
     return null;
   }

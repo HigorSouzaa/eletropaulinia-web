@@ -39,6 +39,7 @@ const schema = new mongoose.Schema({
   dataEntrada: { type: String, required: true }, dataPrevista: text(10),
   tipoAtendimento: { type: String, enum: ['normal', 'retorno'], default: 'normal' },
   referenceFence: { type: Number, default: 0, select: false },
+  financeFence: { type: Number, default: 0, select: false },
   tecnicoId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   tecnico: text(120), observacoes: text(5000),
   status: { type: String, enum: ['Aguardando', 'Em andamento', 'Pronto', 'Entregue'], default: 'Aguardando' },
