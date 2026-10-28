@@ -1,16 +1,20 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { TechnicianSelect } from './components/TechnicianSelect';
+import { ReturnPicker, type Origin } from './components/ReturnPicker';
+import { EvaluationFields, emptyEvaluation, evaluationPayload, type Evaluation } from './components/EvaluationFields';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ClientLookup, type ClientSelection } from './components/ClientLookup';
 
-type Equipment = { key: string; nome: string; marca: string; modelo: string; numeroSerie: string; tipo: 'relato' | 'testar'; descricao: string };
-const item = (): Equipment => ({ key: crypto.randomUUID(), nome: '', marca: '', modelo: '', numeroSerie: '', tipo: 'relato', descricao: '' });
+type Equipment = { origem: Origin | null; avaliacao: Evaluation; key: string; nome: string; marca: string; modelo: string; numeroSerie: string; tipo: 'relato' | 'testar'; descricao: string };
+const item = (): Equipment => ({ origem: null, avaliacao: emptyEvaluation(), key: crypto.randomUUID(), nome: '', marca: '', modelo: '', numeroSerie: '', tipo: 'relato', descricao: '' });
 const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 export function NewOrder() {
     const router = useRouter();
     const [client, setClient] = useState<ClientSelection | null>(null);
     const [lookupRefresh, setLookupRefresh] = useState(0);
+    const [type, setType] = useState<'normal' | 'retorno'>('normal'), [technician, setTechnician] = useState('');
     const [expired, setExpired] = useState(false);
     const [equipment, setEquipment] = useState<Equipment[]>([item()]);
     const [date, setDate] = useState(today);
@@ -24,7 +28,7 @@ export function NewOrder() {
         setEquipment([item()]); setFields([]); setError(''); router.replace('/login');
     }, [router]);
     const selectClient = useCallback((value: ClientSelection | null) => {
-        setClient(value); attempt.current = null; setFields([]);
+        setClient(value); setEquipment(items => items.map(item => ({ ...item, origem: null }))); attempt.current = null; setFields([]);
     }, []);
     useEffect(() => {
         active.current = true;
@@ -42,8 +46,8 @@ export function NewOrder() {
         setSaving(true); setError(''); setFields([]);
         if (!attempt.current) attempt.current = crypto.randomUUID();
         const body = {
-            ...client,
-            equipamentos: equipment.map(({ nome, marca, modelo, numeroSerie, tipo, descricao }) => ({ nome, marca: marca || null, modelo: modelo || null, numeroSerie: numeroSerie || null, solicitacao: { tipo, descricao: tipo === 'testar' ? null : descricao } })),
+            ...client, tipoAtendimento: type, tecnicoId: technician || null,
+            equipamentos: equipment.map(({ nome, marca, modelo, numeroSerie, tipo, descricao, origem, avaliacao }) => ({ origem: type === 'retorno' ? origem : null, avaliacao: evaluationPayload(avaliacao), nome, marca: marca || null, modelo: modelo || null, numeroSerie: numeroSerie || null, solicitacao: { tipo, descricao: tipo === 'testar' ? null : descricao } })),
             dataEntrada: date,
         };
         const controller = new AbortController(); savingRequest.current = controller;
@@ -54,7 +58,7 @@ export function NewOrder() {
             if (!response.ok) {
                 const failure = await response.json().catch(() => ({}));
                 if (!active.current || controller.signal.aborted) return;
-                if (['CLIENT_REVIEW_REQUIRED', 'CLIENT_CHANGED'].includes(failure.error?.code)) {
+                if (['CLIENT_REVIEW_REQUIRED', 'CLIENT_CHANGED', 'ORIGIN_CHANGED'].includes(failure.error?.code)) {
                     setClient(null); setLookupRefresh(value => value + 1);
                     setError('O cadastro deste telefone mudou ou já existe. Confira o resultado da nova consulta antes de salvar; os equipamentos foram mantidos.');
                     return;
@@ -77,7 +81,7 @@ export function NewOrder() {
         <p className="mt-1 text-gray-600">Cadastre o cliente e todos os equipamentos recebidos.</p>
         <form onSubmit={save} className="mt-6"><fieldset disabled={saving} className="min-w-0 space-y-6"><legend className="sr-only">Nova ordem</legend>
             <section className="rounded-xl border bg-white p-5"><h2 className="text-lg font-semibold">Cliente</h2><div className="mt-4 grid gap-4 sm:grid-cols-2">
-                <ClientLookup onChange={selectClient} onSessionExpired={expireSession} refresh={lookupRefresh} fields={fields} />
+                <label>Tipo de atendimento<select className={input} value={type} onChange={e => { changed(); setType(e.target.value as 'normal' | 'retorno'); setEquipment(items => items.map(item => ({ ...item, origem: null }))); }}><option value="normal">Normal</option><option value="retorno">Retorno</option></select></label><TechnicianSelect value={technician} onChange={value => { changed(); setTechnician(value); }} /><ClientLookup onChange={selectClient} onSessionExpired={expireSession} refresh={lookupRefresh} fields={fields} />
                 <label>Data de entrada *<input className={input} type="date" required value={date} onChange={e => { changed(); setDate(e.target.value); }} aria-invalid={fields.includes('dataEntrada')} aria-describedby={fields.includes('dataEntrada') ? 'entry-date-error' : undefined} />{fieldError('dataEntrada', 'entry-date-error', 'a data de entrada')}</label>
             </div></section>
             <section><div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-lg font-semibold">Equipamentos</h2><button type="button" className="rounded-lg border bg-white px-4 py-2" onClick={() => { changed(); setEquipment(v => [...v, item()]); }}>Adicionar equipamento</button></div>
@@ -88,7 +92,7 @@ export function NewOrder() {
                         <label>Número de série (opcional)<input className={input} maxLength={120} value={eq.numeroSerie} onChange={e => update(index, { numeroSerie: e.target.value })} /></label>
                     </div><div className="mt-4"><label className="block">Solicitação<select className={input} value={eq.tipo} onChange={e => update(index, { tipo: e.target.value as Equipment['tipo'], descricao: '' })}><option value="relato">Defeito relatado</option><option value="testar">Testar — sem defeito relatado</option></select></label>
                         {eq.tipo === 'relato' && <label className="mt-4 block">Defeito relatado *<textarea className={input} required maxLength={2000} value={eq.descricao} onChange={e => update(index, { descricao: e.target.value })} aria-invalid={fields.includes(`equipamentos.${index}.solicitacao.descricao`)} aria-describedby={fields.includes(`equipamentos.${index}.solicitacao.descricao`) ? `equipment-${index}-description-error` : undefined} />{fieldError(`equipamentos.${index}.solicitacao.descricao`, `equipment-${index}-description-error`, 'o relato')}</label>}</div>
-                    {equipment.length > 1 && <button type="button" className="mt-4 text-red-700 underline" onClick={() => { changed(); setEquipment(v => v.filter(value => value.key !== eq.key)); }}>Remover equipamento {index + 1}</button>}
+                    {type === 'retorno' && <ReturnPicker value={eq.origem} key={`${eq.key}-${client && 'clienteId' in client ? client.clienteId : 'new'}`} clientId={client && 'clienteId' in client ? client.clienteId : null} onSelect={(origem, fields) => update(index, { origem, ...fields })} />}<EvaluationFields value={eq.avaliacao} onChange={avaliacao => update(index, { avaliacao })} />{equipment.length > 1 && <button type="button" className="mt-4 text-red-700 underline" onClick={() => { changed(); setEquipment(v => v.filter(value => value.key !== eq.key)); }}>Remover equipamento {index + 1}</button>}
                 </fieldset>)}</div></section>
             {error && <p role="alert" className="rounded-lg bg-red-50 p-4 text-red-800">{error}</p>}
             <button disabled={saving || !client} className="rounded-lg bg-orange-600 px-5 py-3 font-medium text-white disabled:opacity-50">{saving ? 'Salvando...' : 'Salvar ordem'}</button>

@@ -203,6 +203,8 @@ test('técnicos elegíveis: seleção mínima, validação e preservação do re
  const patch = await call(`/orders/${result.body.data._id}`, { method: 'PATCH', body: { observacoes: 'Preservar responsável' }, headers: { 'If-Match': result.headers.get('etag') } });
  assert.equal(patch.status, 200); assert.equal(patch.body.data.tecnicoId, tech.id);
  const clear = await call(`/orders/${result.body.data._id}`, { method: 'PATCH', body: { tecnicoId: null }, headers: { 'If-Match': patch.headers.get('etag') } }); assert.equal(clear.status, 200); assert.equal(clear.body.data.tecnicoId, null);
+ await Order.updateOne({ _id: result.body.data._id }, { $set: { tecnico: 'Nome histórico sem vínculo' } });
+ const historic = await call(`/orders/${result.body.data._id}`, { method: 'PATCH', body: { tecnicoId: null }, headers: { 'If-Match': clear.headers.get('etag') } }); assert.equal(historic.status, 200); assert.equal(historic.body.data.tecnico, null);
 });
 
 test('retorno opcional e dias 89/90/91 por equipamento; retornos sucessivos não renovam', async () => {

@@ -106,7 +106,7 @@ export function Orders() {
     const visible = orders;
     return <div className="min-h-screen md:flex">
  <aside className={`border-r bg-white p-6 md:block md:w-64 md:shrink-0 ${menu ? 'block' : 'hidden'}`}>
- <p className="text-xl font-bold">⚡ Eletro Paulínia</p><nav aria-label="Menu principal" className="mt-8"><Link href="/ordens" aria-current="page" className="block rounded-lg bg-orange-50 p-3 font-medium text-orange-700">Ordens de serviço</Link>{user?.role === 'admin' && <Link href="/funcionarios" className="mt-2 block rounded-lg p-3 hover:bg-orange-50">Funcionários</Link>}</nav></aside>
+ <p className="text-xl font-bold">⚡ Eletro Paulínia</p><nav aria-label="Menu principal" className="mt-8"><Link href="/ordens" aria-current="page" className="block rounded-lg bg-orange-50 p-3 font-medium text-orange-700">Ordens de serviço</Link><Link href="/clientes" className="mt-2 block rounded-lg p-3 hover:bg-orange-50">Clientes</Link>{user?.role === 'admin' && <Link href="/funcionarios" className="mt-2 block rounded-lg p-3 hover:bg-orange-50">Funcionários</Link>}</nav></aside>
  <div className="min-w-0 flex-1"><header className="flex items-center justify-between gap-3 border-b bg-white px-4 py-4 md:px-8">
  <button className="md:hidden" aria-label="Abrir menu" aria-expanded={menu} onClick={() => setMenu(!menu)}><Menu /></button>
  <span className="ml-auto text-sm">{user ? 'Olá, ' + user.name : 'Eletro Paulínia'}</span>

@@ -28,6 +28,7 @@ for (let i = 0; i < 26; i++) {
   await createOrder({ cliente: { nome: `Cliente v2 ${i}`, telefone: `19900001${String(i).padStart(3, '0')}` }, dataEntrada: '2026-10-22',
     equipamentos: i === 0 ? ['Equipamento v2', 'Rádio para teste', 'Ferro para teste'].map(nome => ({ nome, solicitacao: { tipo: 'testar' } })) : [{ nome: `Equipamento paginado ${i}`, solicitacao: { tipo: 'testar' } }] }, `e2e-synthetic-key-${i}`, actor._id);
 }
+await OrderV2.updateOne({ 'cliente.nome': 'Cliente v2 0' }, { $set: { tecnico: 'Técnico histórico sintético', tecnicoId: null } });
 let server=app.listen(5101,'127.0.0.1',()=>console.log('API de teste isolada pronta'));
 // Controle existe apenas neste runner local, nunca no app de produção.
 const control=createServer(async(req,res)=>{

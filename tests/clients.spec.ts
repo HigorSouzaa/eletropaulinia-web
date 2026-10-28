@@ -173,3 +173,66 @@ test('lookup exige origem/sessão e troca de conta elimina os campos do cadastro
     await expect(page).toHaveURL(/\/login$/);
     await expect(page.getByLabel('Nome *')).toHaveCount(0);
 });
+
+test('área Clientes lista histórico real e limita edição ao administrador', async ({ page, request }) => {
+ const auth = await admin(request), ids: string[] = [];
+ try {
+  const order = await seed(request, auth, '19900000301', 'Cliente área sintético'); ids.push(order._id);
+  await login(page); await page.goto(`/clientes/${order.clienteId}`);
+  await expect(page.getByRole('link', { name: order.numero, exact: true })).toBeVisible();
+  await expect(page.getByLabel('Nome *')).toHaveAttribute('readonly', '');
+  const read = await page.request.get(`/api/clients/${order.clienteId}`);
+  expect((await page.request.patch(`/api/clients/${order.clienteId}`, { headers: { Origin: origin, 'If-Match': read.headers()['etag'] }, data: { nome: 'Não autorizado' } })).status()).toBe(403);
+  await page.goto('/login'); await page.getByLabel('Usuário', { exact: true }).fill('teste-a'); await page.getByLabel('Senha', { exact: true }).fill('Synthetic-test-password-42'); await page.getByRole('button', { name: 'Entrar', exact: true }).click();
+  await expect(page).toHaveURL(/\/ordens$/); await page.getByRole('link', { name: 'Clientes', exact: true }).click();
+  await page.getByLabel('Buscar nome ou telefone').fill('19900000301'); await page.getByRole('link', { name: 'Cliente área sintético', exact: true }).click();
+  await page.getByLabel('Nome *').fill('Cliente corrigido sintético'); await page.getByLabel('Telefone *').fill('19900000302');
+  await page.getByRole('button', { name: 'Salvar cadastro' }).click(); await expect(page.getByRole('status')).toContainText('Cadastro atualizado');
+  await page.reload(); await expect(page.getByLabel('Nome *')).toHaveValue('Cliente corrigido sintético'); await page.setViewportSize({ width: 360, height: 780 }); await page.screenshot({ path: 'test-results/clientes-cadastro-360.png', fullPage: true });
+  await page.getByRole('link', { name: order.numero, exact: true }).click(); await expect(page.getByText('Cliente área sintético', { exact: true })).toBeVisible();
+ } finally { await remove(request, ids, auth); }
+});
+
+test('laudo, serviços, técnico e retorno opcional persistem na jornada real', async ({ page, request }) => {
+ const auth = await admin(request), ids: string[] = [];
+ try {
+  await login(page); await page.getByLabel('Telefone *').fill('19900000311'); await expect(page.getByRole('status')).toContainText('Cliente não encontrado');
+  await page.getByLabel('Nome *').fill('Cliente retorno sintético'); await equipment(page, 'Equipamento de retorno');
+  await page.getByRole('combobox', { name: 'Técnico (opcional)', exact: true }).selectOption({ label: 'Funcionário A' });
+  await page.getByLabel('Laudo técnico (opcional)').fill('Trocar componente sintético');
+  await page.getByRole('button', { name: 'Adicionar serviço', exact: true }).click(); await page.getByLabel('Serviço 1', { exact: true }).fill('Mão de obra'); await page.getByLabel('Valor em R$').fill('12,34');
+  const first = await save(page); ids.push(first._id); expect(first.equipamentos[0].avaliacao.totalCentavos).toBe(1234); expect(first.tecnicoId).toBeTruthy();
+  await page.reload(); await expect(page.getByText('Trocar componente sintético', { exact: true })).toBeVisible();
+  const read = await request.get(`${api}/v2/orders/${first._id}`, { headers: { Authorization: `Bearer ${auth}` } });
+  const pickup = await request.put(`${api}/v2/orders/${first._id}/equipamentos/${first.equipamentos[0]._id}/retirada`, { headers: { Authorization: `Bearer ${auth}`, 'If-Match': read.headers()['etag'] }, data: {} }); expect(pickup.status()).toBe(200);
+  await page.goto('/nova-ordem'); await page.getByLabel('Telefone *').fill('19900000311'); await expect(page.getByRole('status')).toContainText('Cliente encontrado');
+  await page.getByLabel('Tipo de atendimento').selectOption('retorno');
+  await expect(page.getByLabel('Atendimento anterior (opcional)').locator('option')).toHaveCount(2);
+  await page.getByLabel('Atendimento anterior (opcional)').selectOption(`${first._id}/${first.equipamentos[0]._id}`);
+  await page.getByLabel('Solicitação').selectOption('testar');
+  const second = await save(page); ids.push(second._id); expect(second.tipoAtendimento).toBe('retorno'); expect(second.equipamentos[0].garantia.situacao).toBe('dentro');
+  await expect(page.getByText('Dentro da referência de 90 dias', { exact: true })).toBeVisible(); await page.setViewportSize({ width: 360, height: 780 }); await page.screenshot({ path: 'test-results/retorno-360.png', fullPage: true });
+  await page.getByRole('link', { name: 'Editar', exact: true }).click(); await page.getByLabel('Laudo técnico (opcional)').first().fill('Reavaliado'); await page.getByRole('button', { name: 'Salvar equipamento', exact: true }).click();
+  await expect(page.getByRole('status')).toContainText('Alteração salva'); await page.reload(); await expect(page.getByLabel('Laudo técnico (opcional)').first()).toHaveValue('Reavaliado');
+  await page.goto('/login'); await page.getByLabel('Usuário', { exact: true }).fill('teste-a'); await page.getByLabel('Senha', { exact: true }).fill('Synthetic-test-password-42'); await page.getByRole('button', { name: 'Entrar', exact: true }).click(); await expect(page).toHaveURL(/\/ordens$/);
+  await page.goto(`/ordens/${first._id}`); await page.getByText('Atualizar garantia — administrador', { exact: true }).click();
+  await page.getByLabel('Nova data final da garantia').fill('2027-12-31'); await page.getByLabel('Motivo da atualização').fill('Extensão autorizada para ensaio sintético');
+  const savedWarranty = page.waitForResponse(r => r.url().endsWith('/garantia') && r.request().method() === 'PATCH');
+  await page.getByRole('button', { name: 'Registrar atualização da garantia' }).click(); expect((await savedWarranty).status()).toBe(200);
+  await page.reload(); await page.getByText('Histórico de ajustes de garantia', { exact: true }).click(); await expect(page.getByText(/Extensão autorizada para ensaio sintético/)).toBeVisible();
+
+ } finally { await remove(request, ids.reverse(), auth); }
+});
+
+test('responsável textual histórico é preservado até escolher explicitamente Sem técnico', async ({ page }) => {
+ await login(page);
+ const list = await page.request.get('/api/orders?q=Cliente%20v2%200'); const row = (await list.json()).data[0];
+ await page.goto(`/editar-ordem/${row._id}`);
+ const select = page.getByRole('combobox', { name: /^Técnico \(opcional\)/ });
+ await expect(select).toHaveValue('legacy');
+ await page.getByLabel('Observações (opcional)').fill('Mantendo responsável histórico');
+ await page.getByRole('button', { name: 'Salvar dados da ordem' }).click(); await expect(page.getByRole('status')).toContainText('Alteração salva');
+ expect((await (await page.request.get(`/api/orders/${row._id}`)).json()).data.tecnico).toBe('Técnico histórico sintético');
+ await select.selectOption(''); await page.getByRole('button', { name: 'Salvar dados da ordem' }).click(); await expect(select).toHaveValue('');
+ await expect.poll(async () => (await (await page.request.get(`/api/orders/${row._id}`)).json()).data.tecnico).toBeNull();
+});

@@ -73,7 +73,7 @@ export async function mutateOrder(id, match, operation, body, actor, equipmentId
     const main = { ...body }; delete main.tecnicoId;
     const normalized = createInput({ ...inputOf(candidate), ...main, cliente: { ...candidate.cliente, ...body.cliente } });
     Object.assign(candidate, { ...normalized, equipamentos: candidate.equipamentos });
-    if ('tecnicoId' in body && String(body.tecnicoId) !== String(raw.tecnicoId ?? null)) Object.assign(candidate, await resolveTechnician(body.tecnicoId, session));
+    if ('tecnicoId' in body && (String(body.tecnicoId) !== String(raw.tecnicoId ?? null) || (body.tecnicoId === null && raw.tecnico))) Object.assign(candidate, await resolveTechnician(body.tecnicoId, session));
   } else {
     const index = candidate.equipamentos.findIndex(item => String(item._id) === equipmentId);
     if (operation !== 'add' && index < 0) throw new OrderError(404, 'NOT_FOUND');
