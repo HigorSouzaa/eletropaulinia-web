@@ -1,2 +1,3 @@
-import { forwardWrite } from '../../../../web/server/forward';
+import { forwardRead, forwardWrite } from '../../../../web/server/forward';
+export async function GET(request: Request) { return forwardRead(`/v2/finance/receipts?${new URL(request.url).searchParams.toString()}`); }
 export async function POST(request: Request) { return forwardWrite(request, '/v2/finance/receipts', 'POST', { key: true, limit: 4096 }); }

@@ -10,6 +10,8 @@ import OrderV2 from '../models/OrderV2.js';
 import Counter from '../models/Counter.js';
 import Client from '../models/Client.js';
 import FinanceReceipt from '../models/FinanceReceipt.js';
+import FinanceExpense from '../models/FinanceExpense.js';
+import FinanceRecurrence from '../models/FinanceRecurrence.js';
 import { createOrder } from '../services/ordersV2.js';
 process.env.JWT_SECRET=randomBytes(48).toString('hex');
 process.env.JWT_EXPIRE='1h';
@@ -24,6 +26,8 @@ await Order.create({numero:'OS-0001',cliente:'Cliente sintético',telefone:'0000
 await OrderV2.createIndexes();
 await Client.createCollection(); await Client.createIndexes();
 await FinanceReceipt.createCollection(); await FinanceReceipt.createIndexes();
+await FinanceExpense.createCollection(); await FinanceExpense.createIndexes();
+await FinanceRecurrence.createCollection(); await FinanceRecurrence.createIndexes();
 await Counter.create({ _id: 'orders', value: 1 });
 const actor = await User.findOne({ username: 'teste-a' });
 for (let i = 0; i < 26; i++) {
@@ -43,6 +47,9 @@ const control=createServer(async(req,res)=>{
    const orderId=req.url.split('/').at(-1);
    await FinanceReceipt.deleteMany({orderId});
    await OrderV2.deleteOne({_id:orderId});
+ }else if(req.url==='/cleanup-finance-ledger'){
+   await FinanceExpense.deleteMany({description:{$in:['Energia financeira sintética','Internet financeira sintética']}});
+   await FinanceRecurrence.deleteMany({description:'Internet financeira sintética'});
  }else {res.writeHead(404);res.end();return;}
  res.writeHead(204);res.end();
 }).listen(5102,'127.0.0.1');
