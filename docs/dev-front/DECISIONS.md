@@ -1,5 +1,9 @@
 # Decisões — Eletro Paulínia
 
+## Finanças — 28/10/2026
+
+Modo semi-auto. O usuário aprovou a arquitetura e a direção visual da área Finanças em `docs/contratos/FINANCAS-PROPOSTA.md` após proposta concreta. O contrato de API/dados `docs/contratos/FINANCAS-API-DADOS.md` é proposta para o checkpoint B, ainda não aprovado. Nenhuma tela ou API financeira foi implementada; não houve deploy ou mudança no Atlas nesta etapa. Os registros abaixo são históricos ou de outros pacotes.
+
 ## Estado vigente — 28/10/2026
 
 A/B, arquitetura/design e checkpoint C foram aprovados pelo usuário. A expansão integral foi autorizada, incluindo retorno sem vínculo obrigatório, referência de 90 dias desde a retirada individual e alteração manual da data final somente pelo administrador, com motivo e histórico. Retorno não reinicia o prazo. Implementação local concluída; [entrega](../qa/CLIENTES-EXPANSAO.md). Nenhuma aprovação de publicação ou alteração do Atlas foi dada para este pacote. Os blocos abaixo preservam decisões e estados históricos, inclusive checkpoints que já foram superados.

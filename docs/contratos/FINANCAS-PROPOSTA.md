@@ -1,6 +1,6 @@
 # Finanças — diagnóstico e arquitetura propostos (checkpoint A)
 
-Data: 28/10/2026. Branch: `feat/financas-operacionais`, baseada em `91ccc4a`. Estado: proposta para revisão; nenhuma API/tela/modelo financeiro implementado e nenhum banco real alterado.
+Data: 28/10/2026. Branch: `feat/financas-operacionais`, baseada em `91ccc4a`. Estado: arquitetura e direção visual aprovadas pelo usuário em 28/10/2026. Contrato B em [FINANCAS-API-DADOS.md](FINANCAS-API-DADOS.md) aguarda revisão; nenhuma API/tela/modelo financeiro implementado e nenhum banco real alterado.
 
 ## Evidências da base
 
@@ -39,6 +39,6 @@ Com Mongo descartável: admin registra pagamento de um equipamento em OS com doi
 
 ## Próximo checkpoint
 
-Após aprovação desta arquitetura e direção visual, apresentar contrato B: payloads/erros, IDs, índices, permissões, idempotência, recorrência, exclusão de OS e matriz de testes. Somente após aprovação B implementar a primeira jornada C. Não houve aprovação dos checkpoints A/B/C nesta solicitação de execução.
+Após aprovação desta arquitetura e direção visual, apresentar contrato B: payloads/erros, IDs, índices, permissões, idempotência, recorrência, exclusão de OS e matriz de testes. Somente após aprovação B implementar a primeira jornada C. Checkpoint A e direção visual aprovados; B e C ainda pendentes.
 
 Referências de modelagem, a revalidar conforme versão do servidor: [MongoDB — valores monetários](https://www.mongodb.com/docs/manual/tutorial/model-monetary-data/), [MongoDB — agrupamento por data](https://www.mongodb.com/docs/manual/reference/operator/aggregation/dateTrunc/), [MongoDB — atomicidade](https://www.mongodb.com/docs/manual/core/write-operations-atomicity/).
