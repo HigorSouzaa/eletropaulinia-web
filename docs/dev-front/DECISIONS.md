@@ -1,5 +1,9 @@
 # Decisões — Eletro Paulínia
 
+## Estado vigente — 28/10/2026
+
+A/B, arquitetura/design e checkpoint C foram aprovados pelo usuário. A expansão integral foi autorizada, incluindo retorno sem vínculo obrigatório, referência de 90 dias desde a retirada individual e alteração manual da data final somente pelo administrador, com motivo e histórico. Retorno não reinicia o prazo. Implementação local concluída; [entrega](../qa/CLIENTES-EXPANSAO.md). Nenhuma aprovação de publicação ou alteração do Atlas foi dada para este pacote. Os blocos abaixo preservam decisões e estados históricos, inclusive checkpoints que já foram superados.
+
 ## Complemento: retorno
 
 Checkpoint C de Clientes aprovado pelo usuário: “Sim pode aprovar”. Expansão local autorizada. Nova decisão: retorno pode ser cadastrado sem vínculo, com busca opcional de OS anteriores e consulta da referência de 90 dias; fora do prazo também pode ser atendido. [Proposta concreta]( ../contratos/RETORNO.md ) aguarda revisão dos detalhes novos.

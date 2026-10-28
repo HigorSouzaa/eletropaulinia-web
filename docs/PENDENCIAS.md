@@ -1,5 +1,21 @@
 # Pendências para revisão ao final dos prompts
 
+## Estado vigente — expansão local concluída em 28/10/2026
+
+Este bloco prevalece sobre os estados históricos abaixo. Implementação API 7a681c5; telas/compatibilidade 726d6e1; primeira jornada dde449f. [Entrega e validação](qa/CLIENTES-EXPANSAO.md). Checkpoints A/B/C e expansão aprovados; prazo de 90 dias desde retirada individual e ajuste manual exclusivo de admin confirmados. Sem publicação.
+
+| ID | Estado / impacto e prioridade | Evidência | Dependências / próxima ação / conclusão |
+| --- | --- | --- | --- |
+| P26 | Resolvida localmente, P1 | Client, transação, consulta/lista/detalhe/histórico, PATCH admin com CAS; testes HTTP e navegador | Publicação depende P29/P24/P22; aceite local: vínculo real, concorrência, recarga e 403 comprovados |
+| P27 | Resolvida localmente, P1 | Avaliação e serviços por equipamento, centavos/total na API, autoria, CAS; clients.test.js e clients.spec.ts | Validar pacote publicado após autorização; persistência e isolamento por equipamento comprovados localmente |
+| P28 | Resolvida localmente, P1 | Consulta mínima paginada, atribuição técnico/admin ativo, histórico textual/inativo preservado; 7a681c5/726d6e1 | Mesmo bloqueio remoto; seleção, inelegibilidade e limpeza explícita testadas |
+| P29 | Parcial local, P1 para publicação | Inventário agregado e reconciliação explícita com dry-run/retomada em fixtures; roteiro CLIENTES-TRANSICAO | Falta inventário, backup/restore, índices e ensaio no destino autorizado; concluir sem unir históricos silenciosamente nem perder campos |
+| P30 | Resolvida localmente, P1 | Retorno opcionalmente vinculado; referência 90 dias sem reinício; somente admin altera fim com motivo/histórico; testes 89/90/91, origem ausente/corrigida e retorno sucessivo | Publicação depende P29/P24/P22; critérios locais comprovados sem inventar retirada nem cobertura automática |
+
+P14/P21 atualizadas: check com 73 testes HTTP/Mongo, tipagem/lint/build; regressão dirigida com 16 testes após último ajuste; build/lint finais e 28 Chromium aprovados. Dispositivos reais, auditoria completa de acessibilidade, CI remoto e volume representativo continuam abertos. P24/P22 atualizadas e abertas para transição/publicação autorizada. Nenhum novo ID; resolvidas apenas localmente P26/P27/P28/P30, P29 parcial. Bloqueios anteriores P15/P16/P17/P18/P23 preservados. Endereço/CPF/CNPJ, WhatsApp, pagamentos e aprovação comercial continuam adiados; retorno/referência de garantia entraram explicitamente no escopo e não autorizam mensagens automáticas.
+
+### Histórico preservado
+
 ## Complemento: retorno
 
 Checkpoint C de Clientes aprovado pelo usuário: “Sim pode aprovar”. Expansão local autorizada. Nova decisão: retorno pode ser cadastrado sem vínculo, com busca opcional de OS anteriores e consulta da referência de 90 dias; fora do prazo também pode ser atendido. [Proposta concreta]( contratos/RETORNO.md ) aguarda revisão dos detalhes novos.

@@ -1,8 +1,12 @@
-# Retorno — complemento para revisão
+# Retorno — contrato aprovado
+
+## Aprovação e atualização de 28/10/2026
+
+Usuário confirmou: 90 dias desde a retirada daquele equipamento; retorno não reinicia prazo; somente administrador pode atualizar a data final com motivo e histórico. Esta autorização é local, sem publicação. A implementação usa tipoAtendimento, origem por equipamento, snapshot de referência e garantiaFim/garantiaAjustes. Campos de origem são definidos na criação; ajustes de garantia usam PATCH /api/v2/orders/:id/equipamentos/:eid/garantia, admin + If-Match, corpo {fim, motivo}. Fim é data civil válida não anterior ao início conhecido ou à entrada, quando não há referência; motivo 1–500. Sem início verificável, somente a data final explicitamente escolhida pelo admin é registrada; não se inventa retirada nem duração de 90 dias. A interface identifica prazo manual, que também pode ser herdado pelo retorno subsequente. Cada ajuste registra fimAnterior, fimNovo, motivo, por e em. Não há renovação automática.
 
 ## Decisões recebidas
 
-O usuário aprovou a expansão após a primeira jornada de Clientes. Acrescentou retorno com vínculo opcional e busca de OS anteriores pelo telefone, incluindo atendimentos fora dos 90 dias. Não há autorização de publicação. Este documento propõe detalhes concretos novos; não registra aprovação antecipada deles.
+O usuário aprovou a expansão após a primeira jornada de Clientes. Acrescentou retorno com vínculo opcional e busca de OS anteriores pelo telefone, incluindo atendimentos fora dos 90 dias. Não há autorização de publicação. Os detalhes iniciais abaixo foram apresentados e aprovados; a atualização acima inclui a decisão administrativa posterior.
 
 ## Evidência e proposta
 

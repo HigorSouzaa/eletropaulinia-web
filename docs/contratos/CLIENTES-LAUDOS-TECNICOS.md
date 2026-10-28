@@ -1,8 +1,8 @@
-# Clientes, laudos e técnicos — proposta concreta para revisão
+# Clientes, laudos e técnicos — contrato e implementação local
 
 Data: 27/10/2026. Base inspecionada: `b2515e6`, branch de origem `feat/hospedagem-netlify-render`; branch de trabalho `feat/clientes-laudos-tecnicos`.
 
-**Atualização após aprovação:** o usuário aprovou os contratos concretos e a primeira jornada ("Aprovo pode fazer"). Lookup, criação transacional de cliente/OS, snapshot e formulário estão implementados localmente; a área Clientes completa, avaliações, seleção de técnico e reconciliação continuam planejadas. Ver entrega da primeira jornada em `../qa/CLIENTES-PRIMEIRA-JORNADA.md`. O restante deste documento registra o contrato do pacote completo, não funcionalidades integralmente entregues.
+**Atualização de 28/10/2026:** contratos, primeira jornada e expansão aprovados pelo usuário. Clientes, avaliações, seleção de técnico e retornos estão implementados localmente. Reconciliação foi ensaiada somente com fixtures; inventário e aplicação remotos permanecem pendentes. Ver [entrega e validação](../qa/CLIENTES-EXPANSAO.md). Os registros da preparação abaixo são históricos.
 
 **Estado histórico da preparação:** As regras de produto foram confirmadas pelo usuário; contratos, limites técnicos e estrutura abaixo estão em revisão nos checkpoints A/B da Dev Back Master e arquitetura/design da Dev Front Master. Não há aprovação presumida da primeira jornada funcional. [Plano de telas e testes](../dev-front/CLIENTES-LAUDOS-TECNICOS.md).
 
@@ -67,7 +67,11 @@ Exibição: `(DD) 99999-9999` ou `(DD) 9999-9999`. Compartilhar função pura de
 - Nas edições, validar apenas o campo/operação pretendido. A inclusão ou alteração de equipamento não deve exigir converter telefone antigo, nem apagar novos campos de outros equipamentos.
 - DTO deve enumerar campos permitidos; nunca expor hashes de idempotência, campos internos de coordenação ou conteúdo da fonte de migração.
 
-### Avaliação por equipamento
+### Avaliação por equipamento — representação implementada
+
+A implementação agrupa os campos em avaliacao: {laudo, servicos, totalCentavos, atualizadoPor, atualizadoEm}. Os nomes propostos abaixo correspondem a esse objeto; total é calculado no Express. IDs de serviços existentes são preservados; IDs de outra avaliação são rejeitados. Atualização utiliza PATCH do equipamento e a versão da OS. O limite de corpo é o limite atual da rota de OS (512 KiB); cadastro de cliente usa 1 KiB, suficiente para os campos limitados.
+
+### Proposta histórica de avaliação
 
 Acrescentar `laudo` (string/null), `servicos` (array), `avaliacaoAtualizadaPor` e `avaliacaoAtualizadaEm`. Cada serviço possui `_id` estável gerado no servidor, `descricao` e `valorCentavos` inteiro. Expor `totalServicosCentavos` calculado; não armazenar total enviado pelo cliente.
 
@@ -86,9 +90,9 @@ Prefixo Express `/api/v2`; transporte Next `/api`. Rotas fixas, sem destino cont
 | POST /clients/lookup | `{telefone}`; consulta exata sem efeitos; 1 KiB | 200 `{data: clientDTO ou null}`; ETag se encontrado |
 | GET /clients | q até 100, page>=1, pageSize 1–100 (padrão 25) | 200 `{data:[],meta:{page,pageSize,total,totalPages}}` |
 | GET /clients/:id | ID válido | 200 `{data:clientDTO}` + ETag; 404 ausente |
-| PATCH /clients/:id | Admin, If-Match; nome/telefone/email apenas; 16 KiB | 200 DTO + ETag |
+| PATCH /clients/:id | Admin, If-Match; nome/telefone/email apenas; 1 KiB | 200 DTO + ETag |
 | GET /orders?clienteId=:id | Extensão explícita dos filtros existentes, também no summary | Lista de OS realmente vinculadas, paginada |
-| GET /technicians | page/pageSize, ordenação nome e ID | DTO mínimo `{_id,name}` e meta, somente admin/tecnico ativos |
+| GET /technicians | page/pageSize (padrão 100, máximo 100), ordenação nome e ID | DTO mínimo `{_id,name}` e meta, somente admin/tecnico ativos |
 | POST /orders | Nova união de entrada de cliente descrita abaixo; Idempotency-Key | 201 criada ou 200 replay; DTO de OS + ETag |
 | PATCH /orders/:id | Campos operacionais existentes e tecnicoId; If-Match | 200 OS + ETag |
 | PUT /orders/:id/equipamentos/:eid/avaliacao | `{laudo,servicos}` completo; If-Match da OS | 200 OS completa + ETag |
