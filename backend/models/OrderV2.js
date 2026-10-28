@@ -12,6 +12,8 @@ const withdrawalHistory = new mongoose.Schema({
   motivo: text(500),
   retiradaOriginal: { type: withdrawal, required: true },
 }, { _id: true });
+const evaluation = new mongoose.Schema({ laudo: text(5000), servicos: [{ descricao: text(500, true), valorCentavos: { type: Number, required: true, min: 0, max: 99999999 } }], totalCentavos: { type: Number, default: null }, atualizadoPor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, atualizadoEm: Date }, { _id: false, strict: 'throw' });
+const origin = new mongoose.Schema({ ordemId: mongoose.Schema.Types.ObjectId, equipamentoId: mongoose.Schema.Types.ObjectId, numero: String, nome: String, sourceVersion: Number, prazoManual: Boolean, inicio: String, fim: String, raizOrdemId: mongoose.Schema.Types.ObjectId, raizEquipamentoId: mongoose.Schema.Types.ObjectId }, { _id: false, strict: 'throw' });
 const equipment = new mongoose.Schema({
   nome: text(160, true), marca: text(120), modelo: text(120), numeroSerie: text(120),
   solicitacao: {
@@ -20,6 +22,10 @@ const equipment = new mongoose.Schema({
   },
   andamento: { type: String, enum: ['Aguardando', 'Em andamento', 'Pronto', null], default: 'Aguardando' },
   retirada: { type: withdrawal, default: null },
+  garantiaFim: { type: String, default: null },
+  garantiaAjustes: { type: [{ fimAnterior: String, fimNovo: String, motivo: text(500, true), por: mongoose.Schema.Types.ObjectId, em: Date }], default: [] },
+  avaliacao: { type: evaluation, default: null },
+  retorno: { type: origin, default: null },
   historicoRetiradas: { type: [withdrawalHistory], default: [] },
 }, { strict: 'throw' });
 const schema = new mongoose.Schema({
@@ -31,16 +37,20 @@ const schema = new mongoose.Schema({
   clienteId: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', default: null },
   equipamentos: { type: [equipment], validate: v => v.length >= 1 && v.length <= 100 },
   dataEntrada: { type: String, required: true }, dataPrevista: text(10),
+  tipoAtendimento: { type: String, enum: ['normal', 'retorno'], default: 'normal' },
+  referenceFence: { type: Number, default: 0, select: false },
+  tecnicoId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   tecnico: text(120), observacoes: text(5000),
   status: { type: String, enum: ['Aguardando', 'Em andamento', 'Pronto', 'Entregue'], default: 'Aguardando' },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   creationKey: { type: String, select: false },
   creationHash: { type: String, select: false },
-  creationHashVersion: { type: Number, enum: [2], select: false },
+  creationHashVersion: { type: Number, enum: [2, 3], select: false },
   migration: { type: mongoose.Schema.Types.Mixed, select: false },
 }, { collection: 'orders', timestamps: true, strict: 'throw', autoIndex: false });
 // Index installation is explicit, never a side effect of importing this model.
 schema.index({ numero: 1 }, { unique: true });
 schema.index({ createdBy: 1, creationKey: 1 }, { unique: true, partialFilterExpression: { schemaVersion: 2, creationKey: { $type: 'string' } } });
 schema.index({ dataEntrada: -1, _id: -1 });
+schema.index({ clienteId: 1, dataEntrada: -1, _id: -1 });
 export default mongoose.model('OrderV2', schema);

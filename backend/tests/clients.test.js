@@ -159,3 +159,114 @@ test('replay histórico usa algoritmo anterior mesmo com telefone hoje inválido
   assert.equal(replayed.status, 200); assert.equal(replayed.body.data._id, document.id);
   assert.equal(await Client.countDocuments(), 0);
 });
+
+test('cadastro mestre exige admin, CAS e telefone único; histórico usa ID estável', async () => {
+ const first = await create(); const id = first.body.data.clienteId;
+ const get = await call(`/clients/${id}`); const tag = get.headers.get('etag');
+ assert.equal((await call(`/clients/${id}`, { method: 'PATCH', body: { nome: 'Novo nome' }, headers: { 'If-Match': tag } })).status, 403);
+ await User.updateOne({ _id: actor._id }, { $set: { role: 'admin' } });
+ const edited = await call(`/clients/${id}`, { method: 'PATCH', body: { nome: 'Nome corrigido', telefone: '(19) 90000-0099', email: null }, headers: { 'If-Match': tag } });
+ assert.equal(edited.status, 200); assert.equal(edited.body.data.version, 2);
+ assert.equal((await call(`/clients/${id}`, { method: 'PATCH', body: { nome: 'Concorrente' }, headers: { 'If-Match': tag } })).status, 412);
+ const history = await call(`/orders?clienteId=${id}`); assert.equal(history.body.meta.total, 1); assert.equal(history.body.data[0].cliente.nome, 'Pessoa sintética A');
+ const next = payload(); next.cliente.telefone = '19900000100'; await create(next);
+ assert.equal((await call(`/clients/${id}`, { method: 'PATCH', body: { telefone: '19900000100' }, headers: { 'If-Match': edited.headers.get('etag') } })).status, 409);
+ assert.equal((await call('/clients?q=%28%2E%2A%29')).body.meta.total, 0);
+ assert.equal((await call('/clients?q=900000099')).body.meta.total, 1);
+ assert.equal((await call('/orders?clienteId=invalid')).status, 400);
+});
+
+test('laudos e centavos persistem por equipamento; total, autoria e conflitos controlados', async () => {
+ const body = payload(); body.equipamentos.push({ nome: 'Segundo', solicitacao: { tipo: 'testar' } });
+ body.equipamentos[0].avaliacao = { laudo: 'Substituir componente', servicos: [{ descricao: 'Serviço A', valorCentavos: 101 }, { descricao: 'Serviço B', valorCentavos: 202 }] };
+ const created = await create(body); assert.equal(created.status, 201); const order = created.body.data;
+ assert.equal(order.equipamentos[0].avaliacao.totalCentavos, 303); assert.equal(order.equipamentos[1].avaliacao, null);
+ const url = `/orders/${order._id}/equipamentos/${order.equipamentos[0]._id}`;
+ const headers = { 'If-Match': created.headers.get('etag') };
+ assert.equal((await call(url, { method: 'PATCH', body: { avaliacao: { laudo: null, servicos: [{ descricao: 'Inválido', valorCentavos: -1 }] } }, headers })).status, 400);
+ const edit = await call(url, { method: 'PATCH', body: { avaliacao: { laudo: 'Revisado', servicos: [{ descricao: 'Cortesia', valorCentavos: 0 }] } }, headers });
+ assert.equal(edit.status, 200); assert.equal(edit.body.data.equipamentos[0].avaliacao.totalCentavos, 0); assert.equal(edit.body.data.equipamentos[0].avaliacao.atualizadoPor, actor.id);
+ assert.equal((await call(url, { method: 'PATCH', body: { avaliacao: null }, headers })).status, 412);
+ const read = await call(`/orders/${order._id}`); assert.equal(read.body.data.equipamentos[0].avaliacao.laudo, 'Revisado'); assert.equal(read.body.data.status, order.status);
+ const service = edit.body.data.equipamentos[0].avaliacao.servicos[0];
+ const preserved = await call(url, { method: 'PATCH', body: { avaliacao: { laudo: 'Revisado', servicos: [{ _id: service._id, descricao: 'Cortesia revisada', valorCentavos: 0 }] } }, headers: { 'If-Match': edit.headers.get('etag') } });
+ assert.equal(preserved.status, 200); assert.equal(preserved.body.data.equipamentos[0].avaliacao.servicos[0]._id, service._id);
+});
+
+test('técnicos elegíveis: seleção mínima, validação e preservação do responsável inativo', async () => {
+ const tech = await User.create({ username: 'technical-test', name: 'Técnico teste', password: 'Synthetic-password-42', role: 'tecnico' });
+ const eligible = await call('/technicians'); assert.deepEqual(Object.keys(eligible.body.data[0]).sort(), ['_id', 'name']);
+ const bad = payload(); bad.tecnicoId = actor.id; assert.equal((await create(bad)).status, 409);
+ const good = payload(); good.tecnicoId = tech.id; const result = await create(good); assert.equal(result.status, 201); assert.equal(result.body.data.tecnicoId, tech.id);
+ await User.updateOne({ _id: tech._id }, { $set: { active: false } });
+ assert.equal((await create(good)).status, 409);
+ const patch = await call(`/orders/${result.body.data._id}`, { method: 'PATCH', body: { observacoes: 'Preservar responsável' }, headers: { 'If-Match': result.headers.get('etag') } });
+ assert.equal(patch.status, 200); assert.equal(patch.body.data.tecnicoId, tech.id);
+ const clear = await call(`/orders/${result.body.data._id}`, { method: 'PATCH', body: { tecnicoId: null }, headers: { 'If-Match': patch.headers.get('etag') } }); assert.equal(clear.status, 200); assert.equal(clear.body.data.tecnicoId, null);
+});
+
+test('retorno opcional e dias 89/90/91 por equipamento; retornos sucessivos não renovam', async () => {
+ const original = (await create()).body.data;
+ const withdrawn = new Date('2026-01-01T02:30:00Z'); // 31/12/2025 em São Paulo.
+ await Order.updateOne({ _id: original._id }, { $set: { 'equipamentos.0.retirada': { retiradoEm: withdrawn, origem: 'operacao', registradoPor: actor._id }, status: 'Entregue' } });
+ const base = payload(); base.tipoAtendimento = 'retorno';
+ const unlinked = await create(base); assert.equal(unlinked.status, 201); assert.equal(unlinked.body.data.equipamentos[0].garantia.situacao, 'nao_verificavel');
+ const released = await call(`/orders/${unlinked.body.data._id}/equipamentos/${unlinked.body.data.equipamentos[0]._id}/retirada`, { method: 'PUT', body: {}, headers: { 'If-Match': unlinked.headers.get('etag') } }); assert.equal(released.status, 200); assert.equal(released.body.data.equipamentos[0].garantia.inicio, null);
+ base.equipamentos[0].origem = { ordemId: original._id, equipamentoId: original.equipamentos[0]._id, version: original.version };
+ let returned;
+ for (const [date, expected] of [['2026-03-30', 'dentro'], ['2026-03-31', 'dentro'], ['2026-04-01', 'fora']]) {
+  base.dataEntrada = date; const response = await create(base); assert.equal(response.status, 201); assert.equal(response.body.data.equipamentos[0].garantia.situacao, expected); returned = response.body.data;
+ }
+ await Order.updateOne({ _id: returned._id }, { $set: { 'equipamentos.0.retirada': { retiradoEm: new Date('2026-04-02T15:00:00Z'), origem: 'operacao', registradoPor: actor._id } } });
+ base.equipamentos[0].origem = { ordemId: returned._id, equipamentoId: returned.equipamentos[0]._id, version: returned.version }; base.dataEntrada = '2026-04-03';
+ const again = await create(base); assert.equal(again.status, 201); assert.equal(again.body.data.equipamentos[0].garantia.fim, '2026-03-31'); assert.equal(again.body.data.equipamentos[0].garantia.situacao, 'fora');
+ base.cliente.telefone = '19900000101'; assert.equal((await create(base)).status, 409);
+});
+
+test('reconciliação explícita isolada preserva snapshot, repete e retoma sem união automática', async () => {
+ const { rehearseClientLinks, inventoryClientLinks } = await import('../services/clientReconciliation.js');
+ const first = (await create()).body.data;
+ await Order.updateOne({ _id: first._id }, { $unset: { clienteId: 1 } });
+ const original = await Order.findById(first._id).lean();
+ const mappings = [{ orderId: first._id, clientId: first.clienteId, version: first.version }];
+ const inventory = await inventoryClientLinks(); assert.equal(inventory.orders, 1); assert.equal(inventory.linked, 0); assert.equal(inventory.invalidPhone, 0);
+ const plan = await rehearseClientLinks(mappings); assert.equal(plan.planned, 1); assert.equal(plan.applied, 0);
+ assert.equal((await rehearseClientLinks(mappings, { dryRun: false })).applied, 1);
+ assert.equal((await rehearseClientLinks(mappings, { dryRun: false })).unchanged, 1);
+ const after = await Order.findById(first._id).lean();
+ assert.deepEqual(after.cliente, original.cliente); assert.deepEqual(after.equipamentos, original.equipamentos); assert.equal(after.numero, original.numero);
+});
+
+test('origem corrigida ou excluída é sinalizada; versões antigas e campos derivados não são aceitos', async () => {
+ const initial = await create(); const original = initial.body.data;
+ const pick = await call(`/orders/${original._id}/equipamentos/${original.equipamentos[0]._id}/retirada`, { method: 'PUT', body: {}, headers: { 'If-Match': initial.headers.get('etag') } });
+ const data = payload(); data.tipoAtendimento = 'retorno'; data.equipamentos[0].origem = { ordemId: original._id, equipamentoId: original.equipamentos[0]._id, version: original.version };
+ assert.equal((await create(data)).status, 409);
+ data.equipamentos[0].origem.version = pick.body.data.version;
+ const returned = await create(data); assert.equal(returned.status, 201);
+ const corrected = await call(`/orders/${original._id}/equipamentos/${original.equipamentos[0]._id}/correcoes-retirada`, { method: 'POST', body: { motivo: 'Retirada lançada por engano' }, headers: { 'If-Match': pick.headers.get('etag') } }); assert.equal(corrected.status, 200);
+ const read = await call(`/orders/${returned.body.data._id}`); assert.equal(read.body.data.equipamentos[0].origemSituacao, 'revisar'); assert.equal(read.body.data.equipamentos[0].garantia.situacao, 'nao_verificavel');
+ await User.updateOne({ _id: actor._id }, { $set: { role: 'admin' } });
+ const deleted = await fetch(origin + `/orders/${original._id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}`, 'If-Match': corrected.headers.get('etag') } }); assert.equal(deleted.status, 204);
+ const after = await call(`/orders/${returned.body.data._id}`); assert.equal(after.status, 200); assert.equal(after.body.data.equipamentos[0].retorno.numero, original.numero); assert.equal(after.body.data.equipamentos[0].origemSituacao, 'indisponivel');
+ const bad = payload(); bad.equipamentos[0].avaliacao = { laudo: null, servicos: [], totalCentavos: 0 }; assert.equal((await create(bad)).status, 400);
+});
+
+test('garantia manual só admin, com motivo, histórico e sem mudar retirada nem renovar retorno', async () => {
+ const initial = await create(); const id = initial.body.data._id, eid = initial.body.data.equipamentos[0]._id;
+ const pick = await call(`/orders/${id}/equipamentos/${eid}/retirada`, { method: 'PUT', body: {}, headers: { 'If-Match': initial.headers.get('etag') } });
+ const before = pick.body.data.equipamentos[0]; const url = `/orders/${id}/equipamentos/${eid}/garantia`;
+ const body = { fim: '2027-12-31', motivo: 'Extensão autorizada pelo administrador' };
+ assert.equal((await call(url, { method: 'PATCH', body, headers: { 'If-Match': pick.headers.get('etag') } })).status, 403);
+ await User.updateOne({ _id: actor._id }, { $set: { role: 'admin' } });
+ assert.equal((await call(url, { method: 'PATCH', body: { ...body, motivo: '' }, headers: { 'If-Match': pick.headers.get('etag') } })).status, 400);
+ const updated = await call(url, { method: 'PATCH', body, headers: { 'If-Match': pick.headers.get('etag') } }); assert.equal(updated.status, 200);
+ const item = updated.body.data.equipamentos[0]; assert.deepEqual(item.retirada, before.retirada); assert.equal(item.garantia.fim, body.fim); assert.equal(item.garantiaAjustes[0].fimAnterior, before.garantia.fim); assert.equal(item.garantiaAjustes[0].por, actor.id);
+ assert.equal((await call(url, { method: 'PATCH', body, headers: { 'If-Match': pick.headers.get('etag') } })).status, 412);
+ const next = payload(); next.tipoAtendimento = 'retorno'; next.equipamentos[0].origem = { ordemId: id, equipamentoId: eid, version: updated.body.data.version };
+ const returned = await create(next); assert.equal(returned.status, 201); assert.equal(returned.body.data.equipamentos[0].garantia.fim, body.fim);
+ const unknownInput = payload(); unknownInput.tipoAtendimento = 'retorno';
+ const unknown = await create(unknownInput); const unknownItem = unknown.body.data.equipamentos[0];
+ const manual = await call(`/orders/${unknown.body.data._id}/equipamentos/${unknownItem._id}/garantia`, { method: 'PATCH', body, headers: { 'If-Match': unknown.headers.get('etag') } });
+ assert.equal(manual.status, 200); assert.equal(manual.body.data.equipamentos[0].garantia.inicio, null); assert.equal(manual.body.data.equipamentos[0].garantia.ajustada, true); assert.equal(manual.body.data.equipamentos[0].retirada, null);
+});

@@ -1,12 +1,13 @@
+import mongoose from 'mongoose';
 import Order from '../models/OrderV2.js';
-import { object, OrderError } from './orderInput.js';
+import { object, OrderError, validId } from './orderInput.js';
 import { orderDTO } from './ordersV2.js';
 
 const delivered = { $cond: [{ $eq: ['$schemaVersion', 2] }, { $size: { $filter: { input: '$equipamentos', as: 'item', cond: { $ne: ['$$item.retirada', null] } } } }, { $cond: [{ $eq: ['$status', 'Entregue'] }, 1, 0] }] };
 const total = { $cond: [{ $eq: ['$schemaVersion', 2] }, { $size: '$equipamentos' }, 1] };
 function bad() { throw new OrderError(400, 'VALIDATION_ERROR'); }
 export function queryInput(query, summary = false) {
-  object(query, summary ? ['q', 'status', 'entrega'] : ['q', 'status', 'entrega', 'page', 'pageSize', 'sort', 'direction'], 'query');
+  object(query, summary ? ['q', 'status', 'entrega', 'clienteId'] : ['q', 'status', 'entrega', 'clienteId', 'page', 'pageSize', 'sort', 'direction'], 'query');
   for (const value of Object.values(query)) if (typeof value !== 'string') bad();
   const page = query.page === undefined ? 1 : Number(query.page);
   const pageSize = query.pageSize === undefined ? 25 : Number(query.pageSize);
@@ -15,6 +16,7 @@ export function queryInput(query, summary = false) {
   if (query.sort && !['dataEntrada', 'createdAt', 'numero'].includes(query.sort)) bad();
   if (query.direction && !['asc', 'desc'].includes(query.direction)) bad();
   const filter = {};
+  if (query.clienteId) { validId(query.clienteId); filter.clienteId = new mongoose.Types.ObjectId(query.clienteId); }
   if (query.q?.trim()) {
     const literal = query.q.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     filter.$or = ['numero', 'cliente.nome', 'cliente.telefone', 'equipamentos.nome', 'cliente', 'telefone', 'equipamento'].map(field => ({ [field]: { $regex: literal, $options: 'i' } }));

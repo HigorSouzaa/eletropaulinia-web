@@ -25,6 +25,7 @@ const userSchema = new mongoose.Schema({
     enum: ['admin', 'tecnico', 'atendente'],
     default: 'atendente'
   },
+  assignmentFence: { type: Number, default: 0, select: false },
   active: { type: Boolean, default: true },
   sessionVersion: { type: Number, default: 0, min: 0, select: false },
   version: { type: Number, default: 1, min: 1 },
