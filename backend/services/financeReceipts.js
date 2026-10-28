@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import Order from '../models/OrderV2.js';
 import FinanceReceipt from '../models/FinanceReceipt.js';
 import { OrderError, creationKey, object, validId } from './orderInput.js';
+import { label, matchVersion, shape } from './financeInput.js';
 
 const methods = new Set(['dinheiro', 'pix', 'cartao', 'transferencia', 'outro']);
 const hash = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
@@ -99,4 +100,15 @@ export async function equipmentReceipt(orderId, equipmentId) {
   validId(orderId); validId(equipmentId);
   const receipt = await FinanceReceipt.findOne({ orderId, equipmentId, voidedAt: null }).maxTimeMS(5000).lean();
   return receipt ? receiptDTO(receipt) : null;
+}
+export async function voidReceipt(id, match, body, actor) {
+  validId(id); shape(body, ['reason']);
+  const version = matchVersion(match, 'receipt', id), reason = label(body.reason, 500);
+  const current = await FinanceReceipt.findById(id).lean();
+  if (!current) throw new OrderError(404, 'NOT_FOUND');
+  if (current.voidedAt) throw new OrderError(409, 'RECEIPT_VOIDED');
+  if (current.version !== version) throw new OrderError(412, 'VERSION_CONFLICT');
+  const result = await FinanceReceipt.findOneAndUpdate({ _id: id, version, voidedAt: null }, { $set: { voidedAt: new Date(), voidedBy: actor, voidReason: reason }, $inc: { version: 1 } }, { new: true, runValidators: true }).lean();
+  if (!result) throw new OrderError(412, 'VERSION_CONFLICT');
+  return receiptDTO(result);
 }
