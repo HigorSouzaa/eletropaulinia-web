@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 export const COOKIE = 'ep_session';
 export const noStore = { 'Cache-Control': 'private, no-store, max-age=0' };
-export type ApiPath = '/auth/login' | '/auth/logout' | '/auth/me' | '/auth/register' | '/orders' | '/v2/orders' | `/v2/orders?${string}` | `/v2/orders/${string}` | '/v2/employees' | `/v2/employees?${string}` | `/v2/employees/${string}` | '/v2/clients/lookup' | '/v2/clients' | `/v2/clients?${string}` | `/v2/clients/${string}` | '/v2/technicians' | `/v2/technicians?${string}`;
+export type ApiPath = '/auth/login' | '/auth/logout' | '/auth/me' | '/auth/register' | '/orders' | '/v2/orders' | `/v2/orders?${string}` | `/v2/orders/${string}` | '/v2/employees' | `/v2/employees?${string}` | `/v2/employees/${string}` | '/v2/clients/lookup' | '/v2/clients' | `/v2/clients?${string}` | `/v2/clients/${string}` | '/v2/technicians' | `/v2/technicians?${string}` | '/v2/finance/summary' | '/v2/finance/receipts' | `/v2/finance/orders/${string}/equipment/${string}/receipt`;
 export async function expressRequest(path: ApiPath, token?: string, body?: unknown, extraHeaders: Record<string, string> = {}, method = body === undefined ? 'GET' : 'POST') {
     const base = process.env.API_INTERNAL_URL || 'http://127.0.0.1:5000/api';
     try {
