@@ -123,10 +123,12 @@ test('despesa prevista só afeta caixa após pagamento; peça vinculada não dup
   const date = storeDate();
   const query = `/finance/summary?from=${date}&to=${date}&granularity=day`;
   assert.equal((await req(query)).body.data.expensesCentavos, 0);
+  assert.deepEqual((await req(query)).body.data.expensesByCategory, []);
   const updated = await req(`/finance/expenses/${id}`, { method: 'PATCH', match: `"expense-${id}-v1"`, body: { state: 'pago', reason: 'Pagamento confirmado' } });
   assert.equal(updated.status, 200); assert.equal(updated.body.data.history.length, 1);
   assert.equal((await req(`/finance/expenses/${id}`, { method: 'PATCH', match: `"expense-${id}-v1"`, body: { amountCentavos: 1, reason: 'Concorrência' } })).status, 412);
   assert.equal((await req(query)).body.data.expensesCentavos, 3000);
+  assert.deepEqual((await req(query)).body.data.expensesByCategory, [{ category: 'peca', amountCentavos: 3000 }]);
   assert.equal((await req(`/finance/orders/${created.body.data._id}/equipment/${equipment._id}/result`)).body.data.partialResultCentavos, null);
   assert.equal((await req('/finance/receipts', { method: 'POST', key: randomUUID(), body: { orderId: created.body.data._id, equipmentId: equipment._id, amountCentavos: 12000 } })).status, 201);
   assert.equal((await req(`/finance/orders/${created.body.data._id}/equipment/${equipment._id}/result`)).body.data.partialResultCentavos, 9000);

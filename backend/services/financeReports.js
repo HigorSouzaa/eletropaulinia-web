@@ -13,10 +13,11 @@ export async function report(query) {
   const range = period(query), granularity = query.granularity ?? 'day';
   if (!groupKey[granularity] || (granularity === 'day' && range.days > 366)) fail('INVALID_PERIOD');
   await Promise.all([requireFinanceReady(), requireExpenseReady()]);
-  const [payments, voids, expenses] = await Promise.all([
+  const [payments, voids, expenses, categories] = await Promise.all([
     FinanceReceipt.aggregate([{ $match: { confirmedAt: { $gte: range.start, $lt: range.end } } }, { $project: { at: '$confirmedAt', amount: '$amountCentavos' } }, { $group: { _id: bucket(granularity), amount: { $sum: '$amount' }, count: { $sum: 1 } } }]).option({ maxTimeMS: 5000 }),
     FinanceReceipt.aggregate([{ $match: { voidedAt: { $gte: range.start, $lt: range.end } } }, { $project: { at: '$voidedAt', amount: '$amountCentavos' } }, { $group: { _id: bucket(granularity), amount: { $sum: '$amount' }, count: { $sum: 1 } } }]).option({ maxTimeMS: 5000 }),
     FinanceExpense.aggregate([{ $match: { state: 'pago', paidAt: { $gte: range.start, $lt: range.end } } }, { $project: { at: '$paidAt', amount: '$amountCentavos' } }, { $group: { _id: bucket(granularity), amount: { $sum: '$amount' }, count: { $sum: 1 } } }]).option({ maxTimeMS: 5000 }),
+    FinanceExpense.aggregate([{ $match: { state: 'pago', paidAt: { $gte: range.start, $lt: range.end } } }, { $group: { _id: '$category', amount: { $sum: '$amountCentavos' } } }, { $sort: { _id: 1 } }]).option({ maxTimeMS: 5000 }),
   ]);
   const keys = new Map();
   const slot = key => { if (!keys.has(key)) keys.set(key, { label: key, receiptsCentavos: 0, voidsCentavos: 0, expensesCentavos: 0, receivedCentavos: 0, resultCentavos: 0 }); return keys.get(key); };
@@ -26,7 +27,9 @@ export async function report(query) {
   const series = [...keys.values()].sort((a, b) => a.label.localeCompare(b.label));
   for (const row of series) { row.receivedCentavos = safe(row.receiptsCentavos - row.voidsCentavos); row.resultCentavos = safe(row.receivedCentavos - row.expensesCentavos); }
   const total = key => safe(series.reduce((sum, row) => safe(sum + row[key]), 0));
-  return { from: range.from, to: range.to, granularity, receivedCentavos: total('receivedCentavos'), expensesCentavos: total('expensesCentavos'), resultCentavos: total('resultCentavos'), series };
+  const expensesByCategory = categories.map(row => ({ category: row._id, amountCentavos: safe(row.amount) }));
+  if (safe(expensesByCategory.reduce((sum, row) => safe(sum + row.amountCentavos), 0)) !== total('expensesCentavos')) throw new OrderError(503, 'FINANCE_TOTAL_UNAVAILABLE');
+  return { from: range.from, to: range.to, granularity, receivedCentavos: total('receivedCentavos'), expensesCentavos: total('expensesCentavos'), resultCentavos: total('resultCentavos'), expensesByCategory, series };
 }
 export async function listReceipts(query) {
   await requireFinanceReady();

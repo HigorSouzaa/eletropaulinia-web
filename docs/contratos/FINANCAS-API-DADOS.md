@@ -39,6 +39,8 @@ Prefixo Express `/api/v2/finance`; prefixo Next `/api/financas`. Todos os GET ex
 | `PATCH /recurrences/:id` | alterações futuras/cancelamento + motivo + `If-Match` | 200 `{data}`/ETag |
 | `POST /recurrences/materialize` | `{throughCompetence}` com limite | contagem agregada criada/existente; idempotente |
 
+O resumo filtrado também retorna `expensesByCategory: [{ category, amountCentavos }]`, agregando somente despesas com estado `pago` e `paidAt` no mesmo intervalo civil dos demais indicadores. A soma dos itens deve ser igual a `expensesCentavos`; quando não há despesas pagas, retorna `[]`. A lista paginada de despesas não serve de fonte para esse gráfico. A mudança é aditiva e não altera os cálculos de receita, despesa ou resultado.
+
 Corpos aceitam somente campos listados. Omissão em PATCH preserva; `null` limpa apenas opcionais declarados; valor vazio não equivale a zero. `page` 1..100000, `pageSize` 1..100; intervalo máximo de consulta proposto: 366 dias no gráfico diário e 10 anos no mensal/anual, com erro 400 para excesso. Não aceitar operadores Mongo/regex arbitrários. Valores 1..999999999 centavos por lançamento, total agregado verificado contra limite de inteiro seguro. Datas `YYYY-MM-DD` representam calendário da loja; instante UTC continua intacto. Evitar `skip` excessivo se volume representar custo, medindo primeiro.
 
 Respostas de erro padronizadas: 400 `VALIDATION_ERROR`/`INVALID_PERIOD`; 401 `UNAUTHENTICATED`; 403 `FORBIDDEN`; 404 `NOT_FOUND`; 409 `ALREADY_PAID`, `RECEIPT_VOIDED`, `FINANCIAL_HISTORY_BLOCKS_DELETE`, `IDEMPOTENCY_CONFLICT`; 412 `VERSION_CONFLICT`; 428 `PRECONDITION_REQUIRED`; 503 `SERVICE_UNAVAILABLE`. Nunca retornar stack, URI, token ou dados pessoais em erro/log.

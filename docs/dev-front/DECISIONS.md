@@ -1,5 +1,9 @@
 # Decisões — Eletro Paulínia
 
+## Clareza de Finanças — 29/10/2026
+
+Modo semi-auto. Para o Prompt 03, o usuário aprovou a arquitetura e o contrato aditivo do resumo financeiro: agrupar indicadores em “Dinheiro movimentado” e “Valores previstos”, com rosca acessível de despesas pagas por categoria calculadas no Express. A direção visual foi apresentada e aguarda resposta; nenhuma aprovação de design ou revisão funcional foi presumida. Branch local `feat/financas-clareza-visual`, derivada de `feat/navegacao-compartilhada` em `25341db`. Nenhum push, merge, deploy ou acesso ao Atlas.
+
 ## Navegação compartilhada — 29/10/2026
 
 O usuário aprovou a arquitetura do Prompt 01: cabeçalho e navegação superior compartilhados no layout interno do Next.js, com Menu compacto no celular. Aprovou separadamente a direção visual (laranja, cartões brancos e fundo claro preservados) e a primeira tela funcional de Ordens antes da expansão às demais páginas. Modo semi-auto; checkpoints de arquitetura, design e revisão funcional concluídos para este escopo.
