@@ -13,9 +13,9 @@ type Order = {
     status: string;
     dataEntrada: string;
 };
-export function Orders() {
+export function Orders({ initialStatus = '' }: { initialStatus?: string }) {
     const [orders, setOrders] = useState<Order[]>([]), [loading, setLoading] = useState(true), [error, setError] = useState(''), [query, setQuery] = useState('');
-    const [page, setPage] = useState(1), [total, setTotal] = useState(0), [pages, setPages] = useState(0), [status, setStatus] = useState(''), [delivery, setDelivery] = useState('');
+    const [page, setPage] = useState(1), [total, setTotal] = useState(0), [pages, setPages] = useState(0), [status, setStatus] = useState(initialStatus), [delivery, setDelivery] = useState('');
     const controller = useRef<AbortController | null>(null);
     const load = useCallback(async () => {
         controller.current?.abort();

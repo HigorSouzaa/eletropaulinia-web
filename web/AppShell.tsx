@@ -8,6 +8,7 @@ import { LogOut, Menu, X } from 'lucide-react';
 type Profile = { name: string; role: string };
 
 const sections = [
+  { href: '/dashboard', label: 'Dashboard' },
   { href: '/ordens', label: 'Ordens de serviço' },
   { href: '/clientes', label: 'Clientes' },
   { href: '/financas', label: 'Finanças' },
