@@ -2,7 +2,7 @@
 
 ## Clareza de Finanças — 29/10/2026
 
-Modo semi-auto. Para o Prompt 03, o usuário aprovou a arquitetura e o contrato aditivo do resumo financeiro: agrupar indicadores em “Dinheiro movimentado” e “Valores previstos”, com rosca acessível de despesas pagas por categoria calculadas no Express. A direção visual foi apresentada e aguarda resposta; nenhuma aprovação de design ou revisão funcional foi presumida. Branch local `feat/financas-clareza-visual`, derivada de `feat/navegacao-compartilhada` em `25341db`. Nenhum push, merge, deploy ou acesso ao Atlas.
+Modo semi-auto. Para o Prompt 03, o usuário aprovou a arquitetura e o contrato aditivo do resumo financeiro: agrupar indicadores em “Dinheiro movimentado” e “Valores previstos”, com rosca acessível de despesas pagas por categoria calculadas no Express. Também aprovou a direção visual antes da primeira tela. A primeira fatia funcional foi construída e validada com despesas sintéticas; a revisão funcional do usuário ainda aguarda resposta. Branch local `feat/financas-clareza-visual`, derivada de `feat/navegacao-compartilhada` em `25341db`. Nenhum push, merge, deploy ou acesso ao Atlas.
 
 ## Navegação compartilhada — 29/10/2026
 
