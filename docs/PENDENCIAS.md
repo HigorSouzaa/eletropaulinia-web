@@ -1,5 +1,9 @@
 # Pendências para revisão ao final dos prompts
 
+## Clareza de Finanças — 29/10/2026
+
+P31 permanece com publicação pendente. A reorganização visual do Prompt 03 e a agregação aditiva por categoria foram implementadas e validadas apenas localmente na branch `feat/financas-clareza-visual`; evidências em `docs/qa/FINANCAS-CLAREZA.md`. A agregação exige medição com volume representativo antes de afirmar desempenho no Atlas. Nenhum dado remoto foi alterado.
+
 ## Finanças — expansão local, 28/10/2026
 
 P31 — **implementada e validada localmente; publicação pendente, P1**. Origem: solicitação de Finanças. Evidência: `FinanceReceipt`, `FinanceExpense`, `FinanceRecurrence`, rotas Express `/api/v2/finance`, telas `/financas` e pagamento por equipamento, estorno auditável, despesas vinculadas, competências mensais, previsão segregada, filtros e gráfico. Checkpoint C e quatro regras aprovados; `npm run check` passou com 84 testes HTTP/Mongo, tipagem, lint e build; `npm run test:e2e` passou com 30 testes Chromium, incluindo duas jornadas de Finanças. Impacto: publicação sem índices das três coleções retorna 503; os indicadores são operacionais, não contábeis. Dependências: P24/P22 e autorização remota específica. Próxima ação: inventário agregado, backup/restauração de ensaio, criação aditiva dos índices após revisão, validação remota e medição com volume representativo. Critério: fluxos financeiros e índices conferidos no destino sem converter OS antigas em receita. Limites locais: previsão falha explicitamente acima de 2.000 OS no período; escalabilidade e dispositivos reais ainda não medidos. Nenhum Atlas, Netlify ou Render foi alterado neste pacote. Evidência detalhada em `docs/qa/FINANCAS-EXPANSAO.md`.

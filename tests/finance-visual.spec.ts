@@ -30,8 +30,17 @@ test('finanças agrupa indicadores e mostra despesas pagas por categoria', async
     await expect(chart.getByRole('cell', { name: 'Internet' })).toBeVisible();
     await expect(chart.getByRole('heading', { name: 'Despesas pagas', exact: true }).locator('..').getByText(/R\$\s?75,00/)).toBeVisible();
     await page.screenshot({ path: 'test-results/financas-primeira-tela-desktop.png', fullPage: true });
+    await page.setViewportSize({ width: 768, height: 900 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await page.setViewportSize({ width: 360, height: 800 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await page.screenshot({ path: 'test-results/financas-primeira-tela-mobile.png', fullPage: true });
+
+    await page.getByLabel('Filtro').selectOption('custom');
+    await page.getByLabel('De').fill('2000-01-01');
+    await page.getByLabel('Até').fill('2000-01-31');
+    await expect(chart.getByText('Nenhuma despesa paga neste período. Registros previstos não entram no gráfico.')).toBeVisible();
+    await expect(chart.getByRole('img', { name: /Gráfico de rosca/ })).toHaveCount(0);
   } finally {
     expect((await request.post('http://127.0.0.1:5102/cleanup-finance-ledger')).status()).toBe(204);
   }

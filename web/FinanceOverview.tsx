@@ -11,7 +11,7 @@ type Props = {
 
 const money = (cents: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cents / 100);
 const labels: Record<string, string> = { aluguel: 'Aluguel', internet: 'Internet', agua: 'Água', energia: 'Energia', peca: 'Peças', outra: 'Outras' };
-const colors = ['#ea580c', '#0f766e', '#4338ca', '#ca8a04', '#be185d', '#475569'];
+const colors: Record<string, string> = { aluguel: '#ea580c', internet: '#0f766e', agua: '#4338ca', energia: '#ca8a04', peca: '#be185d', outra: '#475569' };
 
 function Indicator({ label, value, explanation, emphasis = false }: { label: string; value: number; explanation: string; emphasis?: boolean }) {
   return <article className={`rounded-xl border p-4 ${emphasis ? 'border-orange-200 bg-orange-50' : 'bg-white'}`}>
@@ -24,10 +24,10 @@ function Indicator({ label, value, explanation, emphasis = false }: { label: str
 export function FinanceOverview(props: Props) {
   const categories = props.expensesByCategory.filter(row => row.amountCentavos > 0);
   let position = 0;
-  const stops = categories.map((row, index) => {
+  const stops = categories.map(row => {
     const start = position;
     position += row.amountCentavos / props.expensesCentavos * 100;
-    return `${colors[index % colors.length]} ${start}% ${position}%`;
+    return `${colors[row.category] ?? colors.outra} ${start}% ${position}%`;
   });
 
   return <section aria-label="Indicadores" className="mt-6 space-y-6">
@@ -55,7 +55,7 @@ export function FinanceOverview(props: Props) {
         <div role="img" aria-label={`Gráfico de rosca de despesas pagas, total ${money(props.expensesCentavos)}`} className="mx-auto grid aspect-square w-full max-w-56 place-items-center rounded-full" style={{ background: `conic-gradient(${stops.join(', ')})` }}>
           <div className="grid h-[62%] w-[62%] place-content-center rounded-full bg-white text-center"><span className="text-xs text-slate-600">Total pago</span><strong className="text-lg tabular-nums">{money(props.expensesCentavos)}</strong></div>
         </div>
-        <table className="w-full text-left text-sm"><caption className="sr-only">Valores de despesas pagas por categoria</caption><thead><tr><th className="pb-2">Categoria</th><th className="pb-2 text-right">Valor</th></tr></thead><tbody>{categories.map((row, index) => <tr key={row.category} className="border-t"><td className="py-2"><span aria-hidden="true" className="mr-2 inline-block size-3 rounded-sm" style={{ backgroundColor: colors[index % colors.length] }} />{labels[row.category] ?? row.category}</td><td className="py-2 text-right tabular-nums">{money(row.amountCentavos)}</td></tr>)}</tbody></table>
+        <table className="w-full text-left text-sm"><caption className="sr-only">Valores de despesas pagas por categoria</caption><thead><tr><th className="pb-2">Categoria</th><th className="pb-2 text-right">Valor</th></tr></thead><tbody>{categories.map(row => <tr key={row.category} className="border-t"><td className="py-2"><span aria-hidden="true" className="mr-2 inline-block size-3 rounded-sm" style={{ backgroundColor: colors[row.category] ?? colors.outra }} />{labels[row.category] ?? row.category}</td><td className="py-2 text-right tabular-nums">{money(row.amountCentavos)}</td></tr>)}</tbody></table>
       </div> : <p className="mt-4 rounded-lg bg-slate-50 p-4 text-sm text-slate-700">Nenhuma despesa paga neste período. Registros previstos não entram no gráfico.</p>}
     </section>
   </section>;
