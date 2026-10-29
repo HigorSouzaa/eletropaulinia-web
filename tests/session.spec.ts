@@ -102,6 +102,7 @@ test('moldura permanece nas seções e detalhes; menu móvel troca a seção ati
     const nav = page.getByRole('navigation', { name: 'Menu principal' });
     await expect(shell.getByText('Olá, Funcionário A')).toBeVisible();
     await expect(nav.getByRole('link', { name: 'Ordens de serviço' })).toHaveAttribute('aria-current', 'page');
+    await page.screenshot({ path: 'test-results/moldura-ordens-desktop.png', fullPage: true });
     await nav.getByRole('link', { name: 'Clientes' }).click();
     await expect(page).toHaveURL(/\/clientes$/);
     await expect(page.getByRole('heading', { name: 'Clientes', exact: true })).toBeVisible();
