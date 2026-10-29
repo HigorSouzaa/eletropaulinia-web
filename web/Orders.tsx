@@ -26,6 +26,9 @@ export function Orders() {
         setLoading(true);
         setError('');
         try {
+            const me = await fetch('/api/session/me', { cache: 'no-store', signal: current.signal });
+            if (me.status === 401) { window.location.replace('/login'); return; }
+            if (!me.ok) throw new Error('Não foi possível verificar sua sessão. Tente novamente.');
             const params = new URLSearchParams({ page: String(page), pageSize: '25', q: query, status, entrega: delivery });
             const response = await fetch('/api/orders?' + params, { cache: 'no-store', signal: current.signal });
             if (response.status === 401) {

@@ -60,6 +60,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => { setMenuOpen(false); }, [pathname]);
 
   async function logout() {
+    const previousProfile = profile;
     setLeaving(true);
     setError('');
     controller.current?.abort();
@@ -73,8 +74,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       window.location.replace('/login');
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Falha ao sair.');
+      setProfile(previousProfile);
       setLeaving(false);
-      void verify();
     }
   }
 
@@ -83,7 +84,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <a href="#conteudo-principal" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-white focus:p-3">Ir para o conteúdo</a>
     <header className="border-b bg-white">
       <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-4 md:px-8">
-        <button ref={menuButton} type="button" className="rounded-lg p-2 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-orange-600 md:hidden" aria-label={menuOpen ? 'Fechar menu' : 'Abrir menu'} aria-controls="menu-principal" aria-expanded={menuOpen} onClick={() => setMenuOpen(value => !value)}>{menuOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}</button>
+        <button ref={menuButton} type="button" className="rounded-lg p-2 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-orange-600 md:hidden" aria-label={menuOpen ? 'Fechar menu' : 'Abrir menu'} aria-controls="menu-principal" aria-expanded={menuOpen} onClick={() => setMenuOpen(value => !value)} onKeyDown={event => { if (event.key === 'Escape' && menuOpen) { setMenuOpen(false); event.currentTarget.focus(); } }}>{menuOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}</button>
         <Link href="/ordens" className="font-bold text-gray-900">⚡ Eletro Paulínia</Link>
         <div className="ml-auto flex items-center gap-2 text-sm"><span className="hidden sm:inline">{profile ? `Olá, ${profile.name}` : 'Eletro Paulínia'}</span><button type="button" onClick={logout} disabled={!profile || leaving} className="flex items-center gap-2 rounded-lg p-2 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-orange-600 disabled:opacity-50" aria-label="Sair"><LogOut size={18} aria-hidden="true" />{leaving ? 'Saindo...' : 'Sair'}</button></div>
       </div>

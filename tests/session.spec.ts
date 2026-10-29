@@ -96,6 +96,48 @@ test('mobile, navegação, busca e páginas pendentes', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Página não encontrada' })).toBeVisible();
 });
 
+test('moldura permanece nas seções e detalhes; menu móvel troca a seção ativa', async ({ page }) => {
+    await login(page);
+    const shell = page.getByRole('banner');
+    const nav = page.getByRole('navigation', { name: 'Menu principal' });
+    await expect(shell.getByText('Olá, Funcionário A')).toBeVisible();
+    await expect(nav.getByRole('link', { name: 'Ordens de serviço' })).toHaveAttribute('aria-current', 'page');
+    await nav.getByRole('link', { name: 'Clientes' }).click();
+    await expect(page).toHaveURL(/\/clientes$/);
+    await expect(page.getByRole('heading', { name: 'Clientes', exact: true })).toBeVisible();
+    await expect(shell.getByText('Olá, Funcionário A')).toBeVisible();
+    await expect(nav.getByRole('link', { name: 'Clientes' })).toHaveAttribute('aria-current', 'page');
+    await page.screenshot({ path: 'test-results/moldura-clientes-desktop.png', fullPage: true });
+    await nav.getByRole('link', { name: 'Finanças' }).click();
+    await expect(page.getByRole('heading', { name: 'Finanças' })).toBeVisible();
+    await expect(nav.getByRole('link', { name: 'Finanças' })).toHaveAttribute('aria-current', 'page');
+    await expect(page.getByText('Carregando finanças...')).toBeHidden({ timeout: 15000 });
+    await page.screenshot({ path: 'test-results/moldura-financas-desktop.png', fullPage: true });
+    await nav.getByRole('link', { name: 'Funcionários' }).click();
+    await expect(page.getByRole('heading', { name: 'Funcionários' })).toBeVisible();
+    await page.goto('/nova-ordem');
+    await expect(nav.getByRole('link', { name: 'Ordens de serviço' })).toHaveAttribute('aria-current', 'page');
+    await page.goto('/ordens');
+    await page.getByRole('link', { name: 'OS-0001' }).click();
+    await expect(page.getByRole('heading', { name: 'Ordem OS-0001' })).toBeVisible();
+    await expect(shell.getByText('Olá, Funcionário A')).toBeVisible();
+    await page.screenshot({ path: 'test-results/moldura-detalhe-desktop.png', fullPage: true });
+    for (const width of [360, 768, 1280]) {
+        await page.setViewportSize({ width, height: 800 });
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    }
+    await page.setViewportSize({ width: 360, height: 800 });
+    await expect(nav).toBeHidden();
+    const toggle = page.getByRole('button', { name: 'Abrir menu' });
+    await toggle.click();
+    await expect(nav).toBeVisible();
+    await page.screenshot({ path: 'test-results/moldura-menu-aberto-mobile.png', fullPage: true });
+    await page.keyboard.press('Escape');
+    await expect(nav).toBeHidden();
+    await expect(toggle).toBeFocused();
+    await page.screenshot({ path: 'test-results/moldura-menu-fechado-mobile.png', fullPage: true });
+});
+
 test('listagem v2 pagina no servidor e exibe todos os equipamentos sem perder legado', async ({ page }) => {
     await login(page);
     await expect(page.getByText('25 de 27 ordem(ns)')).toBeVisible();
@@ -120,7 +162,7 @@ test('API realmente indisponível não vira erro de credencial; sessão preserva
         await expect(page.getByRole('main').getByRole('alert')).toContainText('Não foi possível verificar');
         await expect(page).toHaveURL(/\/ordens$/);
         await page.getByRole('button', { name: 'Sair', exact: true }).click();
-        await expect(page.getByRole('main').getByRole('alert')).toContainText('Não foi possível encerrar');
+        await expect(page.locator('#conteudo-principal').getByRole('alert')).toContainText('Não foi possível encerrar');
         expect((await page.context().cookies()).some(c => c.name === 'ep_session')).toBe(true);
     }
     finally {

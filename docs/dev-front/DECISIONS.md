@@ -1,5 +1,13 @@
 # Decisões — Eletro Paulínia
 
+## Navegação compartilhada — 29/10/2026
+
+O usuário aprovou a arquitetura do Prompt 01: cabeçalho e navegação superior compartilhados no layout interno do Next.js, com Menu compacto no celular. Aprovou separadamente a direção visual (laranja, cartões brancos e fundo claro preservados) e a primeira tela funcional de Ordens antes da expansão às demais páginas. Modo semi-auto; checkpoints de arquitetura, design e revisão funcional concluídos para este escopo.
+
+Branch local `feat/navegacao-compartilhada`, derivada de `main` em `13618b3`. A moldura está no layout interno; Ordens não desenha mais cabeçalho/barra lateral próprios, e Clientes, Finanças e Funcionários não repetem links de navegação de topo. Criação, edição e detalhes mantêm links contextuais de volta, mas recebem a mesma moldura. A Dashboard inicial e a reorganização dos indicadores financeiros pertencem aos Prompts 02 e 03 e não foram implementadas aqui.
+
+Validação local: `npm run check` passou com 84 testes HTTP/MongoDB, tipagem, lint e build; `npm run test:e2e` passou com 31 testes Chromium. Capturas sintéticas em `test-results/moldura-*.png` (diretório gerado e não versionado). Dois testes financeiros antigos usavam 28/10/2026 como data de recebimento/despesa, embora o registro fosse feito no instante da execução; as consultas correspondentes passaram a usar a data atual da loja. Sem push, merge, deploy ou alteração de Atlas.
+
 ## Finanças — 28/10/2026
 
 Modo semi-auto. O usuário aprovou arquitetura/direção visual (A), contratos/dados (B), revisão funcional (C), expansão e as quatro regras financeiras em `docs/contratos/FINANCAS-PROPOSTA.md` e `docs/contratos/FINANCAS-API-DADOS.md`. A implementação local agora inclui pagamento por equipamento, estorno auditado, despesas, recorrências, previsões, filtros e gráfico; ver `docs/qa/FINANCAS-EXPANSAO.md`. Não houve deploy ou mudança no Atlas. Os registros abaixo são históricos ou de outros pacotes.
