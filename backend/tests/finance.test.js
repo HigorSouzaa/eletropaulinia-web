@@ -15,6 +15,7 @@ import FinanceExpense from '../models/FinanceExpense.js';
 import FinanceRecurrence from '../models/FinanceRecurrence.js';
 
 let mongo, server, base, adminToken, staffToken;
+const storeDate = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 before(async () => {
   process.env.JWT_SECRET = randomBytes(48).toString('hex');
   mongo = await MongoMemoryReplSet.create({ binary: { version: '8.0.17' }, replSet: { count: 1, ip: '127.0.0.1' } });
@@ -119,7 +120,8 @@ test('despesa prevista só afeta caixa após pagamento; peça vinculada não dup
   assert.equal((await req('/finance/expenses', { method: 'POST', key: expenseKey, body: expenseBody })).status, 200);
   const id = piece.body.data._id;
   assert.equal((await req('/finance/expenses', { method: 'POST', auth: staffToken, body: { description: 'Outra', category: 'outra', amountCentavos: 100 } })).status, 403);
-  const query = '/finance/summary?from=2026-10-28&to=2026-10-28&granularity=day';
+  const date = storeDate();
+  const query = `/finance/summary?from=${date}&to=${date}&granularity=day`;
   assert.equal((await req(query)).body.data.expensesCentavos, 0);
   const updated = await req(`/finance/expenses/${id}`, { method: 'PATCH', match: `"expense-${id}-v1"`, body: { state: 'pago', reason: 'Pagamento confirmado' } });
   assert.equal(updated.status, 200); assert.equal(updated.body.data.history.length, 1);
@@ -128,7 +130,7 @@ test('despesa prevista só afeta caixa após pagamento; peça vinculada não dup
   assert.equal((await req(`/finance/orders/${created.body.data._id}/equipment/${equipment._id}/result`)).body.data.partialResultCentavos, null);
   assert.equal((await req('/finance/receipts', { method: 'POST', key: randomUUID(), body: { orderId: created.body.data._id, equipmentId: equipment._id, amountCentavos: 12000 } })).status, 201);
   assert.equal((await req(`/finance/orders/${created.body.data._id}/equipment/${equipment._id}/result`)).body.data.partialResultCentavos, 9000);
-  assert.equal((await req(`/finance/expenses?from=2026-10-28&to=2026-10-28&orderId=${created.body.data._id}`)).body.meta.total, 1);
+  assert.equal((await req(`/finance/expenses?from=${date}&to=${date}&orderId=${created.body.data._id}`)).body.meta.total, 1);
   const latest = await req(`/orders/${created.body.data._id}`);
   assert.equal((await req(`/orders/${created.body.data._id}`, { method: 'DELETE', match: latest.etag })).body.error.code, 'FINANCIAL_HISTORY_BLOCKS_DELETE');
 });
@@ -161,7 +163,8 @@ test('previsão separa pronto, retirado pendente e orçamento; gráfico concorda
   assert.equal((await req('/finance/summary?from=2026-10-28&to=2026-99-99')).status, 400);
   const paid = await req('/finance/receipts', { method: 'POST', key: randomUUID(), body: { orderId: id, equipmentId: second._id, amountCentavos: 9000 } });
   assert.equal(paid.status, 201);
-  const report = await req('/finance/summary?from=2026-10-28&to=2026-10-28&granularity=day');
+  const date = storeDate();
+  const report = await req(`/finance/summary?from=${date}&to=${date}&granularity=day`);
   assert.equal(report.body.data.receivedCentavos, 9000);
   assert.equal(report.body.data.series.reduce((sum, row) => sum + row.receivedCentavos, 0), 9000);
   assert.equal((await req('/finance/forecast?from=2026-10-28&to=2026-10-28')).body.totals.forecastCentavos, 12000);
