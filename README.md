@@ -37,7 +37,7 @@ Ensaio local da primeira fatia da etapa 05: `node backend/scripts/stage05-fixtur
 
 Testes de navegador: execute `npx playwright install chromium`, `npm run build` e `npm run test:e2e`. O runner inicia Next (3100), Express (5101) e MongoDB descartável, sem usar o banco do ambiente local. Porta 5102 é um controle exclusivo de teste para simular indisponibilidade real. As três portas devem estar livres. Produção local: `npm run build` e `npm run preview`; a API precisa rodar separadamente.
 
-O frontend Vite foi preservado em [legacy](legacy/README.md), sem integrar o build ativo. No Next, use `/ordens` para consultar, `/nova-ordem` para cadastrar, `/ordens/:id` para detalhe/retirada/exclusão, `/editar-ordem/:id` para edição e `/funcionarios` para gestão administrativa. Registros antigos são somente leitura. Alterações usam sessão HttpOnly e versões `ETag`/`If-Match`; criação usa `Idempotency-Key`.
+O frontend Vite foi preservado em [legacy](legacy/README.md), sem integrar o build ativo. No Next, o login abre `/dashboard`, com contagens de ordens por andamento e cinco entradas recentes. Use `/ordens` para consultar, `/nova-ordem` para cadastrar, `/ordens/:id` para detalhe/retirada/exclusão, `/editar-ordem/:id` para edição, `/clientes` para cadastro e histórico, `/financas` para movimentação e previsões, e `/funcionarios` para gestão administrativa. Todas essas áreas compartilham a navegação superior. Registros antigos são somente leitura. Alterações usam sessão HttpOnly e versões `ETag`/`If-Match`; criação usa `Idempotency-Key`.
 
 ## Autenticação e permissões iniciais
 

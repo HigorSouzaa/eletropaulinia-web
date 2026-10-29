@@ -8,7 +8,7 @@ async function login(page: Page) {
     await page.getByLabel('Usuário', { exact: true }).fill('teste-b');
     await page.getByLabel('Senha', { exact: true }).fill('Synthetic-test-password-42');
     await page.getByRole('button', { name: 'Entrar', exact: true }).click();
-    await expect(page).toHaveURL(/\/ordens$/);
+    await expect(page).toHaveURL(/\/dashboard$/);
     await page.goto('/nova-ordem');
 }
 async function admin(request: APIRequestContext) {
@@ -184,7 +184,7 @@ test('área Clientes lista histórico real e limita edição ao administrador', 
   const read = await page.request.get(`/api/clients/${order.clienteId}`);
   expect((await page.request.patch(`/api/clients/${order.clienteId}`, { headers: { Origin: origin, 'If-Match': read.headers()['etag'] }, data: { nome: 'Não autorizado' } })).status()).toBe(403);
   await page.goto('/login'); await page.getByLabel('Usuário', { exact: true }).fill('teste-a'); await page.getByLabel('Senha', { exact: true }).fill('Synthetic-test-password-42'); await page.getByRole('button', { name: 'Entrar', exact: true }).click();
-  await expect(page).toHaveURL(/\/ordens$/); await page.getByRole('link', { name: 'Clientes', exact: true }).click();
+  await expect(page).toHaveURL(/\/dashboard$/); await page.getByRole('link', { name: 'Clientes', exact: true }).click();
   await page.getByLabel('Buscar nome ou telefone').fill('19900000301'); await page.getByRole('link', { name: 'Cliente área sintético', exact: true }).click();
   await page.getByLabel('Nome *').fill('Cliente corrigido sintético'); await page.getByLabel('Telefone *').fill('19900000302');
   await page.getByRole('button', { name: 'Salvar cadastro' }).click(); await expect(page.getByRole('status')).toContainText('Cadastro atualizado');
@@ -214,7 +214,7 @@ test('laudo, serviços, técnico e retorno opcional persistem na jornada real', 
   await expect(page.getByText('Dentro da referência de 90 dias', { exact: true })).toBeVisible(); await page.setViewportSize({ width: 360, height: 780 }); await page.screenshot({ path: 'test-results/retorno-360.png', fullPage: true });
   await page.getByRole('link', { name: 'Editar', exact: true }).click(); await page.getByLabel('Laudo técnico (opcional)').first().fill('Reavaliado'); await page.getByRole('button', { name: 'Salvar equipamento', exact: true }).click();
   await expect(page.getByRole('status')).toContainText('Alteração salva'); await page.reload(); await expect(page.getByLabel('Laudo técnico (opcional)').first()).toHaveValue('Reavaliado');
-  await page.goto('/login'); await page.getByLabel('Usuário', { exact: true }).fill('teste-a'); await page.getByLabel('Senha', { exact: true }).fill('Synthetic-test-password-42'); await page.getByRole('button', { name: 'Entrar', exact: true }).click(); await expect(page).toHaveURL(/\/ordens$/);
+  await page.goto('/login'); await page.getByLabel('Usuário', { exact: true }).fill('teste-a'); await page.getByLabel('Senha', { exact: true }).fill('Synthetic-test-password-42'); await page.getByRole('button', { name: 'Entrar', exact: true }).click(); await expect(page).toHaveURL(/\/dashboard$/);
   await page.goto(`/ordens/${first._id}`); await page.getByText('Atualizar garantia — administrador', { exact: true }).click();
   await page.getByLabel('Nova data final da garantia').fill('2027-12-31'); await page.getByLabel('Motivo da atualização').fill('Extensão autorizada para ensaio sintético');
   const savedWarranty = page.waitForResponse(r => r.url().endsWith('/garantia') && r.request().method() === 'PATCH');

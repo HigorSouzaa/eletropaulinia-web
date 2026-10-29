@@ -1,5 +1,9 @@
 # Decisões — Eletro Paulínia
 
+## Integração Dashboard e Finanças — 29/10/2026
+
+O usuário solicitou publicar todas as alterações em Netlify e Render. A primeira Dashboard, já aprovada quanto à arquitetura e visual, foi integrada com a navegação e Finanças; o login e a raiz autenticada abrem `/dashboard`, e `/ordens` permanece URL própria. Os testes de navegação foram atualizados para esse fluxo. Branch de integração `release/dashboard-financas-2026-10-29`, partindo da entrega local de Finanças e incorporando `86b4a43`. `npm run check` passou com 84 testes HTTP/MongoDB, tipagem, lint e build; `npm run test:e2e` passou com 33 cenários Chromium. A publicação ainda precisa ser verificada após envio à `main`.
+
 ## Clareza de Finanças — 29/10/2026
 
 Modo semi-auto. Para o Prompt 03, o usuário aprovou a arquitetura e o contrato aditivo do resumo financeiro: agrupar indicadores em “Dinheiro movimentado” e “Valores previstos”, com rosca acessível de despesas pagas por categoria calculadas no Express. Também aprovou a direção visual e, após demonstrar a primeira tela com despesas sintéticas, aprovou a revisão funcional e autorizou concluir o escopo. As cores são estáveis por categoria, e períodos sem despesas mostram um estado vazio. Branch local `feat/financas-clareza-visual`, derivada de `feat/navegacao-compartilhada` em `25341db`. Validação e limites: `docs/qa/FINANCAS-CLAREZA.md`. Nenhum push, merge, deploy ou acesso ao Atlas.

@@ -20,7 +20,7 @@ test('admin confirma um equipamento; receita não inclui retirada do outro', asy
     await page.getByLabel('Usuário', { exact: true }).fill('teste-a');
     await page.getByLabel('Senha', { exact: true }).fill('Synthetic-test-password-42');
     await page.getByRole('button', { name: 'Entrar', exact: true }).click();
-    await expect(page).toHaveURL(/\/ordens$/);
+    await expect(page).toHaveURL(/\/dashboard$/);
     await page.goto(`/ordens/${order._id}`);
     const first = page.getByRole('article').filter({ hasText: 'Rádio financeiro' });
     await expect(first.getByText('Consultando pagamento...')).toBeHidden();
@@ -48,7 +48,7 @@ test('admin registra despesa paga e mensalidade prevista sem somar previsão às
     await page.getByLabel('Usuário', { exact: true }).fill('teste-a');
     await page.getByLabel('Senha', { exact: true }).fill('Synthetic-test-password-42');
     await page.getByRole('button', { name: 'Entrar', exact: true }).click();
-    await expect(page).toHaveURL(/\/ordens$/);
+    await expect(page).toHaveURL(/\/dashboard$/);
     await page.goto('/financas');
     await expect(page.getByRole('heading', { name: 'Finanças' })).toBeVisible();
     await page.getByRole('button', { name: 'Despesas', exact: true }).click();

@@ -5,6 +5,8 @@ test('Dashboard usa contagens reais e abre Ordens com o status escolhido', async
   await page.getByLabel('Usuário', { exact: true }).fill('teste-a');
   await page.getByLabel('Senha', { exact: true }).fill('Synthetic-test-password-42');
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  await page.getByRole('navigation', { name: 'Menu principal' }).getByRole('link', { name: 'Ordens de serviço' }).click();
   await expect(page).toHaveURL(/\/ordens$/);
   await page.getByRole('navigation', { name: 'Menu principal' }).getByRole('link', { name: 'Dashboard' }).click();
   await expect(page).toHaveURL(/\/dashboard$/);

@@ -20,7 +20,7 @@ test('finanças agrupa indicadores e mostra despesas pagas por categoria', async
     await page.getByLabel('Usuário', { exact: true }).fill('teste-a');
     await page.getByLabel('Senha', { exact: true }).fill('Synthetic-test-password-42');
     await page.getByRole('button', { name: 'Entrar', exact: true }).click();
-    await expect(page).toHaveURL(/\/ordens$/);
+    await expect(page).toHaveURL(/\/dashboard$/);
     await page.goto('/financas');
     await expect(page.getByRole('heading', { name: 'Dinheiro movimentado' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Valores previstos' })).toBeVisible();

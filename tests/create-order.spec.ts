@@ -5,7 +5,7 @@ test('funcionário cria três equipamentos e consulta a OS real por URL após re
     await page.getByLabel('Usuário', { exact: true }).fill('teste-b');
     await page.getByLabel('Senha', { exact: true }).fill('Synthetic-test-password-42');
     await page.getByRole('button', { name: 'Entrar' }).click();
-    await expect(page).toHaveURL(/\/ordens$/);
+    await expect(page).toHaveURL(/\/dashboard$/);
     await page.getByRole('link', { name: 'Nova ordem' }).click();
     for (const width of [360, 768, 1280]) {
         await page.setViewportSize({ width, height: 800 });
@@ -66,7 +66,7 @@ test('falha transitória preserva formulário e chave da mesma tentativa', async
     await page.getByLabel('Usuário', { exact: true }).fill('teste-b');
     await page.getByLabel('Senha', { exact: true }).fill('Synthetic-test-password-42');
     await page.getByRole('button', { name: 'Entrar' }).click();
-    await expect(page).toHaveURL(/\/ordens$/);
+    await expect(page).toHaveURL(/\/dashboard$/);
     await page.goto('/nova-ordem');
     await page.getByLabel('Telefone *').fill('19900000001');
     await expect(page.getByRole('status')).toContainText('Cliente não encontrado');

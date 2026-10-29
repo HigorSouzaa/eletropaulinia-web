@@ -50,7 +50,7 @@ export function LoginForm() {
             const channel = new BroadcastChannel('ep-session');
             channel.postMessage('changed');
             channel.close();
-            window.location.replace('/ordens');
+            window.location.replace('/dashboard');
         }
         catch {
             setError('Não foi possível conectar. Tente novamente.');

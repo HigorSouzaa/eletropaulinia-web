@@ -86,7 +86,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <header className="border-b bg-white">
       <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-4 md:px-8">
         <button ref={menuButton} type="button" className="rounded-lg p-2 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-orange-600 md:hidden" aria-label={menuOpen ? 'Fechar menu' : 'Abrir menu'} aria-controls="menu-principal" aria-expanded={menuOpen} onClick={() => setMenuOpen(value => !value)} onKeyDown={event => { if (event.key === 'Escape' && menuOpen) { setMenuOpen(false); event.currentTarget.focus(); } }}>{menuOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}</button>
-        <Link href="/ordens" className="font-bold text-gray-900">⚡ Eletro Paulínia</Link>
+        <Link href="/dashboard" className="font-bold text-gray-900">⚡ Eletro Paulínia</Link>
         <div className="ml-auto flex items-center gap-2 text-sm"><span className="hidden sm:inline">{profile ? `Olá, ${profile.name}` : 'Eletro Paulínia'}</span><button type="button" onClick={logout} disabled={!profile || leaving} className="flex items-center gap-2 rounded-lg p-2 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-orange-600 disabled:opacity-50" aria-label="Sair"><LogOut size={18} aria-hidden="true" />{leaving ? 'Saindo...' : 'Sair'}</button></div>
       </div>
       <nav id="menu-principal" aria-label="Menu principal" onKeyDown={event => { if (event.key === 'Escape' && menuOpen) { setMenuOpen(false); menuButton.current?.focus(); } }} className={`${menuOpen ? 'block' : 'hidden'} border-t md:block`}>

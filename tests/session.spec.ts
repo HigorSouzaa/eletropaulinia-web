@@ -4,7 +4,8 @@ async function login(page: import('@playwright/test').Page, username = 'teste-a'
     await page.getByLabel('Usuário', { exact: true }).fill(username);
     await page.getByLabel('Senha', { exact: true }).fill('Synthetic-test-password-42');
     await page.getByRole('button', { name: 'Entrar', exact: true }).click();
-    await expect(page).toHaveURL(/\/ordens$/);
+    await expect(page).toHaveURL(/\/dashboard$/);
+    await page.goto('/ordens');
     await expect(page.getByText('Ventilador de teste', { exact: true })).toBeVisible();
 }
 test('URL protegida, login inválido, lista real, recarga, cookie e logout revogado', async ({ page, context, request }) => {
@@ -196,7 +197,7 @@ test('login informa despertar da API gratuita e preserva credenciais até ela vo
         await expect(page.getByRole('status')).toHaveCount(0, { timeout: 15000 });
         await expect(page.getByLabel('Usuário', { exact: true })).toHaveValue('teste-a');
         await page.getByRole('button', { name: 'Entrar', exact: true }).click();
-        await expect(page).toHaveURL(/\/ordens$/);
+        await expect(page).toHaveURL(/\/dashboard$/);
     } finally {
         await request.post('http://127.0.0.1:5102/start');
     }

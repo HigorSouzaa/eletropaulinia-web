@@ -8,7 +8,8 @@ async function login(page: Page, username: string) {
     await page.getByLabel('Usuário', { exact: true }).fill(username);
     await page.getByLabel('Senha', { exact: true }).fill(password);
     await page.getByRole('button', { name: 'Entrar', exact: true }).click();
-    await expect(page).toHaveURL(/\/ordens$/);
+    await expect(page).toHaveURL(/\/dashboard$/);
+    await page.goto('/ordens');
 }
 async function token(request: APIRequestContext, username = 'teste-a') {
     const response = await request.post(`${api}/auth/login`, { data: { username, password } });
