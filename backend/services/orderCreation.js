@@ -3,7 +3,6 @@ import mongoose from 'mongoose';
 import { createHash } from 'node:crypto';
 import Order from '../models/OrderV2.js';
 import Counter from '../models/Counter.js';
-import NotificationOutbox from '../models/NotificationOutbox.js';
 import { clientPhone, requireClientsReady, resolveClient } from './clients.js';
 import { OrderError, createInput, clientSnapshotInput, orderFieldsInput, creationKey, validId, object } from './orderInput.js';
 
@@ -70,11 +69,6 @@ export async function createOrder(body, key, actor) {
   const keyIndex = indexes.some(index => index.unique && index.key.createdBy === 1 && index.key.creationKey === 1 && Object.keys(index.key).length === 2 && index.partialFilterExpression?.schemaVersion === 2 && index.partialFilterExpression?.creationKey?.$type === 'string');
   if (!numberIndex || !keyIndex) throw new OrderError(503, 'NUMBERING_NOT_READY');
   await requireClientsReady();
-  if (input.whatsapp.autorizado) {
-    let indexes;
-    try { indexes = await NotificationOutbox.collection.indexes(); } catch (error) { if (error.code === 26) throw new OrderError(503, 'NOTIFICATIONS_NOT_READY'); throw error; }
-    if (!indexes.some(index => index.unique && index.name === 'outbox_order_kind_unique' && index.key.orderId === 1 && index.key.kind === 1)) throw new OrderError(503, 'NOTIFICATIONS_NOT_READY');
-  }
   // Phone insert collisions require a fresh transaction to see the winning client.
   for (let attempt = 0; attempt < 3; attempt++) {
     const session = await mongoose.startSession();
@@ -95,8 +89,6 @@ export async function createOrder(body, key, actor) {
         const [document] = await Order.create([{ ...fields, ...customer, numero: `OS-${String(counter.value).padStart(4, '0')}`,
           sequencia: counter.value, createdBy: actor, creationKey: validatedKey, creationHash: hash, creationHashVersion: 4,
           comunicacao: { whatsapp: { ...input.whatsapp, decididoEm: new Date() } } }], { session });
-        if (input.whatsapp.autorizado) await NotificationOutbox.create([{ orderId: document._id, kind: 'order_created', clientId: customer.clienteId,
-          phone: customer.cliente.telefone, customerName: customer.cliente.nome, orderNumber: document.numero, entryDate: document.dataEntrada }], { session });
         return { document, created: true };
       }, { readPreference: 'primary', writeConcern: { w: 'majority' }, maxCommitTimeMS: 5000 });
     } catch (error) {

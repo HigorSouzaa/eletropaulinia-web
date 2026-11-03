@@ -12,6 +12,7 @@ const sections = [
   { href: '/ordens', label: 'Ordens de serviço' },
   { href: '/clientes', label: 'Clientes' },
   { href: '/financas', label: 'Finanças' },
+  { href: '/whatsapp', label: 'WhatsApp', admin: true },
   { href: '/funcionarios', label: 'Funcionários', admin: true },
 ];
 

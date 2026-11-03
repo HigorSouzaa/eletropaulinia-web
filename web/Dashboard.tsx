@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { WhatsAppConnection } from './WhatsAppConnection';
 
 type Summary = { total: number; equipamentos: number; retirados: number; porStatus: { status: string | null; total: number }[] };
 type RecentOrder = { _id: string; numero: string; status: string; dataEntrada: string; equipamentos: unknown[] };
@@ -50,6 +51,7 @@ export function Dashboard() {
       <Link href="/nova-ordem" className="rounded-lg bg-orange-600 px-4 py-2 font-medium text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-700">Nova ordem</Link>
     </div>
     {loading ? <p role="status" className="mt-8">Carregando visão geral...</p> : error ? <div role="alert" className="mt-8 rounded-xl border border-red-200 bg-red-50 p-5 text-red-800">{error}<button type="button" className="ml-3 underline" onClick={() => void load()}>Tentar novamente</button></div> : summary && <>
+      <div className="mt-8"><WhatsAppConnection /></div>
       <section aria-labelledby="dashboard-status" className="mt-8">
         <div className="flex flex-wrap items-end justify-between gap-2"><h2 id="dashboard-status" className="text-lg font-semibold">Ordens por andamento</h2><p className="text-sm text-gray-600">{summary.total} ordem(ns) no total</p></div>
         <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

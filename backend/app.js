@@ -9,6 +9,7 @@ import employees from './routes/employees.js';
 import technicians from './routes/technicians.js';
 import clients from './routes/clients.js';
 import finance from './routes/finance.js';
+import whatsapp from './routes/whatsapp.js';
 
 // Importar a aplicação não abre portas nem conecta a um banco.
 const app = express();
@@ -52,6 +53,7 @@ app.use('/api/v2/employees', employees);
 app.use('/api/v2/clients', clients);
 app.use('/api/v2/finance', finance);
 app.use('/api/v2/technicians', technicians);
+app.use('/api/v2/whatsapp', whatsapp);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', authRoutes);

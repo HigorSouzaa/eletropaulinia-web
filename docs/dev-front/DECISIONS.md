@@ -1,5 +1,11 @@
 # Decisões — Eletro Paulínia
 
+## WhatsApp Web — mudança de direção, 03/11/2026
+
+O usuário escolheu WhatsApp Web com QR Code como primeiro caminho e pediu que não haja envio automático agora. A primeira fatia para a API oficial continua no histórico local, sem despacho automático, mas não deve ser expandida. [Arquitetura/contrato revisados](../contratos/WHATSAPP-WEB-PROPOSTA.md) foram preparados para o novo checkpoint. Não publicar na Render, Netlify ou Atlas. A escolha de endereço e CPF/CNPJ para Clientes permanece registrada para outro prompt. Pagamentos devem suportar retiradas por equipamento e total agregado da OS, sem implementar nessa etapa.
+
+O usuário aprovou a arquitetura/contrato revisados (“Pode aprovar”). Primeira fatia local de QR/estado foi implementada e validada com simulação; checkpoint funcional aguarda revisão. O visual usa a moldura existente, cartão na Dashboard e página administrativa WhatsApp. Nenhum envio automático ou publicação ocorreu. Alertas de dependências e hospedagem persistente continuam bloqueios.
+
 ## WhatsApp oficial — proposta para checkpoints, 03/11/2026
 
 O usuário pediu integração oficial da Meta pelo backend Node.js para confirmar a abertura da OS, com consentimento e indicador operacional na Dashboard. Não pediu QR Code nesta modalidade; caixa de mensagens permanece ciclo opcional posterior. Diagnóstico, arquitetura, fluxo mínimo, direção visual, contratos propostos e matriz de validação estão em [WHATSAPP-OFICIAL-PROPOSTA.md](../contratos/WHATSAPP-OFICIAL-PROPOSTA.md). **Checkpoints de arquitetura, contrato, design e primeira jornada ainda não foram aprovados para esta implementação.** Nenhum código, credencial, banco remoto ou serviço hospedado foi alterado nesta preparação.

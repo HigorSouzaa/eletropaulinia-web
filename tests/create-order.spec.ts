@@ -14,11 +14,7 @@ test('funcionário cria três equipamentos e consulta a OS real por URL após re
     await page.getByLabel('Telefone *').fill('19900000000');
     await expect(page.getByRole('status')).toContainText('Cliente não encontrado');
     await page.getByLabel('Nome *').fill('Cliente de teste da etapa 04');
-    const consent = page.getByRole('checkbox', { name: /concordou em receber atualizações/ });
-    await expect(consent).not.toBeChecked();
-    await consent.check();
-    await page.setViewportSize({ width: 360, height: 800 });
-    await page.screenshot({ path: 'test-results/whatsapp-consent-first-slice.png', fullPage: true });
+    await expect(page.getByRole('checkbox', { name: /concordou em receber atualizações/ })).toHaveCount(0);
     const first = page.getByRole('group', { name: 'Equipamento 1' });
     await first.getByLabel('Identificação *').fill('Ventilador de teste novo');
     await first.getByLabel('Defeito relatado *').fill('Não liga');
@@ -53,7 +49,7 @@ test('funcionário cria três equipamentos e consulta a OS real por URL após re
     const target = `http://127.0.0.1:5101/api/v2/orders/${id}`;
     const current = await request.get(target, { headers: { Authorization: `Bearer ${token}` } });
     expect(current.ok()).toBe(true);
-    expect((await current.json()).data.comunicacao.whatsapp.autorizado).toBe(true);
+    expect((await current.json()).data.comunicacao.whatsapp.autorizado).toBe(false);
     const removed = await request.delete(target, { headers: { Authorization: `Bearer ${token}`, 'If-Match': current.headers()['etag'] } });
     expect(removed.status()).toBe(204);
 });
