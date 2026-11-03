@@ -1,5 +1,9 @@
 # Pendências para revisão ao final dos prompts
 
+## Nova integração proposta — 03/11/2026
+
+P32 — WhatsApp oficial, **em planejamento, P1 para este novo pacote**. Origem: confirmação automática de abertura de OS solicitada pelo usuário. Evidência: `backend/services/orderCreation.js` cria OS transacional e idempotente; não há conector/indicador no código ativo. [Arquitetura e contrato propostos](contratos/WHATSAPP-OFICIAL-PROPOSTA.md). Impacto: clientes não recebem confirmação automática; Render Free suspende processamento ocioso. Dependências: checkpoints de arquitetura/contrato/design/primeiro fluxo, conta e modelo da Meta, consentimento, webhook e runtime operacional. Próxima ação: revisar a proposta, implementar primeira fatia isolada e validá-la com Mongo descartável/provedor fake. Conclusão observável: OS única, consentimento auditado, notificação sem duplicidade, webhook verificado, estados honestos no detalhe/Dashboard e validação operacional antes de ativar envios reais. Nenhum envio ou publicação foi feito neste checkpoint.
+
 ## Clareza de Finanças — 29/10/2026
 
 P31 permanece com publicação pendente. A reorganização visual do Prompt 03 e a agregação aditiva por categoria foram implementadas e validadas apenas localmente na branch `feat/financas-clareza-visual`; evidências em `docs/qa/FINANCAS-CLAREZA.md`. A agregação exige medição com volume representativo antes de afirmar desempenho no Atlas. Nenhum dado remoto foi alterado.
