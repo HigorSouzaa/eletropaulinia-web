@@ -10,6 +10,10 @@ Atualização P32 — 03/11/2026: o usuário substituiu a direção da API ofici
 
 Atualização P32 — primeira fatia: arquitetura/contrato aprovados; conexão/QR/estado locais implementados e testados com cliente falso, API/Mongo descartável e navegador. Nenhum envio, pareamento real ou publicação. Revisão funcional do usuário pendente antes de ampliar. Configuração local de Chrome e pasta de sessão fora do Git é necessária para testar pareamento real. `npm audit --omit=dev` apontou 11 alertas altos e 6 moderados no backend; triagem e correção bloqueiam ativação remota. Render Free continua inadequado para sessão persistente. Critério seguinte: QR real validado localmente com aparelho da loja, autorização operacional de uso e runtime persistente adequado antes de qualquer publicação.
 
+Atualização P32 — após aprovação funcional: inicialização concorrente e desconexão tardia controladas; Chrome headless local abre. [Runbook local](qa/WHATSAPP-LOCAL.md). Pareamento real continua não verificado porque exige leitura do QR pelo aparelho da loja. A interface mostra “Não configurado” sem caminhos locais e nenhum envio. Segurança das dependências, runtime persistente e validação com aparelho permanecem pendentes; P32 não está resolvida.
+
+Atualização P32 — prova local adicional: sessão temporária de `whatsapp-web.js` alcançou `aguardando_qr` com QR gerado, sem expor seu conteúdo; processo desconectado e pasta descartada. Isso valida Chrome + biblioteca até QR, não o pareamento, reconexão autenticada nem entrega de mensagem. Testes dirigidos de concorrência/falha e tela passaram. Pareamento exige aparelho da loja; não inferir conclusão de P32.
+
 ## Clareza de Finanças — 29/10/2026
 
 P31 permanece com publicação pendente. A reorganização visual do Prompt 03 e a agregação aditiva por categoria foram implementadas e validadas apenas localmente na branch `feat/financas-clareza-visual`; evidências em `docs/qa/FINANCAS-CLAREZA.md`. A agregação exige medição com volume representativo antes de afirmar desempenho no Atlas. Nenhum dado remoto foi alterado.

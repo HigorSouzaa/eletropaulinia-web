@@ -36,7 +36,7 @@ Testar acesso, sessão, QR temporário, reconexão, repetição de connect, troc
 
 ## Primeira jornada local e limites
 
-Backend: `backend/services/whatsappWeb.js` isola uma sessão; `backend/routes/whatsapp.js` expõe status autenticado e connect/QR/disconnect só para admin. Frontend: `web/WhatsAppConnection.tsx` e `/whatsapp`; a Dashboard mostra status sem QR. Em produção, a factory recusa iniciar a biblioteca. Em desenvolvimento local, exige `WHATSAPP_SESSION_DIR` absoluto fora do repositório e `WHATSAPP_CHROME_PATH` absoluto; ambos ficam fora do Git. A instalação usou `--ignore-scripts`, portanto não baixou Chromium. Não houve pareamento de telefone.
+Backend: `backend/services/whatsappWeb.js` isola uma sessão; `backend/routes/whatsapp.js` expõe status autenticado e connect/QR/disconnect só para admin. Frontend: `web/WhatsAppConnection.tsx` e `/whatsapp`; a Dashboard mostra status sem QR. Em produção, a factory recusa iniciar a biblioteca. Em desenvolvimento local, exige `WHATSAPP_SESSION_DIR` absoluto fora do repositório e `WHATSAPP_CHROME_PATH` absoluto; ambos ficam fora do Git. A instalação usou `--ignore-scripts`, portanto não baixou Chromium. Chrome local foi iniciado e uma sessão temporária gerou QR real, sem pareamento de telefone. Veja [runbook e limites](../qa/WHATSAPP-LOCAL.md).
 
 Verificações: `npm run check` passou com 87 testes HTTP/Mongo, tipagem, lint e build; `npm run test:e2e` passou 33/33 antes do teste visual novo; `npx playwright test tests/whatsapp.spec.ts` passou 1/1; `node --test backend/tests/whatsapp-web.test.js` passou 4/4 após a última ampliação. QR real, desconexão real e reconexão real não foram comprovados. A captura sintética está em `test-results/whatsapp-local-first-slice.png`, ignorada pelo Git.
 

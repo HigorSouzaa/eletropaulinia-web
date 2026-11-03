@@ -6,9 +6,9 @@ test('admin vê estado local sem QR ou envio; funcionário não abre QR', async 
   await page.getByLabel('Senha', { exact: true }).fill('Synthetic-test-password-42');
   await page.getByRole('button', { name: 'Entrar' }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
-  await expect(page.getByRole('region', { name: 'Estado do WhatsApp' })).toContainText('Desligado');
+  await expect(page.getByRole('region', { name: 'Estado do WhatsApp' })).toContainText(/Não configurado neste ambiente|Desligado/);
   await page.getByRole('link', { name: 'WhatsApp' }).click();
-  await expect(page.getByRole('heading', { name: 'WhatsApp' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'WhatsApp', exact: true })).toBeVisible();
   await expect(page.getByRole('img', { name: /QR Code/ })).toHaveCount(0);
   await page.setViewportSize({ width: 360, height: 800 });
   await page.screenshot({ path: 'test-results/whatsapp-local-first-slice.png', fullPage: true });
@@ -19,7 +19,7 @@ test('admin vê estado local sem QR ou envio; funcionário não abre QR', async 
   await page.getByLabel('Senha', { exact: true }).fill('Synthetic-test-password-42');
   await page.getByRole('button', { name: 'Entrar' }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
-  await expect(page.getByRole('region', { name: 'Estado do WhatsApp' })).toContainText('Desligado');
+  await expect(page.getByRole('region', { name: 'Estado do WhatsApp' })).toContainText(/Não configurado neste ambiente|Desligado/);
   await expect(page.getByRole('link', { name: 'WhatsApp' })).toHaveCount(0);
   expect((await page.request.get('/api/whatsapp/qr')).status()).toBe(403);
 });

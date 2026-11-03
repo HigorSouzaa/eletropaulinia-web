@@ -5,6 +5,8 @@ export class WhatsAppWebSession {
   constructor(factory) {
     this.factory = factory;
     this.client = null;
+    this.starting = null;
+    this.generation = 0;
     this.state = 'desligado';
     this.changedAt = new Date();
     this.qr = null;
@@ -18,32 +20,40 @@ export class WhatsAppWebSession {
   }
   async connect() {
     if (this.client) return this.snapshot();
+    if (this.starting) return this.starting;
+    const generation = ++this.generation;
     this.transition('iniciando');
-    try {
-      const client = await this.factory();
-      this.client = client;
-      client.on('qr', value => {
-        if (this.client !== client || typeof value !== 'string') return;
-        this.qr = value;
-        this.qrExpiresAt = Date.now() + 60000;
-        this.transition('aguardando_qr');
-      });
-      client.on('authenticated', () => { if (this.client === client) this.transition('autenticando'); });
-      client.on('ready', () => { if (this.client === client) this.transition('conectado'); });
-      client.on('disconnected', () => { if (this.client === client) { this.client = null; this.transition('desconectado'); } });
-      Promise.resolve(client.initialize()).catch(() => {
-        if (this.client === client) { this.client = null; this.transition('erro'); }
-      });
-    } catch { this.client = null; this.transition('erro'); }
-    return this.snapshot();
+    this.starting = (async () => {
+      try {
+        const client = await this.factory();
+        if (generation !== this.generation) { await client.destroy().catch(() => {}); return this.snapshot(); }
+        this.client = client;
+        client.on('qr', value => {
+          if (this.client !== client || typeof value !== 'string') return;
+          this.qr = value;
+          this.qrExpiresAt = Date.now() + 60000;
+          this.transition('aguardando_qr');
+        });
+        client.on('authenticated', () => { if (this.client === client) this.transition('autenticando'); });
+        client.on('ready', () => { if (this.client === client) this.transition('conectado'); });
+        client.on('disconnected', () => { if (this.client === client) { this.client = null; this.transition('desconectado'); } });
+        Promise.resolve().then(() => client.initialize()).catch(() => {
+          if (this.client === client) { this.client = null; this.transition('erro'); void client.destroy().catch(() => {}); }
+        });
+      } catch { if (generation === this.generation) { this.client = null; this.transition('erro'); } }
+      return this.snapshot();
+    })();
+    try { return await this.starting; } finally { if (generation === this.generation) this.starting = null; }
   }
   qrValue() {
     if (this.state !== 'aguardando_qr' || !this.qr || Date.now() >= this.qrExpiresAt) return null;
     return this.qr;
   }
   async disconnect() {
+    ++this.generation;
     const current = this.client;
     this.client = null;
+    this.starting = null;
     this.transition('desconectado');
     if (current) await current.destroy().catch(() => {});
     return this.snapshot();
@@ -65,3 +75,6 @@ async function localFactory() {
 }
 
 export const whatsappWeb = new WhatsAppWebSession(localFactory);
+export function whatsappWebConfigured() {
+  return process.env.NODE_ENV !== 'production' && Boolean(process.env.WHATSAPP_SESSION_DIR && process.env.WHATSAPP_CHROME_PATH);
+}

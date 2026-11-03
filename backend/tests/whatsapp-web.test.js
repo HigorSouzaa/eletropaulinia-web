@@ -88,3 +88,32 @@ test('QR simulado só é entregue ao administrador e não revela o valor bruto',
     assert.equal((await call('whatsapp/qr', attendant)).status, 403);
   } finally { whatsappWeb.factory = originalFactory; await whatsappWeb.disconnect(); }
 });
+
+test('conexões concorrentes iniciam um cliente só; desconexão invalida inicialização tardia', async () => {
+  let calls = 0;
+  let release;
+  const gate = new Promise(resolve => { release = resolve; });
+  const fake = new EventEmitter();
+  fake.initialize = async () => {};
+  fake.destroy = async () => {};
+  const session = new WhatsAppWebSession(async () => { calls++; await gate; return fake; });
+  const a = session.connect(); const b = session.connect();
+  assert.equal(calls, 1);
+  await session.disconnect();
+  release();
+  await Promise.all([a, b]);
+  assert.equal(session.snapshot().state, 'desconectado');
+  assert.equal(session.client, null);
+});
+
+test('falha de inicialização libera tentativa posterior', async () => {
+  let calls = 0;
+  const fake = new EventEmitter(); fake.initialize = async () => { throw new Error('synthetic browser failure'); }; fake.destroy = async () => {};
+  const session = new WhatsAppWebSession(async () => { calls++; return fake; });
+  await session.connect();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(session.snapshot().state, 'erro');
+  await session.connect();
+  assert.equal(calls, 2);
+  await session.disconnect();
+});

@@ -1,12 +1,12 @@
 import express from 'express';
 import QRCode from 'qrcode';
 import { protect, authorize } from '../middleware/auth.js';
-import { whatsappWeb } from '../services/whatsappWeb.js';
+import { whatsappWeb, whatsappWebConfigured } from '../services/whatsappWeb.js';
 
 const router = express.Router();
 router.use((_req, res, next) => { res.set('Cache-Control', 'private, no-store'); next(); });
 router.use(protect);
-router.get('/status', (_req, res) => res.json({ data: whatsappWeb.snapshot() }));
+router.get('/status', (_req, res) => res.json({ data: { ...whatsappWeb.snapshot(), configured: whatsappWebConfigured() } }));
 router.use(authorize('admin'));
 router.post('/connect', async (_req, res) => res.json({ data: await whatsappWeb.connect() }));
 router.get('/qr', async (_req, res) => {
