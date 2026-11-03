@@ -4,6 +4,8 @@
 
 O usuário pediu integração oficial da Meta pelo backend Node.js para confirmar a abertura da OS, com consentimento e indicador operacional na Dashboard. Não pediu QR Code nesta modalidade; caixa de mensagens permanece ciclo opcional posterior. Diagnóstico, arquitetura, fluxo mínimo, direção visual, contratos propostos e matriz de validação estão em [WHATSAPP-OFICIAL-PROPOSTA.md](../contratos/WHATSAPP-OFICIAL-PROPOSTA.md). **Checkpoints de arquitetura, contrato, design e primeira jornada ainda não foram aprovados para esta implementação.** Nenhum código, credencial, banco remoto ou serviço hospedado foi alterado nesta preparação.
 
+Atualização após a proposta: o usuário aprovou a arquitetura, o contrato e a direção visual, e determinou que não haja deploy no Render agora. A [primeira jornada local](../qa/WHATSAPP-PRIMEIRA-JORNADA.md) foi implementada e testada; **checkpoint de revisão funcional C ainda aguarda resposta** antes de webhook, Dashboard e expansão. Nenhuma mensagem real foi enviada.
+
 ## Integração Dashboard e Finanças — 29/10/2026
 
 O usuário solicitou publicar todas as alterações em Netlify e Render. A primeira Dashboard, já aprovada quanto à arquitetura e visual, foi integrada com a navegação e Finanças; o login e a raiz autenticada abrem `/dashboard`, e `/ordens` permanece URL própria. Os testes de navegação foram atualizados para esse fluxo. Branch de integração `release/dashboard-financas-2026-10-29`, partindo da entrega local de Finanças e incorporando `86b4a43`. `npm run check` passou com 84 testes HTTP/MongoDB, tipagem, lint e build; `npm run test:e2e` passou com 33 cenários Chromium. A publicação ainda precisa ser verificada após envio à `main`.
