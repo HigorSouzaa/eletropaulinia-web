@@ -17,6 +17,8 @@ test('funcionário cria três equipamentos e consulta a OS real por URL após re
     const consent = page.getByRole('checkbox', { name: /concordou em receber atualizações/ });
     await expect(consent).not.toBeChecked();
     await consent.check();
+    await page.setViewportSize({ width: 360, height: 800 });
+    await page.screenshot({ path: 'test-results/whatsapp-consent-first-slice.png', fullPage: true });
     const first = page.getByRole('group', { name: 'Equipamento 1' });
     await first.getByLabel('Identificação *').fill('Ventilador de teste novo');
     await first.getByLabel('Defeito relatado *').fill('Não liga');
