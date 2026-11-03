@@ -46,7 +46,8 @@ const schema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   creationKey: { type: String, select: false },
   creationHash: { type: String, select: false },
-  creationHashVersion: { type: Number, enum: [2, 3], select: false },
+  creationHashVersion: { type: Number, enum: [2, 3, 4], select: false },
+  comunicacao: { whatsapp: { autorizado: { type: Boolean, default: false }, decididoEm: { type: Date, default: null }, origem: { type: String, enum: ['presencial', null], default: null } } },
   migration: { type: mongoose.Schema.Types.Mixed, select: false },
 }, { collection: 'orders', timestamps: true, strict: 'throw', autoIndex: false });
 // Index installation is explicit, never a side effect of importing this model.

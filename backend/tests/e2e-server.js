@@ -12,6 +12,7 @@ import Client from '../models/Client.js';
 import FinanceReceipt from '../models/FinanceReceipt.js';
 import FinanceExpense from '../models/FinanceExpense.js';
 import FinanceRecurrence from '../models/FinanceRecurrence.js';
+import NotificationOutbox from '../models/NotificationOutbox.js';
 import { createOrder } from '../services/ordersV2.js';
 process.env.JWT_SECRET=randomBytes(48).toString('hex');
 process.env.JWT_EXPIRE='1h';
@@ -25,6 +26,7 @@ await User.create([
 await Order.create({numero:'OS-0001',cliente:'Cliente sintético',telefone:'00000000000',equipamento:'Ventilador de teste',marca:'Teste',defeito:'Teste',dataEntrada:'2026-10-23'});
 await OrderV2.createIndexes();
 await Client.createCollection(); await Client.createIndexes();
+await NotificationOutbox.createCollection(); await NotificationOutbox.createIndexes();
 await FinanceReceipt.createCollection(); await FinanceReceipt.createIndexes();
 await FinanceExpense.createCollection(); await FinanceExpense.createIndexes();
 await FinanceRecurrence.createCollection(); await FinanceRecurrence.createIndexes();

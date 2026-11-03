@@ -18,6 +18,7 @@ export function NewOrder() {
     const [expired, setExpired] = useState(false);
     const [equipment, setEquipment] = useState<Equipment[]>([item()]);
     const [date, setDate] = useState(today);
+    const [whatsappConsent, setWhatsappConsent] = useState(false);
     const [saving, setSaving] = useState(false), [error, setError] = useState('');
     const [fields, setFields] = useState<string[]>([]);
     const attempt = useRef<string | null>(null);
@@ -47,6 +48,7 @@ export function NewOrder() {
         if (!attempt.current) attempt.current = crypto.randomUUID();
         const body = {
             ...client, tipoAtendimento: type, tecnicoId: technician || null,
+            comunicacao: { whatsapp: { autorizado: whatsappConsent, origem: whatsappConsent ? 'presencial' : null } },
             equipamentos: equipment.map(({ nome, marca, modelo, numeroSerie, tipo, descricao, origem, avaliacao }) => ({ origem: type === 'retorno' ? origem : null, avaliacao: evaluationPayload(avaliacao), nome, marca: marca || null, modelo: modelo || null, numeroSerie: numeroSerie || null, solicitacao: { tipo, descricao: tipo === 'testar' ? null : descricao } })),
             dataEntrada: date,
         };
@@ -84,6 +86,11 @@ export function NewOrder() {
                 <label>Tipo de atendimento<select className={input} value={type} onChange={e => { changed(); setType(e.target.value as 'normal' | 'retorno'); setEquipment(items => items.map(item => ({ ...item, origem: null }))); }}><option value="normal">Normal</option><option value="retorno">Retorno</option></select></label><TechnicianSelect value={technician} onChange={value => { changed(); setTechnician(value); }} /><ClientLookup onChange={selectClient} onSessionExpired={expireSession} refresh={lookupRefresh} fields={fields} />
                 <label>Data de entrada *<input className={input} type="date" required value={date} onChange={e => { changed(); setDate(e.target.value); }} aria-invalid={fields.includes('dataEntrada')} aria-describedby={fields.includes('dataEntrada') ? 'entry-date-error' : undefined} />{fieldError('dataEntrada', 'entry-date-error', 'a data de entrada')}</label>
             </div></section>
+            <section className="rounded-xl border bg-white p-5"><h2 className="text-lg font-semibold">Comunicação</h2>
+                <label className="mt-3 flex items-start gap-3"><input type="checkbox" className="mt-1 h-4 w-4 accent-orange-600" checked={whatsappConsent} onChange={e => { changed(); setWhatsappConsent(e.target.checked); }} />
+                    <span>O cliente concordou em receber atualizações desta ordem pelo WhatsApp da Eletro Paulínia.</span></label>
+                <p className="mt-2 text-sm text-gray-600">A ordem será salva mesmo se a mensagem não puder ser enviada. A opção começa desmarcada.</p>
+            </section>
             <section><div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-lg font-semibold">Equipamentos</h2><button type="button" className="rounded-lg border bg-white px-4 py-2" onClick={() => { changed(); setEquipment(v => [...v, item()]); }}>Adicionar equipamento</button></div>
                 <div className="mt-3 space-y-4">{equipment.map((eq, index) => <fieldset key={eq.key} className="rounded-xl border bg-white p-5"><legend className="px-1 font-medium">Equipamento {index + 1}</legend>
                     <div className="grid gap-4 sm:grid-cols-2"><label>Identificação *<input className={input} required maxLength={160} value={eq.nome} onChange={e => update(index, { nome: e.target.value })} aria-invalid={fields.includes(`equipamentos.${index}.nome`)} aria-describedby={fields.includes(`equipamentos.${index}.nome`) ? `equipment-${index}-name-error` : undefined} />{fieldError(`equipamentos.${index}.nome`, `equipment-${index}-name-error`, 'a identificação do equipamento')}</label>

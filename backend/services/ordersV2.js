@@ -13,7 +13,7 @@ export function orderDTO(document) {
   const { _id, numero, schemaVersion, version, cliente, equipamentos, dataEntrada, dataPrevista,
     tecnico, observacoes, status, createdBy, createdAt, updatedAt } = raw;
   const retirados = equipamentos.filter(item => item.retirada !== null).length;
-  return { _id, numero, schemaVersion, version, cliente, clienteId: raw.clienteId ?? null, tipoAtendimento: raw.tipoAtendimento || 'normal', tecnicoId: raw.tecnicoId ?? null, equipamentos: equipamentos.map(item => ({ ...item, garantia: (['indisponivel', 'revisar'].includes(item.origemSituacao) ? { ...warrantyView(item, raw.dataEntrada, raw.tipoAtendimento), situacao: 'nao_verificavel' } : warrantyView(item, raw.dataEntrada, raw.tipoAtendimento)) })), dataEntrada, dataPrevista,
+  return { _id, numero, schemaVersion, version, cliente, clienteId: raw.clienteId ?? null, tipoAtendimento: raw.tipoAtendimento || 'normal', tecnicoId: raw.tecnicoId ?? null, comunicacao: raw.comunicacao ?? { whatsapp: { autorizado: false, decididoEm: null, origem: null } }, equipamentos: equipamentos.map(item => ({ ...item, garantia: (['indisponivel', 'revisar'].includes(item.origemSituacao) ? { ...warrantyView(item, raw.dataEntrada, raw.tipoAtendimento), situacao: 'nao_verificavel' } : warrantyView(item, raw.dataEntrada, raw.tipoAtendimento)) })), dataEntrada, dataPrevista,
     tecnico, observacoes, status, createdBy, createdAt, updatedAt, ...(raw.compatibility ? { compatibility: raw.compatibility } : {}),
     entrega: { total: equipamentos.length, retirados, situacao: retirados === 0 ? 'nenhuma' : retirados === equipamentos.length ? 'completa' : 'parcial' } };
 }

@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { createHash } from 'node:crypto';
 import Order from '../models/OrderV2.js';
 import Counter from '../models/Counter.js';
+import NotificationOutbox from '../models/NotificationOutbox.js';
 import { clientPhone, requireClientsReady, resolveClient } from './clients.js';
 import { OrderError, createInput, clientSnapshotInput, orderFieldsInput, creationKey, validId, object } from './orderInput.js';
 
@@ -22,8 +23,15 @@ function linkedInput(body) {
   return { ...client, ...orderFieldsInput(body) };
 }
 function extendedInput(body) {
-  object(body, ['cliente', 'clienteId', 'clienteVersion', 'equipamentos', 'dataEntrada', 'dataPrevista', 'tecnico', 'tecnicoId', 'observacoes', 'tipoAtendimento'], 'body');
-  const { tecnicoId = null, tipoAtendimento = 'normal', ...base } = body;
+  object(body, ['cliente', 'clienteId', 'clienteVersion', 'equipamentos', 'dataEntrada', 'dataPrevista', 'tecnico', 'tecnicoId', 'observacoes', 'tipoAtendimento', 'comunicacao'], 'body');
+  const { tecnicoId = null, tipoAtendimento = 'normal', comunicacao, ...base } = body;
+  let whatsapp = { autorizado: false, origem: null };
+  if (comunicacao !== undefined) {
+    object(comunicacao, ['whatsapp'], 'comunicacao');
+    object(comunicacao.whatsapp, ['autorizado', 'origem'], 'comunicacao.whatsapp');
+    if (typeof comunicacao.whatsapp.autorizado !== 'boolean' || (comunicacao.whatsapp.autorizado && comunicacao.whatsapp.origem !== 'presencial') || (!comunicacao.whatsapp.autorizado && comunicacao.whatsapp.origem != null)) throw new OrderError(400, 'VALIDATION_ERROR');
+    whatsapp = { autorizado: comunicacao.whatsapp.autorizado, origem: comunicacao.whatsapp.autorizado ? 'presencial' : null };
+  }
   if (!['normal', 'retorno'].includes(tipoAtendimento)) throw new OrderError(400, 'VALIDATION_ERROR');
   if (tecnicoId !== null) validId(tecnicoId);
   if (body.tecnico != null && body.tecnico !== '') throw new OrderError(409, 'TECHNICIAN_REFERENCE_REQUIRED');
@@ -37,11 +45,11 @@ function extendedInput(body) {
     return { avaliacao, origem };
   });
   base.equipamentos = base.equipamentos.map(({ avaliacao: _a, origem: _o, ...item }) => item);
-  return { ...linkedInput(base), tecnicoId, tipoAtendimento, extras };
+  return { ...linkedInput(base), tecnicoId, tipoAtendimento, extras, whatsapp };
 }
 const digest = input => createHash('sha256').update(JSON.stringify(input)).digest('hex');
 function replay(existing, body) {
-  const hash = digest(existing.creationHashVersion === 3 ? extendedInput(body) : existing.creationHashVersion === 2 ? linkedInput(body) : createInput(body));
+  const hash = digest(existing.creationHashVersion === 4 ? extendedInput(body) : existing.creationHashVersion === 3 ? (() => { const legacy = extendedInput(body); delete legacy.whatsapp; return legacy; })() : existing.creationHashVersion === 2 ? linkedInput(body) : createInput(body));
   if (hash !== existing.creationHash) throw new OrderError(409, 'IDEMPOTENCY_CONFLICT');
   return { document: existing, created: false };
 }
@@ -62,6 +70,11 @@ export async function createOrder(body, key, actor) {
   const keyIndex = indexes.some(index => index.unique && index.key.createdBy === 1 && index.key.creationKey === 1 && Object.keys(index.key).length === 2 && index.partialFilterExpression?.schemaVersion === 2 && index.partialFilterExpression?.creationKey?.$type === 'string');
   if (!numberIndex || !keyIndex) throw new OrderError(503, 'NUMBERING_NOT_READY');
   await requireClientsReady();
+  if (input.whatsapp.autorizado) {
+    let indexes;
+    try { indexes = await NotificationOutbox.collection.indexes(); } catch (error) { if (error.code === 26) throw new OrderError(503, 'NOTIFICATIONS_NOT_READY'); throw error; }
+    if (!indexes.some(index => index.unique && index.name === 'outbox_order_kind_unique' && index.key.orderId === 1 && index.key.kind === 1)) throw new OrderError(503, 'NOTIFICATIONS_NOT_READY');
+  }
   // Phone insert collisions require a fresh transaction to see the winning client.
   for (let attempt = 0; attempt < 3; attempt++) {
     const session = await mongoose.startSession();
@@ -80,7 +93,10 @@ export async function createOrder(body, key, actor) {
           fields.equipamentos[index].retorno = await resolveOrigin(input.extras[index].origem, customer.clienteId, session);
         }
         const [document] = await Order.create([{ ...fields, ...customer, numero: `OS-${String(counter.value).padStart(4, '0')}`,
-          sequencia: counter.value, createdBy: actor, creationKey: validatedKey, creationHash: hash, creationHashVersion: 3 }], { session });
+          sequencia: counter.value, createdBy: actor, creationKey: validatedKey, creationHash: hash, creationHashVersion: 4,
+          comunicacao: { whatsapp: { ...input.whatsapp, decididoEm: new Date() } } }], { session });
+        if (input.whatsapp.autorizado) await NotificationOutbox.create([{ orderId: document._id, kind: 'order_created', clientId: customer.clienteId,
+          phone: customer.cliente.telefone, customerName: customer.cliente.nome, orderNumber: document.numero, entryDate: document.dataEntrada }], { session });
         return { document, created: true };
       }, { readPreference: 'primary', writeConcern: { w: 'majority' }, maxCommitTimeMS: 5000 });
     } catch (error) {
