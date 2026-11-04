@@ -7,7 +7,7 @@ import { createOrder } from '../services/ordersV2.js';
 
 let mongo; let db;
 before(async () => {
-  mongo = await MongoMemoryReplSet.create({ binary: { version: '8.0.17' }, replSet: { count: 1, ip: '127.0.0.1' } });
+  mongo = await MongoMemoryReplSet.create({ binary: { version: '8.0.17' }, replSet: { count: 1, ip: '127.0.0.1' }, instanceOpts: [{ launchTimeout: 30000 }] });
   await mongoose.connect(mongo.getUri(), { dbName: 'stage05_fixture_only' });
   db = mongoose.connection.db;
 });

@@ -18,7 +18,7 @@ let mongo, server, base, adminToken, staffToken;
 const storeDate = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 before(async () => {
   process.env.JWT_SECRET = randomBytes(48).toString('hex');
-  mongo = await MongoMemoryReplSet.create({ binary: { version: '8.0.17' }, replSet: { count: 1, ip: '127.0.0.1' } });
+  mongo = await MongoMemoryReplSet.create({ binary: { version: '8.0.17' }, replSet: { count: 1, ip: '127.0.0.1' }, instanceOpts: [{ launchTimeout: 30000 }] });
   await mongoose.connect(mongo.getUri(), { dbName: 'finance_slice_test' });
   await User.init(); await Client.createCollection(); await Client.createIndexes(); await Order.createIndexes(); await FinanceReceipt.createCollection(); await FinanceReceipt.createIndexes(); await FinanceExpense.createCollection(); await FinanceExpense.createIndexes(); await FinanceRecurrence.createCollection(); await FinanceRecurrence.createIndexes();
   server = app.listen(0, '127.0.0.1'); await once(server, 'listening');

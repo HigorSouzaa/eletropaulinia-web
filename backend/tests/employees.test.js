@@ -13,7 +13,7 @@ const password = 'Synthetic-test-password-42';
 before(async () => {
   process.env.JWT_SECRET = randomBytes(48).toString('hex');
   process.env.JWT_EXPIRE = '15m';
-  mongo = await MongoMemoryReplSet.create({ replSet: { count: 1 }, binary: { version: '8.0.17' } });
+  mongo = await MongoMemoryReplSet.create({ replSet: { count: 1 }, binary: { version: '8.0.17' }, instanceOpts: [{ launchTimeout: 30000 }] });
   await mongoose.connect(mongo.getUri(), { dbName: 'employees_test' });
   await User.init();
   server = app.listen(0, '127.0.0.1'); await once(server, 'listening');

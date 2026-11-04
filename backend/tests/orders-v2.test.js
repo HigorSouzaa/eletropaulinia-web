@@ -17,7 +17,7 @@ import { transformLegacy } from '../services/legacyOrders.js';
 let mongo, server, origin, token, otherToken;
 before(async () => {
   process.env.JWT_SECRET = randomBytes(48).toString('hex');
-  mongo = await MongoMemoryReplSet.create({ binary: { version: '8.0.17' }, replSet: { count: 1, ip: '127.0.0.1' } });
+  mongo = await MongoMemoryReplSet.create({ binary: { version: '8.0.17' }, replSet: { count: 1, ip: '127.0.0.1' }, instanceOpts: [{ launchTimeout: 30000 }] });
   await mongoose.connect(mongo.getUri(), { dbName: 'orders_v2_test' });
   await Promise.all([User.init(), Counter.init(), RevokedToken.init()]);
   server = app.listen(0, '127.0.0.1'); await once(server, 'listening');

@@ -26,7 +26,7 @@ before(async () => {
   process.env.JWT_EXPIRE = '15m';
   mongo = await MongoMemoryServer.create({
     binary: { version: '8.0.17' },
-    instance: { ip: '127.0.0.1' },
+    instance: { ip: '127.0.0.1', launchTimeout: 30000 },
   });
   await mongoose.connect(mongo.getUri(), { dbName: 'eletropaulinia_test' });
   await Promise.all([User.init(), Order.init(), RevokedToken.init(), AuthAttempt.init()]);

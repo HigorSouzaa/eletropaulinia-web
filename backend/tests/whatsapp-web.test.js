@@ -16,7 +16,7 @@ import { WhatsAppWebSession, whatsappWeb } from '../services/whatsappWeb.js';
 let mongo, server, origin, admin, attendant;
 before(async () => {
   process.env.JWT_SECRET = randomBytes(48).toString('hex');
-  mongo = await MongoMemoryReplSet.create({ binary: { version: '8.0.17' }, replSet: { count: 1, ip: '127.0.0.1' } });
+  mongo = await MongoMemoryReplSet.create({ binary: { version: '8.0.17' }, replSet: { count: 1, ip: '127.0.0.1' }, instanceOpts: [{ launchTimeout: 30000 }] });
   await mongoose.connect(mongo.getUri(), { dbName: 'whatsapp_web_test' });
   await User.init(); await Client.createCollection(); await Client.createIndexes(); await Order.createCollection(); await Order.createIndexes();
   await NotificationOutbox.createCollection(); await NotificationOutbox.createIndexes(); await Counter.init();
