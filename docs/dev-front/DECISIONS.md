@@ -1,5 +1,9 @@
 # Decisões — Eletro Paulínia
 
+## Clientes — dados adicionais, 04/11/2026
+
+Modo semi-auto para mudança estrutural de schema/API e ficha. Branch `feat/clientes-endereco-documentos` criada da base local `feat/whatsapp-web-local`. [Diagnóstico, contrato e direção visual](../contratos/CLIENTES-ENDERECO-DOCUMENTOS.md) preparados para checkpoint de arquitetura, dados e design. Nenhuma implementação principal, índice remoto ou publicação nesta fase. Nova OS permanece somente com telefone, nome e e-mail opcional. Revisão funcional C ainda não ocorreu.
+
 ## WhatsApp Web — mudança de direção, 03/11/2026
 
 O usuário escolheu WhatsApp Web com QR Code como primeiro caminho e pediu que não haja envio automático agora. A primeira fatia para a API oficial continua no histórico local, sem despacho automático, mas não deve ser expandida. [Arquitetura/contrato revisados](../contratos/WHATSAPP-WEB-PROPOSTA.md) foram preparados para o novo checkpoint. Não publicar na Render, Netlify ou Atlas. A escolha de endereço e CPF/CNPJ para Clientes permanece registrada para outro prompt. Pagamentos devem suportar retiradas por equipamento e total agregado da OS, sem implementar nessa etapa.
