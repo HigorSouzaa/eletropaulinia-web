@@ -11,6 +11,9 @@ export function clientDTO(client) {
   const { _id, nome, telefone, email, version, createdAt, updatedAt } = client;
   return { _id, nome, telefone, email, version, createdAt, updatedAt };
 }
+export function clientAdminDTO(client) {
+  return { ...clientDTO(client), tipoPessoa: client.tipoPessoa ?? null, documento: client.documento ?? null, endereco: client.endereco ?? null };
+}
 export const clientEtag = client => `"client-${client._id}-v${client.version}"`;
 
 export async function requireClientsReady() {
@@ -19,6 +22,15 @@ export async function requireClientsReady() {
   catch (error) { if (error.code === 26) throw new OrderError(503, 'CLIENTS_NOT_READY'); throw error; }
   if (!indexes.some(index => index.unique && index.key.telefone === 1 && Object.keys(index.key).length === 1
     && !index.sparse && !index.partialFilterExpression && (!index.collation || index.collation.locale === 'simple'))) {
+    throw new OrderError(503, 'CLIENTS_NOT_READY');
+  }
+}
+export async function requireClientDocumentReady() {
+  let indexes;
+  try { indexes = await Client.collection.indexes(); }
+  catch (error) { if (error.code === 26) throw new OrderError(503, 'CLIENTS_NOT_READY'); throw error; }
+  if (!indexes.some(index => index.unique && index.key.documento === 1 && Object.keys(index.key).length === 1
+    && index.partialFilterExpression?.documento?.$type === 'string' && (!index.collation || index.collation.locale === 'simple'))) {
     throw new OrderError(503, 'CLIENTS_NOT_READY');
   }
 }

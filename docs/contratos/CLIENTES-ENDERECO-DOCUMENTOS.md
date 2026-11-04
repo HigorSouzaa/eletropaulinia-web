@@ -1,6 +1,6 @@
 # Clientes — endereço e documentos opcionais
 
-04/11/2026. Proposta de arquitetura, contrato e direção visual para revisão. Nenhuma alteração de schema, API, interface ou banco foi implementada nesta etapa de checkpoint.
+04/11/2026. Arquitetura e direção visual aprovadas. Primeira jornada implementada localmente; revisão funcional e validação ampliada ainda pendentes. Nenhum banco remoto foi alterado.
 
 ## Diagnóstico verificado no código
 
@@ -17,12 +17,12 @@ Adicionar à coleção `clients`, de forma aditiva:
 | Campo | Regra |
 | --- | --- |
 | `tipoPessoa` | `null`, `fisica` ou `juridica`. `null` representa cadastro anterior/sem classificação; a escolha não obriga documento. |
-| `documento` | `null` ou string somente de dígitos, 11 para CPF e 14 para CNPJ, coerente com `tipoPessoa`. Sem tipo, documento deve ser `null`. |
+| `documento` | `null`, CPF com 11 dígitos ou CNPJ com 12 caracteres alfanuméricos e 2 verificadores numéricos, coerente com `tipoPessoa`. CNPJ numérico permanece válido. Sem tipo, documento deve ser `null`. |
 | `endereco` | Objeto opcional com `cep` (8 dígitos), `logradouro`, `numero`, `complemento`, `bairro`, `cidade`, `uf` (2 letras). Cada campo pode permanecer ausente/nulo; não consultar CEP externo nem inventar número. |
 
 O ID interno e o telefone normalizado continuam a identificar o cliente. Documento não identifica ou une cadastros automaticamente. Em PATCH, omissão preserva o valor; `null` limpa documento/endereço ou um campo opcional; string vazia de documento é inválida e a interface envia `null` para limpeza. Trocar o tipo exige que o documento resultante seja válido para o novo tipo ou esteja nulo, sem apagar automaticamente o documento antigo. Limites propostos: logradouro 160, número 20, complemento 100, bairro/cidade 100 caracteres. Dados antigos sem esses campos são apresentados como não informados, sem migração de conteúdo.
 
-Validar CPF/CNPJ e dígitos verificadores no Express, após remover somente máscara usual. Rejeitar caracteres inesperados, sequências inválidas e valores fora do comprimento. Armazenar apenas dígitos; formatar no frontend para exibição. Não registrar documento em logs, URLs ou erros.
+Validar CPF/CNPJ e dígitos verificadores no Express, após remover somente máscara usual. Rejeitar caracteres inesperados, sequências inválidas e valores fora do comprimento. Armazenar CPF somente com dígitos e CNPJ alfanumérico em maiúsculas sem máscara; formatar no frontend para exibição. Não registrar documento em logs, URLs ou erros. A Receita Federal passou a atribuir CNPJ alfanumérico em julho de 2026; o cálculo segue [manual oficial](https://www.gov.br/receitafederal/pt-br/centrais-de-conteudo/publicacoes/documentos-tecnicos/cnpj/manual-dv-cnpj.pdf).
 
 Índice único parcial `{ documento: 1 }` com filtro para string protege concorrência sem impedir vários clientes sem documento. Antes da primeira escrita de documento, verificar que o índice correto existe; sem ele, falhar com 503. Duplicidade recebe 409 `DOCUMENT_IN_USE`, sem expor o cadastro concorrente. Não criar índice no Atlas nesta tarefa.
 

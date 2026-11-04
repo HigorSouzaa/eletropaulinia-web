@@ -12,13 +12,14 @@ import User from '../models/User.js';
 import Counter from '../models/Counter.js';
 import { createInput, OrderError } from '../services/orderInput.js';
 import { normalizePhone, formatPhone, formatPhoneInput } from '../../shared/phone.js';
+import { validCpf, validCnpj } from '../services/clientIdentity.js';
 
 let mongo, server, origin, token, actor;
 const phone = '19900000042';
 const payload = () => ({ cliente: { nome: 'Pessoa sintética A', telefone: phone }, dataEntrada: '2026-10-27', equipamentos: [{ nome: 'Rádio sintético', solicitacao: { tipo: 'testar' } }] });
 before(async () => {
   process.env.JWT_SECRET = randomBytes(48).toString('hex');
-  mongo = await MongoMemoryReplSet.create({ binary: { version: '8.0.17' }, replSet: { count: 1, ip: '127.0.0.1' } });
+  mongo = await MongoMemoryReplSet.create({ binary: { version: '8.0.17' }, replSet: { count: 1, ip: '127.0.0.1' }, instanceOpts: [{ launchTimeout: 30000 }] });
   await mongoose.connect(mongo.getUri(), { dbName: 'clients_slice_test' });
   await User.init(); await Client.createCollection(); await Client.createIndexes(); await Order.createIndexes(); await Counter.init();
   server = app.listen(0, '127.0.0.1'); await once(server, 'listening');
@@ -38,6 +39,25 @@ async function call(path, { body, method = body === undefined ? 'GET' : 'POST', 
 }
 const create = (body = payload(), key = randomUUID()) => call('/orders', { body, headers: { 'Idempotency-Key': key } });
 const lookup = value => call('/clients/lookup', { body: { telefone: value } });
+
+test('primeira jornada administrativa salva dados opcionais sem expor documento à busca ou à OS', async () => {
+  assert.equal(validCpf('12345678909'), true); // Sequência sintética para teste de verificador.
+  assert.equal(validCnpj('12ABC34501DE35'), true); // Exemplo público do manual de cálculo da Receita.
+  const created = await create(); assert.equal(created.status, 201);
+  const id = created.body.data.clienteId;
+  const before = await call(`/clients/${id}`);
+  assert.equal(before.body.data.documento, undefined);
+  assert.equal((await call(`/clients/${id}`, { method: 'PATCH', body: { tipoPessoa: 'fisica', documento: '123.456.789-09' }, headers: { 'If-Match': before.headers.get('etag') } })).status, 403);
+  await User.updateOne({ _id: actor._id }, { $set: { role: 'admin' } });
+  const saved = await call(`/clients/${id}`, { method: 'PATCH', body: { tipoPessoa: 'fisica', documento: '123.456.789-09', endereco: { cidade: 'Cidade sintética', uf: 'SP' } }, headers: { 'If-Match': before.headers.get('etag') } });
+  assert.equal(saved.status, 200, JSON.stringify(saved.body.error));
+  assert.equal(saved.body.data.documento, '12345678909');
+  assert.equal(saved.body.data.endereco.cidade, 'Cidade sintética');
+  assert.equal((await call(`/clients/${id}`)).body.data.documento, '12345678909');
+  assert.equal((await lookup(phone)).body.data.documento, undefined);
+  assert.equal((await call('/clients')).body.data[0].documento, undefined);
+  assert.equal((await call(`/orders/${created.body.data._id}`)).body.data.cliente.documento, undefined);
+});
 
 test('normalização e máscara distinguem +55 de DDD 55 e não reparam entradas inválidas', () => {
   for (const input of [phone, '(19) 90000-0042', '+55 (19) 90000-0042', '5519900000042']) assert.equal(normalizePhone(input), '+5519900000042');

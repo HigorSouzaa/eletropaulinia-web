@@ -2,7 +2,8 @@ import express from 'express';
 import { randomUUID } from 'node:crypto';
 import { protect, authorize } from '../middleware/auth.js';
 import Client from '../models/Client.js';
-import { clientDTO, clientEtag, clientPhone, requireClientsReady } from '../services/clients.js';
+import { clientDTO, clientAdminDTO, clientEtag, clientPhone, requireClientsReady, requireClientDocumentReady } from '../services/clients.js';
+import { clientIdentityInput } from '../services/clientIdentity.js';
 import { object, OrderError, validId, clientSnapshotInput } from '../services/orderInput.js';
 
 const router = express.Router();
@@ -11,7 +12,7 @@ router.use((req, res, next) => {
   res.set('Cache-Control', 'private, no-store');
   next();
 });
-router.use(protect, express.json({ limit: '1kb' }));
+router.use(protect, express.json({ limit: '4kb' }));
 router.post('/lookup', async (req, res, next) => {
   try {
     object(req.body, ['telefone'], 'body');
@@ -40,22 +41,24 @@ router.get('/:id', async (req, res, next) => {
   try {
     validId(req.params.id); const client = await Client.findById(req.params.id).lean();
     if (!client) throw new OrderError(404, 'NOT_FOUND');
-    res.set('ETag', clientEtag(client)).json({ data: clientDTO(client) });
+    res.set('ETag', clientEtag(client)).json({ data: req.user.role === 'admin' ? clientAdminDTO(client) : clientDTO(client) });
   } catch (error) { next(error); }
 });
 router.patch('/:id', authorize('admin'), async (req, res, next) => {
   try {
-    validId(req.params.id); object(req.body, ['nome', 'telefone', 'email'], 'body');
+    validId(req.params.id); object(req.body, ['nome', 'telefone', 'email', 'tipoPessoa', 'documento', 'endereco'], 'body');
     const client = await Client.findById(req.params.id).lean();
     if (!client) throw new OrderError(404, 'NOT_FOUND');
     if (!req.get('If-Match')) throw new OrderError(428, 'PRECONDITION_REQUIRED');
     if (req.get('If-Match') !== clientEtag(client)) throw new OrderError(412, 'VERSION_CONFLICT');
-    const input = clientSnapshotInput({ nome: client.nome, telefone: client.telefone, email: client.email, ...req.body });
+    const input = clientSnapshotInput({ nome: req.body.nome === undefined ? client.nome : req.body.nome, telefone: req.body.telefone === undefined ? client.telefone : req.body.telefone, email: req.body.email === undefined ? client.email : req.body.email });
     input.telefone = clientPhone(input.telefone); await requireClientsReady();
-    const updated = await Client.findOneAndUpdate({ _id: client._id, version: client.version }, { $set: { ...input, updatedBy: req.user._id }, $inc: { version: 1 } }, { new: true, runValidators: true });
+    const identity = clientIdentityInput(req.body, client);
+    if (identity.documento) await requireClientDocumentReady();
+    const updated = await Client.findOneAndUpdate({ _id: client._id, version: client.version }, { $set: { ...input, ...identity, updatedBy: req.user._id }, $inc: { version: 1 } }, { new: true, runValidators: true });
     if (!updated) throw new OrderError(412, 'VERSION_CONFLICT');
-    res.set('ETag', clientEtag(updated)).json({ data: clientDTO(updated) });
-  } catch (error) { next(error.code === 11000 ? new OrderError(409, 'PHONE_IN_USE') : error); }
+    res.set('ETag', clientEtag(updated)).json({ data: clientAdminDTO(updated) });
+  } catch (error) { next(error.code === 11000 ? new OrderError(409, error.keyPattern?.documento ? 'DOCUMENT_IN_USE' : 'PHONE_IN_USE') : error); }
 });
 router.use((_req, _res, next) => next(new OrderError(404, 'NOT_FOUND')));
 router.use((error, req, res, _next) => {
