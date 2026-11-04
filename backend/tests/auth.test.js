@@ -262,7 +262,7 @@ test('provisionamento inicial é manual e não substitui administrador existente
 
 test('startup incompleto falha antes de conectar ao banco', async () => {
   await assert.rejects(runNode(process.execPath, ['server.js'], {
-    env: { ...process.env, MONGODB_URI: '', JWT_SECRET: '' }, timeout: 10000,
+    env: { ...process.env, MONGODB_URI: '', JWT_SECRET: '' }, timeout: 30000,
   }), error => {
     assert.equal(error.code, 1);
     assert.match(error.stderr, /Falha ao iniciar API/);

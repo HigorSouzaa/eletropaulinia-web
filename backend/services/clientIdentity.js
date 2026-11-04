@@ -1,9 +1,8 @@
 import { OrderError } from './orderInput.js';
 
 const invalid = path => { throw new OrderError(400, 'VALIDATION_ERROR', [{ path, code: 'INVALID_VALUE' }]); };
-const weights = length => Array.from({ length }, (_, index) => 2 + ((length - index - 1) % 8));
 const digit = base => {
-  const sum = [...base].reduce((total, char, index) => total + (char.charCodeAt(0) - 48) * weights(base.length)[index], 0);
+  const sum = [...base].reduce((total, char, index) => total + (char.charCodeAt(0) - 48) * (2 + ((base.length - index - 1) % 8)), 0);
   const remainder = sum % 11;
   return remainder < 2 ? 0 : 11 - remainder;
 };
@@ -33,8 +32,8 @@ export function clientIdentityInput(body, current) {
   const oldAddress = current.endereco || {};
   const change = body.endereco;
   if (change !== undefined && change !== null && (typeof change !== 'object' || Array.isArray(change))) invalid('endereco');
-  const allowed = { cep: 8, logradouro: 160, numero: 20, complemento: 100, bairro: 100, cidade: 100, uf: 2 };
-  if (change) for (const key of Object.keys(change)) if (!(key in allowed)) invalid(`endereco.${key}`);
+  const allowed = { cep: 9, logradouro: 160, numero: 20, complemento: 100, bairro: 100, cidade: 100, uf: 2 };
+  if (change) for (const key of Object.keys(change)) if (!Object.hasOwn(allowed, key)) invalid(`endereco.${key}`);
   const endereco = change === null ? null : { ...oldAddress };
   if (change) for (const [key, value] of Object.entries(change)) {
     if (value !== null && (typeof value !== 'string' || !value.trim() || value.trim().length > allowed[key])) invalid(`endereco.${key}`);

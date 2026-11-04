@@ -16,7 +16,7 @@ import NotificationOutbox from '../models/NotificationOutbox.js';
 import { createOrder } from '../services/ordersV2.js';
 process.env.JWT_SECRET=randomBytes(48).toString('hex');
 process.env.JWT_EXPIRE='1h';
-const mongo=await MongoMemoryReplSet.create({binary:{version:'8.0.17'},replSet:{count:1}});
+const mongo=await MongoMemoryReplSet.create({binary:{version:'8.0.17'},replSet:{count:1},instanceOpts:[{launchTimeout:30000}]});
 await mongoose.connect(mongo.getUri(),{dbName:'e2e_synthetic'});
 await User.init();await Order.init();
 await User.create([

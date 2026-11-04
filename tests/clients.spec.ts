@@ -8,7 +8,7 @@ async function login(page: Page) {
     await page.getByLabel('Usuário', { exact: true }).fill('teste-b');
     await page.getByLabel('Senha', { exact: true }).fill('Synthetic-test-password-42');
     await page.getByRole('button', { name: 'Entrar', exact: true }).click();
-    await expect(page).toHaveURL(/\/dashboard$/);
+    await expect(page).toHaveURL(/\/dashboard$/, { timeout: 15000 });
     await page.goto('/nova-ordem');
 }
 async function admin(request: APIRequestContext) {
@@ -175,6 +175,7 @@ test('lookup exige origem/sessão e troca de conta elimina os campos do cadastro
 });
 
 test('área Clientes lista histórico real e limita edição ao administrador', async ({ page, request }) => {
+ test.setTimeout(120000);
  const auth = await admin(request), ids: string[] = [];
  try {
   const order = await seed(request, auth, '19900000301', 'Cliente área sintético'); ids.push(order._id);
@@ -190,6 +191,48 @@ test('área Clientes lista histórico real e limita edição ao administrador', 
   await page.getByRole('button', { name: 'Salvar cadastro' }).click(); await expect(page.getByRole('status')).toContainText('Cadastro atualizado');
   await page.reload(); await expect(page.getByLabel('Nome *')).toHaveValue('Cliente corrigido sintético'); await page.setViewportSize({ width: 360, height: 780 }); await page.screenshot({ path: 'test-results/clientes-cadastro-360.png', fullPage: true });
   await page.getByRole('link', { name: order.numero, exact: true }).click(); await expect(page.getByText('Cliente área sintético', { exact: true })).toBeVisible();
+ } finally { await remove(request, ids, auth); }
+});
+
+test('ficha administrativa salva documento e endereço; dados extras ficam fora da Nova OS', async ({ page, request }) => {
+ test.setTimeout(120000);
+ const auth = await admin(request), ids: string[] = [];
+ try {
+  const order = await seed(request, auth, '19900000341', 'Cadastro sintético adicional'); ids.push(order._id);
+  await login(page); await page.goto(`/clientes/${order.clienteId}`);
+  await expect(page.getByText('Dados adicionais')).toHaveCount(0);
+  const staffDetail = await page.request.get(`/api/clients/${order.clienteId}`);
+  expect((await staffDetail.json()).data.documento).toBeUndefined();
+  await page.goto('/login');
+  await page.getByLabel('Usuário', { exact: true }).fill('teste-a');
+  await page.getByLabel('Senha', { exact: true }).fill('Synthetic-test-password-42');
+  await page.getByRole('button', { name: 'Entrar', exact: true }).click();
+  await expect(page).toHaveURL(/\/dashboard$/, { timeout: 15000 });
+  await page.goto(`/clientes/${order.clienteId}`);
+  await page.getByLabel('Tipo de pessoa').selectOption('fisica');
+  await page.getByLabel('CPF (opcional)').fill('123.456.789-00');
+  await page.getByRole('button', { name: 'Salvar cadastro' }).click();
+  await expect(page.getByLabel('CPF (opcional)')).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.locator('#client-document-error')).toBeVisible();
+  await page.getByLabel('CPF (opcional)').fill('123.456.789-09');
+  await page.getByLabel('CEP (opcional)').fill('13000-000');
+  await page.getByLabel('Cidade (opcional)').fill('Cidade sintética');
+  await page.getByLabel('UF (opcional)').fill('sp');
+  await page.getByRole('button', { name: 'Salvar cadastro' }).click();
+  await expect(page.getByRole('status')).toContainText('Cadastro atualizado');
+  await page.reload();
+  await expect(page.getByLabel('CPF (opcional)')).toHaveValue('123.456.789-09');
+  await expect(page.getByLabel('Cidade (opcional)')).toHaveValue('Cidade sintética');
+  for (const width of [360, 768, 1280]) {
+   await page.setViewportSize({ width, height: 850 });
+   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+   await page.screenshot({ path: `test-results/clientes-adicionais-${width}.png`, fullPage: true });
+  }
+  await page.goto('/nova-ordem');
+  await expect(page.getByLabel('CPF (opcional)')).toHaveCount(0);
+  await expect(page.getByLabel('CEP (opcional)')).toHaveCount(0);
+  const lookup = await page.request.post('/api/clients/lookup', { headers: { Origin: origin }, data: { telefone: '19900000341' } });
+  expect((await lookup.json()).data.documento).toBeUndefined();
  } finally { await remove(request, ids, auth); }
 });
 

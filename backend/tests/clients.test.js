@@ -59,6 +59,54 @@ test('primeira jornada administrativa salva dados opcionais sem expor documento 
   assert.equal((await call(`/orders/${created.body.data._id}`)).body.data.cliente.documento, undefined);
 });
 
+test('documentos e endereço: validação, limpeza, versão e histórico preservado', async () => {
+  const created = await create(); const id = created.body.data.clienteId;
+  await User.updateOne({ _id: actor._id }, { $set: { role: 'admin' } });
+  const initial = await call(`/clients/${id}`);
+  assert.equal(initial.body.data.tipoPessoa, null);
+  assert.equal(initial.body.data.endereco, null);
+  const patch = async (body, tag) => call(`/clients/${id}`, { method: 'PATCH', body, headers: { 'If-Match': tag } });
+  for (const body of [
+    { tipoPessoa: 'fisica', documento: '123.456.789-00' },
+    { tipoPessoa: 'juridica', documento: '12ABC34501DE34' },
+    { tipoPessoa: 'juridica', documento: '12345678909' },
+    { tipoPessoa: 'fisica', documento: '' },
+    { tipoPessoa: 'desconhecida' },
+    { endereco: { cep: '1234' } },
+    { endereco: { constructor: 'injetado' } },
+  ]) assert.equal((await patch(body, initial.headers.get('etag'))).status, 400);
+  const saved = await patch({ tipoPessoa: 'juridica', documento: '12.ABC.345/01DE-35', endereco: { cep: '13000-000', cidade: 'Cidade sintética', uf: 'sp' } }, initial.headers.get('etag'));
+  assert.equal(saved.status, 200); assert.equal(saved.body.data.documento, '12ABC34501DE35');
+  assert.equal(saved.body.data.endereco.cep, '13000000'); assert.equal(saved.body.data.endereco.uf, 'SP');
+  assert.equal((await patch({ endereco: { cidade: 'Concorrente' } }, initial.headers.get('etag'))).status, 412);
+  const cleared = await patch({ documento: null, endereco: { cidade: null } }, saved.headers.get('etag'));
+  assert.equal(cleared.status, 200); assert.equal(cleared.body.data.documento, null);
+  assert.equal(cleared.body.data.endereco.cidade, null); assert.equal(cleared.body.data.endereco.cep, '13000000');
+  const reread = await call(`/clients/${id}`); assert.equal(reread.body.data.documento, null);
+  assert.equal((await call(`/orders/${created.body.data._id}`)).body.data.cliente.nome, 'Pessoa sintética A');
+  assert.equal((await call(`/orders?clienteId=${id}`)).body.meta.total, 1);
+});
+
+test('índice de documento resolve edições concorrentes e bloqueia escrita sem índice', async () => {
+  const first = await create();
+  const other = payload(); other.cliente.telefone = '19900000043'; other.cliente.nome = 'Pessoa sintética B';
+  const second = await create(other);
+  await User.updateOne({ _id: actor._id }, { $set: { role: 'admin' } });
+  const ids = [first.body.data.clienteId, second.body.data.clienteId];
+  const reads = await Promise.all(ids.map(id => call(`/clients/${id}`)));
+  const updates = await Promise.all(ids.map((id, index) => call(`/clients/${id}`, { method: 'PATCH',
+    body: { tipoPessoa: 'fisica', documento: '123.456.789-09' }, headers: { 'If-Match': reads[index].headers.get('etag') } })));
+  assert.deepEqual(updates.map(result => result.status).sort(), [200, 409]);
+  assert.equal(updates.find(result => result.status === 409).body.error.code, 'DOCUMENT_IN_USE');
+  assert.equal(await Client.countDocuments({ documento: '12345678909' }), 1);
+  await Client.collection.dropIndex('client_document_unique');
+  try {
+    const winner = updates.find(result => result.status === 200).body.data;
+    const denied = await call(`/clients/${winner._id}`, { method: 'PATCH', body: { documento: '12345678909' }, headers: { 'If-Match': `"client-${winner._id}-v${winner.version}"` } });
+    assert.equal(denied.status, 503);
+  } finally { await Client.createIndexes(); }
+});
+
 test('normalização e máscara distinguem +55 de DDD 55 e não reparam entradas inválidas', () => {
   for (const input of [phone, '(19) 90000-0042', '+55 (19) 90000-0042', '5519900000042']) assert.equal(normalizePhone(input), '+5519900000042');
   assert.equal(normalizePhone('55900000042'), '+5555900000042');

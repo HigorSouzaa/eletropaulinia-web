@@ -30,7 +30,8 @@ export async function requireClientDocumentReady() {
   try { indexes = await Client.collection.indexes(); }
   catch (error) { if (error.code === 26) throw new OrderError(503, 'CLIENTS_NOT_READY'); throw error; }
   if (!indexes.some(index => index.unique && index.key.documento === 1 && Object.keys(index.key).length === 1
-    && index.partialFilterExpression?.documento?.$type === 'string' && (!index.collation || index.collation.locale === 'simple'))) {
+    && index.partialFilterExpression?.documento?.$type === 'string' && Object.keys(index.partialFilterExpression).length === 1
+    && (!index.collation || index.collation.locale === 'simple'))) {
     throw new OrderError(503, 'CLIENTS_NOT_READY');
   }
 }
