@@ -46,6 +46,17 @@ test('status exige sessão; QR e comandos são exclusivos de admin', async () =>
   assert.match((await call('whatsapp/status', admin)).headers.get('cache-control'), /no-store/);
 });
 
+test('ambiente sem configuração recusa conexão antes de iniciar navegador', async () => {
+  const old = process.env.NODE_ENV;
+  process.env.NODE_ENV = 'production';
+  try {
+    const response = await call('whatsapp/connect', admin, 'POST');
+    assert.equal(response.status, 503);
+    assert.equal(whatsappWeb.client, null);
+    assert.equal((await response.json()).error.code, 'WHATSAPP_NOT_CONFIGURED');
+  } finally { if (old === undefined) delete process.env.NODE_ENV; else process.env.NODE_ENV = old; }
+});
+
 test('criação de OS não agenda nem envia mensagem, mesmo em payload antigo com autorização', async () => {
   const body = { cliente: { nome: 'Cliente sintético', telefone: '19900000123' }, dataEntrada: '2026-11-03',
     equipamentos: [{ nome: 'Equipamento sintético', solicitacao: { tipo: 'testar' } }],
@@ -78,7 +89,7 @@ test('QR simulado só é entregue ao administrador e não revela o valor bruto',
   fake.destroy = async () => {};
   whatsappWeb.factory = async () => fake;
   try {
-    assert.equal((await call('whatsapp/connect', admin, 'POST')).status, 200);
+    await whatsappWeb.connect();
     const allowed = await call('whatsapp/qr', admin);
     assert.equal(allowed.status, 200);
     assert.match(allowed.headers.get('cache-control'), /no-store/);

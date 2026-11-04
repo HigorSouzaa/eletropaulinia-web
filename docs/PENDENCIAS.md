@@ -14,6 +14,8 @@ Atualização P32 — após aprovação funcional: inicialização concorrente e
 
 Atualização P32 — prova local adicional: sessão temporária de `whatsapp-web.js` alcançou `aguardando_qr` com QR gerado, sem expor seu conteúdo; processo desconectado e pasta descartada. Isso valida Chrome + biblioteca até QR, não o pareamento, reconexão autenticada nem entrega de mensagem. Testes dirigidos de concorrência/falha e tela passaram. Pareamento exige aparelho da loja; não inferir conclusão de P32.
 
+Atualização P32 — dependências: `whatsapp-web.js`/`qrcode` são apenas de desenvolvimento, carregados dinamicamente, pois a conexão não é permitida em produção. `npm audit --omit=dev` agora reporta 0 alertas no backend de produção; a auditoria completa mantém 12 altos e 7 moderados na cadeia local. Sem correção segura comprovada para essa cadeia, pareamento e publicação continuam bloqueados. [Evidência e runbook](qa/WHATSAPP-LOCAL.md).
+
 ## Clareza de Finanças — 29/10/2026
 
 P31 permanece com publicação pendente. A reorganização visual do Prompt 03 e a agregação aditiva por categoria foram implementadas e validadas apenas localmente na branch `feat/financas-clareza-visual`; evidências em `docs/qa/FINANCAS-CLAREZA.md`. A agregação exige medição com volume representativo antes de afirmar desempenho no Atlas. Nenhum dado remoto foi alterado.
