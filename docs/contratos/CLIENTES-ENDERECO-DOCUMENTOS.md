@@ -50,3 +50,13 @@ Manter a moldura e aparência atuais. Na ficha de Cliente, contato e histórico 
 Após aprovação: implementar só admin preenchendo tipo/endereço/documento opcional na ficha → PATCH versionado → Mongo descartável → recarga. Demonstrar 403 de funcionário e verificar que lookup/OS não recebem o documento. Pedir revisão funcional dessa primeira fatia antes de completar limpeza, duplicidade concorrente, mudança de tipo, responsividade e regressões.
 
 Matriz final: PF/PJ com e sem documento; CPF/CNPJ inválido; duplicidade simultânea; limpeza via null; ETag desatualizado; funcionário 403; lista/lookup sem documento; cliente antigo legível; histórico de OS inalterado; recarga e 360/768/1280 px. Rodar HTTP/Mongo descartável, navegador, tipagem, lint e build. Não executar indexação no Atlas, push ou deploy.
+
+## Implementação local e compatibilidade
+
+Após os três checkpoints aprovados, a branch `feat/clientes-endereco-documentos` implementou os campos aditivos, a validação de CPF/CNPJ (inclusive CNPJ alfanumérico), índice único parcial declarado, resposta administrativa separada e a seção de edição na ficha. O índice é criado apenas nos bancos descartáveis dos testes. No Atlas publicado, gravação de documento falha com 503 enquanto o índice correto não for criado mediante autorização específica; as consultas e os dados básicos continuam funcionando.
+
+A atualização remota futura deve inventariar a coleção `clients` sem expor documentos, verificar duplicidades, criar o índice `client_document_unique`, atualizar a API e só então disponibilizar a interface. A versão anterior da interface e a Nova ordem seguem usando apenas telefone, nome e e-mail; não há alteração no snapshot histórico da OS. Em reversão de aplicação, manter os campos adicionais e o índice no banco, sem apagar dados. Não transformar cadastros antigos nem inferir documento/tipo de pessoa.
+
+Validação local da nova jornada: `backend/tests/clients.test.js` cobriu gravação, permissão, privacidade, CPF/CNPJ inválido, limpeza, ETag, concorrência do índice e histórico. `tests/clients.spec.ts` cobriu edição, recarga, ausência dos campos na Nova ordem e larguras de 360, 768 e 1280 px. Capturas sintéticas são geradas em `test-results/clientes-adicionais-{360,768,1280}.png` (fora do Git). Não houve acesso ou alteração no Atlas, Netlify ou Render.
+
+Para repetir em ambiente local, seguir as variáveis de desenvolvimento do `README.md` e iniciar Next/Express com `npm run start-all`. Para validar sem banco externo: `npm run check` e `npm run test:e2e -- --grep "ficha administrativa salva documento"`. A suíte de navegador usa MongoDB descartável e credenciais sintéticas próprias; não apontar esses testes para o Atlas.
