@@ -13,13 +13,14 @@ import Counter from '../models/Counter.js';
 import { createInput, OrderError } from '../services/orderInput.js';
 import { normalizePhone, formatPhone, formatPhoneInput } from '../../shared/phone.js';
 import { validCpf, validCnpj } from '../services/clientIdentity.js';
+import { prepareClientDocumentIndex } from '../services/clientDocumentIndex.js';
 
 let mongo, server, origin, token, actor;
 const phone = '19900000042';
 const payload = () => ({ cliente: { nome: 'Pessoa sintética A', telefone: phone }, dataEntrada: '2026-10-27', equipamentos: [{ nome: 'Rádio sintético', solicitacao: { tipo: 'testar' } }] });
 before(async () => {
   process.env.JWT_SECRET = randomBytes(48).toString('hex');
-  mongo = await MongoMemoryReplSet.create({ binary: { version: '8.0.17' }, replSet: { count: 1, ip: '127.0.0.1' }, instanceOpts: [{ launchTimeout: 30000 }] });
+  mongo = await MongoMemoryReplSet.create({ binary: { version: '8.0.17' }, replSet: { count: 1, ip: '127.0.0.1' }, instanceOpts: [{ launchTimeout: 60000 }] });
   await mongoose.connect(mongo.getUri(), { dbName: 'clients_slice_test' });
   await User.init(); await Client.createCollection(); await Client.createIndexes(); await Order.createIndexes(); await Counter.init();
   server = app.listen(0, '127.0.0.1'); await once(server, 'listening');
@@ -105,6 +106,26 @@ test('índice de documento resolve edições concorrentes e bloqueia escrita sem
     const denied = await call(`/clients/${winner._id}`, { method: 'PATCH', body: { documento: '12345678909' }, headers: { 'If-Match': `"client-${winner._id}-v${winner.version}"` } });
     assert.equal(denied.status, 503);
   } finally { await Client.createIndexes(); }
+});
+
+test('preparo de índice bloqueia duplicidade e pode ser repetido sem alterar clientes', async () => {
+  const first = await create();
+  const other = payload(); other.cliente.telefone = '19900000043'; other.cliente.nome = 'Pessoa sintética B';
+  const second = await create(other);
+  const ids = [first.body.data.clienteId, second.body.data.clienteId].map(id => new mongoose.Types.ObjectId(id));
+  await Client.collection.dropIndex('client_document_unique');
+  try {
+    await Client.collection.updateMany({ _id: { $in: ids } }, { $set: { documento: '12345678909' } });
+    await assert.rejects(prepareClientDocumentIndex(), /CLIENT_DOCUMENT_DUPLICATES/);
+    assert.equal((await Client.collection.indexes()).some(index => index.name === 'client_document_unique'), false);
+    await Client.collection.updateOne({ _id: ids[1] }, { $unset: { documento: '' } });
+    assert.equal(await prepareClientDocumentIndex(), 'created');
+    assert.equal(await prepareClientDocumentIndex(), 'already_ready');
+    assert.equal(await Client.countDocuments({ _id: { $in: ids } }), 2);
+  } finally {
+    await Client.collection.updateOne({ _id: ids[1] }, { $unset: { documento: '' } });
+    if (!(await Client.collection.indexes()).some(index => index.name === 'client_document_unique')) await Client.createIndexes();
+  }
 });
 
 test('normalização e máscara distinguem +55 de DDD 55 e não reparam entradas inválidas', () => {

@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import connectDB from './config/database.js';
 import app from './app.js';
 import AuthAttempt from './models/AuthAttempt.js';
+import { prepareClientDocumentIndex } from './services/clientDocumentIndex.js';
 
 const port = Number(process.env.PORT || 5000);
 const host = process.env.API_HOST || '127.0.0.1';
@@ -10,6 +11,10 @@ try {
   if (!process.env.MONGODB_URI || (process.env.JWT_SECRET || '').length < 32) throw new Error('Configuração incompleta');
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('Porta inválida');
   await connectDB();
+  if (process.env.PREPARE_CLIENT_DOCUMENT_INDEX === '1') {
+    const result = await prepareClientDocumentIndex();
+    console.log(`Índice de documentos de clientes: ${result}`);
+  }
   await AuthAttempt.init();
   const server = app.listen(port, host, () => console.log('API disponível na porta ' + port));
   server.on('error', async () => {
