@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 
-type Status = { state: string; changedAt: string; configured: boolean };
+type Status = { state: string; changedAt: string; configured: boolean; temporary?: boolean };
 const labels: Record<string, string> = { desligado: 'Desligado', iniciando: 'Iniciando', aguardando_qr: 'Aguardando leitura do QR Code', autenticando: 'Autenticando', conectado: 'Conectado', desconectado: 'Desconectado', erro: 'Erro na conexão' };
 
 export function WhatsAppConnection({ manage = false }: { manage?: boolean }) {
@@ -46,6 +46,7 @@ export function WhatsAppConnection({ manage = false }: { manage?: boolean }) {
     <p className="mt-2" role="status">{status ? !status.configured ? 'Não configurado neste ambiente' : labels[status.state] || 'Estado desconhecido' : 'Consultando...'}</p>
     {status?.configured && <p className="mt-1 text-sm text-gray-600">Última mudança: {new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' }).format(new Date(status.changedAt))}</p>}
     <p className="mt-1 text-sm text-gray-600">Nenhuma mensagem é enviada automaticamente.</p>
+    {status?.temporary && <p className="mt-1 text-sm text-amber-800">Conexão temporária: a Render pode encerrar a sessão ao dormir ou reiniciar. Nesse caso, conecte novamente pelo QR Code.</p>}
     {error && <p role="alert" className="mt-2 text-red-700">{error} <button type="button" className="underline" onClick={() => void refresh()}>Tentar novamente</button></p>}
     {manage && <div className="mt-4 flex gap-2"><button type="button" disabled={busy || !status?.configured || !['desligado', 'desconectado', 'erro'].includes(status.state)} className="rounded-lg bg-orange-600 px-4 py-2 text-white disabled:opacity-50" onClick={() => void change('connect')}>Conectar</button><button type="button" disabled={busy || !status || ['desligado', 'desconectado'].includes(status.state)} className="rounded-lg border px-4 py-2 disabled:opacity-50" onClick={() => void change('disconnect')}>Desconectar</button></div>}
     {manage && image && <div className="mt-4"><p>Escaneie com o WhatsApp da loja. O código expira rapidamente.</p><img src={image} alt="QR Code temporário para conectar o WhatsApp da loja" className="mt-3 h-64 w-64 max-w-full" /></div>}

@@ -48,13 +48,22 @@ test('status exige sessão; QR e comandos são exclusivos de admin', async () =>
 
 test('ambiente sem configuração recusa conexão antes de iniciar navegador', async () => {
   const old = process.env.NODE_ENV;
+  const oldRuntime = process.env.WHATSAPP_RUNTIME;
   process.env.NODE_ENV = 'production';
+  delete process.env.WHATSAPP_RUNTIME;
   try {
     const response = await call('whatsapp/connect', admin, 'POST');
     assert.equal(response.status, 503);
     assert.equal(whatsappWeb.client, null);
     assert.equal((await response.json()).error.code, 'WHATSAPP_NOT_CONFIGURED');
-  } finally { if (old === undefined) delete process.env.NODE_ENV; else process.env.NODE_ENV = old; }
+    process.env.WHATSAPP_RUNTIME = 'temporary';
+    const status = await call('whatsapp/status', admin);
+    assert.equal(status.status, 200);
+    assert.equal((await status.json()).data.temporary, true);
+  } finally {
+    if (old === undefined) delete process.env.NODE_ENV; else process.env.NODE_ENV = old;
+    if (oldRuntime === undefined) delete process.env.WHATSAPP_RUNTIME; else process.env.WHATSAPP_RUNTIME = oldRuntime;
+  }
 });
 
 test('criação de OS não agenda nem envia mensagem, mesmo em payload antigo com autorização', async () => {

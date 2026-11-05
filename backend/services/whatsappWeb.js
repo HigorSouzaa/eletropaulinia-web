@@ -61,6 +61,11 @@ export class WhatsAppWebSession {
 }
 
 async function localFactory() {
+  if (process.env.NODE_ENV === 'production' && process.env.WHATSAPP_RUNTIME === 'temporary') {
+    const { default: library } = await import('whatsapp-web.js');
+    const { Client, NoAuth } = library;
+    return new Client({ authStrategy: new NoAuth(), puppeteer: { headless: true } });
+  }
   const folder = process.env.WHATSAPP_SESSION_DIR;
   const chrome = process.env.WHATSAPP_CHROME_PATH;
   if (process.env.NODE_ENV === 'production' || !folder || !path.isAbsolute(folder) || !chrome || !path.isAbsolute(chrome)) throw new Error('LOCAL_RUNTIME_UNAVAILABLE');
@@ -75,6 +80,20 @@ async function localFactory() {
 }
 
 export const whatsappWeb = new WhatsAppWebSession(localFactory);
+export async function verifyTemporaryWhatsAppRuntime() {
+  if (process.env.NODE_ENV !== 'production' || process.env.WHATSAPP_RUNTIME !== 'temporary') return;
+  try {
+    const { default: puppeteer } = await import('puppeteer');
+    await access(puppeteer.executablePath());
+    const browser = await puppeteer.launch({ headless: true });
+    await browser.close();
+  } catch {
+    const error = new Error('Temporary WhatsApp runtime unavailable');
+    error.code = 'WHATSAPP_RUNTIME_UNAVAILABLE';
+    throw error;
+  }
+}
 export function whatsappWebConfigured() {
-  return process.env.NODE_ENV !== 'production' && Boolean(process.env.WHATSAPP_SESSION_DIR && process.env.WHATSAPP_CHROME_PATH);
+  return (process.env.NODE_ENV === 'production' && process.env.WHATSAPP_RUNTIME === 'temporary')
+    || (process.env.NODE_ENV !== 'production' && Boolean(process.env.WHATSAPP_SESSION_DIR && process.env.WHATSAPP_CHROME_PATH));
 }
